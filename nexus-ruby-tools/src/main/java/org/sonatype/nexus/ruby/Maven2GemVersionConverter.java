@@ -55,6 +55,11 @@ public class Maven2GemVersionConverter
                             currentRegion.append( "." );
                         }
 
+                        if ( gemVersion.length() == 0 )
+                        {
+                            currentRegion.append( "0." );
+                        }
+
                         currentRegion.append( chunk.substring( 0, 1 ) );
 
                         artificialHardBreak = true;

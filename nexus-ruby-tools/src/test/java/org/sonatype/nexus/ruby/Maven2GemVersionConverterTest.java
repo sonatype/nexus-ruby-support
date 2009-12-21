@@ -28,6 +28,7 @@ public class Maven2GemVersionConverterTest
         check( "12.23beta23", "12.23.1.23", false );
         check( "R8pre2", "8.2", false );
         check( "R8RC2.3", "8.2.3", false );
+        check( "Somethin", "0.s", false ); // unbelievable to have something like this. but who knows
     }
 
     // ==
