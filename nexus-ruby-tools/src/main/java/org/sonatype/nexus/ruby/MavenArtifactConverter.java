@@ -1,6 +1,5 @@
 package org.sonatype.nexus.ruby;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.apache.maven.model.Model;
@@ -43,12 +42,20 @@ public interface MavenArtifactConverter
     GemSpecification createSpecification( Model pom );
 
     /**
+     * Returns the "regular" gem filename, as it is expected to be called.
+     * 
+     * @param gemspec
+     * @return
+     */
+    String getGemFileName( GemSpecification gemspec );
+
+    /**
      * Creates a valid Ruby Gem, and returns File pointing to the result.
      * 
      * @param artifact
      * @return
      * @throws IOException
      */
-    File createGemFromArtifact( MavenArtifact artifact )
+    GemArtifact createGemFromArtifact( MavenArtifact artifact )
         throws IOException;
 }

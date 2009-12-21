@@ -133,7 +133,7 @@ public class MavenArtifactConverterTest
         doConversion( new File( "src/test/resources/repository/org/slf4j/slf4j-simple/1.5.8/slf4j-simple-1.5.8.pom" ) );
     }
 
-    public File doConversion( File pomFile )
+    public GemArtifact doConversion( File pomFile )
         throws Exception
     {
         MavenArtifactConverter converter = lookup( MavenArtifactConverter.class );

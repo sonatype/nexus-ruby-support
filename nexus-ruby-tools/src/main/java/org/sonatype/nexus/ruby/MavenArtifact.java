@@ -6,7 +6,8 @@ import org.apache.maven.model.Model;
 
 /**
  * This bean holds the artifact to be converted. Model should be already loaded up, to support different loading
- * strategies (ie. from pom.xml, from JAR itself, or using something like Maven2 support in Nexus).
+ * strategies (ie. from pom.xml, from JAR itself, or using something like Maven2 support in Nexus or having real
+ * interpolated POM).
  */
 public class MavenArtifact
 {

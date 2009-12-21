@@ -90,14 +90,29 @@ public class DefaultMavenArtifactConverter
         return result;
     }
 
-    public File createGemFromArtifact( MavenArtifact artifact )
+    public String getGemFileName( GemSpecification gemspec )
+    {
+        StringBuilder sb = new StringBuilder();
+
+        // gemspec.name - gemspec.version - gemspec.platform ".gem"
+        sb.append( gemspec.getName() ).append( "-" ).append( gemspec.getVersion().getVersion() );
+
+        // only non Ruby platform should be appended
+        // but we are doing "java" platform only, so this is wired in
+        sb.append( "-" ).append( gemspec.getPlatform() );
+
+        // extension
+        sb.append( ".gem" );
+
+        return sb.toString();
+    }
+
+    public GemArtifact createGemFromArtifact( MavenArtifact artifact )
         throws IOException
     {
         GemSpecification gemspec = createSpecification( artifact.getPom() );
 
-        File gemFile =
-            new File( artifact.getArtifact().getParentFile(), gemspec.getName() + "-"
-                + gemspec.getVersion().getVersion() + "-" + gemspec.getPlatform() + ".gem" );
+        File gemFile = new File( artifact.getArtifact().getParentFile(), getGemFileName( gemspec ) );
 
         // create "meta" ruby file
         File rubyStubFile = generateRubyStub( gemspec, artifact );
@@ -110,7 +125,7 @@ public class DefaultMavenArtifactConverter
         // write file
         gemPackager.createGem( gemspec, entries, gemFile );
 
-        return gemFile;
+        return new GemArtifact( gemspec, gemFile );
     }
 
     // ==
@@ -160,7 +175,8 @@ public class DefaultMavenArtifactConverter
         GemRequirement requirement = new GemRequirement();
 
         // TODO: we are adding "hard" dependencies here, but we should maybe support Maven ranges too
-        requirement.addRequirement( ">=", new GemVersion( createGemVersion( getDependencyVersion( pom, dependency ) ) ) );
+        requirement
+            .addRequirement( ">=", new GemVersion( createGemVersion( getDependencyVersion( pom, dependency ) ) ) );
 
         result.setVersion_requirement( requirement );
 
