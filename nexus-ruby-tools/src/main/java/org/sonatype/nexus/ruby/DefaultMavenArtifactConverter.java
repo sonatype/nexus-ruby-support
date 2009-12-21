@@ -33,6 +33,8 @@ public class DefaultMavenArtifactConverter
     @Requirement
     private GemPackager gemPackager;
 
+    private Maven2GemVersionConverter maven2GemVersionConverter = new Maven2GemVersionConverter();
+
     public String createGemName( String groupId, String artifactId, String version )
     {
         // TODO: think about this
@@ -41,7 +43,7 @@ public class DefaultMavenArtifactConverter
 
     public String createGemVersion( String mavenVersion )
     {
-        return mavenVersion;
+        return maven2GemVersionConverter.createGemVersion( mavenVersion );
     }
 
     public GemSpecification createSpecification( Model pom )
@@ -175,8 +177,9 @@ public class DefaultMavenArtifactConverter
         GemRequirement requirement = new GemRequirement();
 
         // TODO: we are adding "hard" dependencies here, but we should maybe support Maven ranges too
+        // based on http://blog.zenspider.com/2008/10/rubygems-howto-preventing-cata.html
         requirement
-            .addRequirement( ">=", new GemVersion( createGemVersion( getDependencyVersion( pom, dependency ) ) ) );
+            .addRequirement( "~>", new GemVersion( createGemVersion( getDependencyVersion( pom, dependency ) ) ) );
 
         result.setVersion_requirement( requirement );
 

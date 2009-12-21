@@ -2,6 +2,7 @@ package org.sonatype.nexus.plugins.ruby.shadow;
 
 import java.util.Arrays;
 
+import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.nexus.configuration.Configurator;
@@ -20,8 +21,10 @@ import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractShadowRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
+import org.sonatype.nexus.proxy.repository.ShadowRepository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 
+@Component( role = ShadowRepository.class, hint = "maven2-gem" )
 public class Maven2RubyGemShadowRepository
     extends AbstractShadowRepository
     implements RubyShadowRepository
