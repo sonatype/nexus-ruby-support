@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.sourceforge.yamlbeans.YamlException;
+import net.sourceforge.yamlbeans.YamlReader;
 import net.sourceforge.yamlbeans.YamlWriter;
 
 import org.codehaus.plexus.component.annotations.Component;
@@ -29,9 +30,9 @@ public class DefaultGemSpecificationIO
 {
 
     public GemSpecification read( String string )
+        throws IOException
     {
-        // TODO Auto-generated method stub
-        return null;
+        return readGemSpecfromYaml( string );
     }
 
     public String write( GemSpecification gemspec )
@@ -42,6 +43,15 @@ public class DefaultGemSpecificationIO
 
     // ==
 
+    protected GemSpecification readGemSpecfromYaml( String gemspecString )
+        throws IOException
+    {
+        // snake has some problems i could not overcome
+        // return readGemSpecfromYamlWithSnakeYaml( gemspec );
+        // yamlbeans makes better yaml at 1st glance
+        return readGemSpecfromYamlWithYamlBeans( gemspecString );
+    }
+
     protected String writeGemSpectoYaml( GemSpecification gemspec )
         throws IOException
     {
@@ -49,6 +59,33 @@ public class DefaultGemSpecificationIO
         // return writeGemSpectoYamlWithSnakeYaml( gemspec );
         // yamlbeans makes better yaml at 1st glance
         return writeGemSpectoYamlWithYamlBeans( gemspec );
+    }
+
+    // == SnakeYaml
+
+    protected GemSpecification readGemSpecfromYamlWithSnakeYaml( String gemspecString )
+        throws IOException
+    {
+        Map<String, Class<?>> mapping = new HashMap<String, Class<?>>();
+        mapping.put( "!ruby/object:Gem::Specification", GemSpecification.class );
+        mapping.put( "!ruby/object:Gem::Dependency", GemDependency.class );
+        mapping.put( "!ruby/object:Gem::Requirement", GemRequirement.class );
+        mapping.put( "!ruby/object:Gem::Version", GemVersion.class );
+
+        Constructor constructor = new MappingConstructor( mapping );
+        Loader loader = new Loader( constructor );
+
+        MappingRepresenter representer = new MappingRepresenter( mapping );
+        DumperOptions dumperOptions = new DumperOptions();
+        dumperOptions.setExplicitStart( true );
+        dumperOptions.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
+        dumperOptions.setDefaultScalarStyle( DumperOptions.ScalarStyle.PLAIN );
+
+        Dumper dumper = new Dumper( representer, dumperOptions );
+
+        Yaml yaml = new Yaml( loader, dumper );
+
+        return (GemSpecification) yaml.load( gemspecString );
     }
 
     protected String writeGemSpectoYamlWithSnakeYaml( GemSpecification gemspec )
@@ -74,6 +111,37 @@ public class DefaultGemSpecificationIO
         Yaml yaml = new Yaml( loader, dumper );
 
         return yaml.dump( gemspec );
+    }
+
+    // == YamlBeans
+
+    protected GemSpecification readGemSpecfromYamlWithYamlBeans( String gemspecString )
+        throws IOException
+    {
+        Map<String, Class<?>> mapping = new HashMap<String, Class<?>>();
+        mapping.put( "ruby/object:Gem::Specification", GemSpecification.class );
+        mapping.put( "ruby/object:Gem::Dependency", GemDependency.class );
+        mapping.put( "ruby/object:Gem::Requirement", GemRequirement.class );
+        mapping.put( "ruby/object:Gem::Version", GemVersion.class );
+
+        YamlReader yaml = new YamlReader( gemspecString );
+        for ( Map.Entry<String, Class<?>> entry : mapping.entrySet() )
+        {
+            yaml.getConfig().setClassTag( entry.getKey(), entry.getValue() );
+        }
+
+        try
+        {
+            GemSpecification obj = yaml.read( GemSpecification.class );
+
+            return obj;
+        }
+        catch ( YamlException e )
+        {
+            IOException e1 = new IOException( e.getMessage() );
+            e1.initCause( e );
+            throw e1;
+        }
     }
 
     private String writeGemSpectoYamlWithYamlBeans( GemSpecification gemspec )

@@ -146,7 +146,7 @@ public class MavenArtifactConverterTest
 
         MavenArtifact artifact = new MavenArtifact( pom, artifactFile );
 
-        return converter.createGemFromArtifact( artifact );
+        return converter.createGemFromArtifact( artifact, null );
     }
 
 }

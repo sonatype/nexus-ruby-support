@@ -1,5 +1,6 @@
 package org.sonatype.nexus.ruby;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.maven.model.Model;
@@ -13,6 +14,11 @@ import org.sonatype.nexus.ruby.gem.GemSpecification;
 public interface MavenArtifactConverter
 {
     /**
+     * The Java platform key.
+     */
+    String PLATFORM_JAVA = "java";
+
+    /**
      * Creates valid Gem name from GAV.
      * 
      * @param groupId
@@ -21,6 +27,33 @@ public interface MavenArtifactConverter
      * @return
      */
     String createGemName( String groupId, String artifactId, String version );
+
+    /**
+     * Returns the "regular" gem filename, as it is expected to be called.
+     * 
+     * @param groupId
+     * @param artifactId
+     * @param version
+     * @param platform
+     * @return
+     */
+    String getGemFileName( String groupId, String artifactId, String version, String platform );
+
+    /**
+     * Returns the "regular" gem filename, as it is expected to be called.
+     * 
+     * @param pom
+     * @return
+     */
+    String getGemFileName( Model pom );
+
+    /**
+     * Returns the "regular" gem filename, as it is expected to be called.
+     * 
+     * @param gemspec
+     * @return
+     */
+    String getGemFileName( GemSpecification gemspec );
 
     /**
      * Creates valid Gem version. Gem versions are "stricter" than Maven versions: they are in form of "x.y.z...". They
@@ -42,20 +75,13 @@ public interface MavenArtifactConverter
     GemSpecification createSpecification( Model pom );
 
     /**
-     * Returns the "regular" gem filename, as it is expected to be called.
-     * 
-     * @param gemspec
-     * @return
-     */
-    String getGemFileName( GemSpecification gemspec );
-
-    /**
      * Creates a valid Ruby Gem, and returns File pointing to the result.
      * 
-     * @param artifact
+     * @param artifact the artifact to gemize
+     * @param target where to save Gem file. If null, it will be created next to artifact
      * @return
      * @throws IOException
      */
-    GemArtifact createGemFromArtifact( MavenArtifact artifact )
+    GemArtifact createGemFromArtifact( MavenArtifact artifact, File target )
         throws IOException;
 }

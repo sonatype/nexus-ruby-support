@@ -41,6 +41,42 @@ public class DefaultMavenArtifactConverter
         return groupId + "." + artifactId;
     }
 
+    protected String constructGemFileName( String gemName, String gemVersion, String platform )
+    {
+        StringBuilder sb = new StringBuilder();
+
+        // gemspec.name - gemspec.version - gemspec.platform ".gem"
+        sb.append( gemName ).append( "-" ).append( gemVersion );
+
+        // only non Ruby platform should be appended
+        // but we are doing "java" platform only, so this is wired in
+        sb.append( "-" ).append( platform );
+
+        // extension
+        sb.append( ".gem" );
+
+        return sb.toString();
+    }
+
+    public String getGemFileName( String groupId, String artifactId, String version, String platform )
+    {
+        String gemName = createGemName( groupId, artifactId, version );
+
+        String gemVersion = createGemVersion( version );
+
+        return constructGemFileName( gemName, gemVersion, platform );
+    }
+
+    public String getGemFileName( Model pom )
+    {
+        return getGemFileName( getGroupId( pom ), pom.getArtifactId(), getVersion( pom ), PLATFORM_JAVA );
+    }
+
+    public String getGemFileName( GemSpecification gemspec )
+    {
+        return constructGemFileName( gemspec.getName(), gemspec.getVersion().getVersion(), gemspec.getPlatform() );
+    }
+
     public String createGemVersion( String mavenVersion )
     {
         return maven2GemVersionConverter.createGemVersion( mavenVersion );
@@ -92,29 +128,15 @@ public class DefaultMavenArtifactConverter
         return result;
     }
 
-    public String getGemFileName( GemSpecification gemspec )
-    {
-        StringBuilder sb = new StringBuilder();
-
-        // gemspec.name - gemspec.version - gemspec.platform ".gem"
-        sb.append( gemspec.getName() ).append( "-" ).append( gemspec.getVersion().getVersion() );
-
-        // only non Ruby platform should be appended
-        // but we are doing "java" platform only, so this is wired in
-        sb.append( "-" ).append( gemspec.getPlatform() );
-
-        // extension
-        sb.append( ".gem" );
-
-        return sb.toString();
-    }
-
-    public GemArtifact createGemFromArtifact( MavenArtifact artifact )
+    public GemArtifact createGemFromArtifact( MavenArtifact artifact, File target )
         throws IOException
     {
         GemSpecification gemspec = createSpecification( artifact.getPom() );
 
-        File gemFile = new File( artifact.getArtifact().getParentFile(), getGemFileName( gemspec ) );
+        if ( target == null )
+        {
+            target = new File( artifact.getArtifact().getParentFile(), getGemFileName( artifact.getPom() ) );
+        }
 
         // create "meta" ruby file
         File rubyStubFile = generateRubyStub( gemspec, artifact );
@@ -125,9 +147,9 @@ public class DefaultMavenArtifactConverter
         entries.add( new GemFileEntry( rubyStubFile, rubyStubPath, true ) );
 
         // write file
-        gemPackager.createGem( gemspec, entries, gemFile );
+        gemPackager.createGem( gemspec, entries, target );
 
-        return new GemArtifact( gemspec, gemFile );
+        return new GemArtifact( gemspec, target );
     }
 
     // ==
