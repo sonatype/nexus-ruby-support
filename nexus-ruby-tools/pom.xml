@@ -23,7 +23,6 @@
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
       <version>1.4</version>
-      <optional>true</optional>
     </dependency>
     <!-- Used for Yaml IO -->
     <dependency>
@@ -34,7 +33,17 @@
     <!-- We have components in here -->
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <version>1.5.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-component-annotations</artifactId>
+      <version>${plexus.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-container-default</artifactId>
       <version>${plexus.version}</version>
     </dependency>
     <!-- GEM is a tar.gz actually, so needed for creating Gems -->
@@ -65,12 +74,6 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.4</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-container-default</artifactId>
-      <version>${plexus.version}</version>
       <scope>test</scope>
     </dependency>
 

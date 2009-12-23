@@ -52,7 +52,7 @@ public class Maven2GemVersionConverterTest
                 mavenVersion == gemVersion );
         }
 
-        assertTrue( "The output is not a proper Gem version!", isProperGemVersion( gemVersion ) );
+        assertTrue( "The version \"" + gemVersion + "\" is not a proper Gem version!", isProperGemVersion( gemVersion ) );
     }
 
     protected boolean isProperGemVersion( String gemVersion )

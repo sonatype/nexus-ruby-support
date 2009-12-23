@@ -39,7 +39,7 @@ public class Maven2RubyGemShadowContentGenerator
 
     @Requirement
     private RubyRepositoryHelper rubyRepositoryHelper;
-    
+
     @Requirement
     private RubyGateway rubyGateway;
 
@@ -72,8 +72,7 @@ public class Maven2RubyGemShadowContentGenerator
             rubyGateway.createGemFromArtifact( mart, target );
 
             // swap in the content locator
-            FileContentLocator gemFileContentLocator =
-                new FileContentLocator( target, "binary/octet-stream" );
+            FileContentLocator gemFileContentLocator = new FileContentLocator( target, "binary/octet-stream" );
 
             DefaultStorageFileItem gemItem =
                 new DefaultStorageFileItem( repository, item.getResourceStoreRequest(), true, true,

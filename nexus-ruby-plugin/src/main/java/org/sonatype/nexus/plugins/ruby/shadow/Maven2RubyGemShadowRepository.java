@@ -36,6 +36,7 @@ import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.repository.ShadowRepository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
+import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
 import org.sonatype.nexus.ruby.MavenArtifact;
 
 @Component( role = ShadowRepository.class, hint = Maven2RubyGemShadowRepository.ID )
@@ -101,6 +102,8 @@ public class Maven2RubyGemShadowRepository
         return masterContentClass;
     }
 
+    // == RubyShadowRepository
+
     @Override
     public MavenRepository getMasterRepository()
     {
@@ -121,6 +124,16 @@ public class Maven2RubyGemShadowRepository
         }
     }
 
+    public boolean isLazyGemMaterialization()
+    {
+        return getExternalConfiguration( false ).isLazyGemMaterialization();
+    }
+
+    public void setLazyGemMaterialization( boolean val )
+    {
+        getExternalConfiguration( true ).setLazyGemMaterialization( val );
+    }
+
     // ==
 
     @Override
@@ -138,32 +151,67 @@ public class Maven2RubyGemShadowRepository
             MavenArtifact mart =
                 rubyRepositoryHelper.getMavenArtifactForItem( getMasterRepository(), (StorageFileItem) item );
 
+            if ( mart == null )
+            {
+                getLogger().info( "Skipping artifact " + item.getPath() + " in repository " + getId() );
+
+                return null;
+            }
+
             String gemName = rubyGateway.getGemFileName( mart.getPom() );
 
-            // 1st, we create the stub file, which is just the gemspec file in Yaml
-            DefaultStorageFileItem gemStub =
-                new DefaultStorageFileItem( this, new ResourceStoreRequest( "/gems/" + gemName, true ), true, false,
-                    new StringContentLocator( "STUB" ) );
+            getLogger().info(
+                "Creating " + ( isLazyGemMaterialization() ? "lazily " : "" ) + " Gem " + gemName + " in repository "
+                    + getId() );
 
-            gemStub.getAttributes().put( ContentGenerator.CONTENT_GENERATOR_ID, Maven2RubyGemShadowContentGenerator.ID );
+            if ( isLazyGemMaterialization() )
+            {
+                // 1st, we create the stub file, which is just the gemspec file in Yaml
+                DefaultStorageFileItem gemStub =
+                    new DefaultStorageFileItem( this, new ResourceStoreRequest( "/gems/" + gemName, true ), true,
+                        false, new StringContentLocator( "STUB" ) );
 
-            gemStub.getAttributes().put( ORIGINAL_ITEM_PATH, item.getPath() );
+                gemStub.getAttributes().put( ContentGenerator.CONTENT_GENERATOR_ID,
+                    Maven2RubyGemShadowContentGenerator.ID );
 
-            storeItem( true, gemStub );
+                gemStub.getAttributes().put( ORIGINAL_ITEM_PATH, item.getPath() );
 
-            // 2nd, we create the raw gemspec file for indexer
-            // THIS IS DIRTY!
-            File gemspecFile =
-                ( (DefaultFSLocalRepositoryStorage) getLocalStorage() ).getFileFromBase( this,
-                    new ResourceStoreRequest( "/gems/" + gemName + ".gemspec" ) );
+                storeItem( true, gemStub );
 
-            rubyGateway.createAndWriteGemspec( mart.getPom(), gemspecFile );
+                // 2nd, we create the raw gemspec file for indexer
+                // THIS IS DIRTY!
+                File gemspecFile =
+                    ( (DefaultFSLocalRepositoryStorage) getLocalStorage() ).getFileFromBase( this,
+                        new ResourceStoreRequest( "/gems/" + gemName + ".gemspec" ) );
+
+                rubyGateway.createAndWriteGemspec( mart.getPom(), gemspecFile );
+            }
+            else
+            {
+                File target = File.createTempFile( "nexus-gem", ".gem.tmp" );
+
+                rubyGateway.createGemFromArtifact( mart, target );
+
+                DefaultStorageFileItem gemItem =
+                    new DefaultStorageFileItem( this, new ResourceStoreRequest( "/gems/" + gemName, true ), true,
+                        false, new FileContentLocator( target, "binary/octet-stream" ) );
+
+                gemItem.getAttributes().put( ORIGINAL_ITEM_PATH, item.getPath() );
+
+                storeItem( true, gemItem );
+            }
         }
         catch ( IOException e )
         {
             // should not happen
             // TODO: fix this exception getGemSpecificationIO().write()
         }
+
+        // for fun, we are publishing indexes at every change
+        // naturally, this will NOT scale, but for now (playing) is okay
+        rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) getLocalStorage() ).getBaseDir( this,
+            new ResourceStoreRequest( "/" ) ) );
+        getNotFoundCache().purge();
 
         // nothing to return
         return null;
@@ -173,8 +221,20 @@ public class Maven2RubyGemShadowRepository
     protected void deleteLink( StorageItem item )
         throws UnsupportedStorageOperationException, IllegalOperationException, ItemNotFoundException, StorageException
     {
-        // TODO Auto-generated method stub
+        MavenArtifact mart =
+            rubyRepositoryHelper.getMavenArtifactForItem( getMasterRepository(), (StorageFileItem) item );
 
+        String gemName = rubyGateway.getGemFileName( mart.getPom() );
+
+        deleteItem( true, new ResourceStoreRequest( "/gems/" + gemName ) );
+
+        deleteItem( true, new ResourceStoreRequest( "/gems/" + gemName + ".gemspec" ) );
+
+        // for fun, we are publishing indexes at every change
+        // naturally, this will NOT scale, but for now (playing) is okay
+        rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) getLocalStorage() ).getBaseDir( this,
+            new ResourceStoreRequest( "/" ) ) );
+        getNotFoundCache().purge();
     }
 
     // ==

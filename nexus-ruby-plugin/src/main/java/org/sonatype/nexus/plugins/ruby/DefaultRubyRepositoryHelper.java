@@ -6,12 +6,13 @@ import org.apache.maven.model.Model;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.sonatype.nexus.artifact.IllegalArtifactCoordinateException;
+import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.maven.ArtifactStoreRequest;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.maven.MetadataLocator;
-import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
+import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.nexus.ruby.MavenArtifact;
 
 @Component( role = RubyRepositoryHelper.class )
@@ -36,7 +37,7 @@ public class DefaultRubyRepositoryHelper
         }
 
         // this works only on FS storages
-        if ( !( item.getContentLocator() instanceof FileContentLocator ) )
+        if ( !( masterRepository.getLocalStorage() instanceof DefaultFSLocalRepositoryStorage ) )
         {
             return null;
         }
@@ -47,12 +48,12 @@ public class DefaultRubyRepositoryHelper
 
             Model pom = getMetadataLocator().retrievePom( gavRequest );
 
-            return new MavenArtifact( pom, ( (FileContentLocator) item.getContentLocator() ).getFile() );
+            return new MavenArtifact( pom, ( (DefaultFSLocalRepositoryStorage) masterRepository.getLocalStorage() )
+                .getFileFromBase( masterRepository, new ResourceStoreRequest( item.getPath() ) ) );
         }
         catch ( IllegalArtifactCoordinateException e )
         {
-            // this is not a valid Maven2 artifact
-            return null;
+            throw new StorageException( "Not a valid Maven2 artifact!", e );
         }
         catch ( IOException e )
         {

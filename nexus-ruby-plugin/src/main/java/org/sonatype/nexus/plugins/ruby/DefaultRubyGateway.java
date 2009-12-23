@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.maven.model.Model;
-import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.FileUtils;
 import org.sonatype.nexus.ruby.MavenArtifact;
@@ -17,7 +16,6 @@ import org.sonatype.nexus.ruby.gem.GemSpecificationIO;
  * 
  * @author cstamas
  */
-@Component( role = RubyGateway.class )
 public class DefaultRubyGateway
     implements RubyGateway
 {
