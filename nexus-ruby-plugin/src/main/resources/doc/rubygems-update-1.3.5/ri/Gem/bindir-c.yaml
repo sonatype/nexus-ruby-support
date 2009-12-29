@@ -1,0 +1,12 @@
+--- !ruby/object:RI::MethodDescription 
+aliases: []
+
+block_params: 
+comment: 
+  - !ruby/struct:SM::Flow::P 
+    body: The path where gem executables are to be installed.
+full_name: Gem::bindir
+is_singleton: true
+name: bindir
+params: (install_dir=Gem.dir)
+visibility: public

@@ -92,11 +92,15 @@ public class Maven2RubyGemShadowContentGenerator
 
             return newGemItem.getContentLocator();
         }
-        catch ( IOException e )
+        catch ( UnsupportedStorageOperationException e )
         {
             throw new StorageException( "Could not create GEM!", e );
         }
-        catch ( UnsupportedStorageOperationException e )
+        catch ( StorageException e )
+        {
+            throw new StorageException( "Could not create GEM!", e );
+        }
+        catch ( IOException e )
         {
             throw new StorageException( "Could not create GEM!", e );
         }

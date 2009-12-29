@@ -1,0 +1,44 @@
+--- !ruby/object:RI::ClassDescription 
+attributes: 
+  - !ruby/object:RI::Attribute 
+    comment: 
+    name: only_signed
+    rw: RW
+  - !ruby/object:RI::Attribute 
+    comment: 
+    name: only_trusted
+    rw: RW
+  - !ruby/object:RI::Attribute 
+    comment: 
+    name: verify_chain
+    rw: RW
+  - !ruby/object:RI::Attribute 
+    comment: 
+    name: verify_data
+    rw: RW
+  - !ruby/object:RI::Attribute 
+    comment: 
+    name: verify_root
+    rw: RW
+  - !ruby/object:RI::Attribute 
+    comment: 
+    name: verify_signer
+    rw: RW
+class_methods: 
+  - !ruby/object:RI::MethodSummary 
+    name: new
+  - !ruby/object:RI::MethodSummary 
+    name: trusted_cert_path
+comment: 
+  - !ruby/struct:SM::Flow::P 
+    body: A Gem::Security::Policy object encapsulates the settings for verifying signed gem files. This is the base class. You can either declare an instance of this or use one of the preset security policies below.
+constants: []
+
+full_name: Gem::Security::Policy
+includes: []
+
+instance_methods: 
+  - !ruby/object:RI::MethodSummary 
+    name: verify_gem
+name: Policy
+superclass: Object

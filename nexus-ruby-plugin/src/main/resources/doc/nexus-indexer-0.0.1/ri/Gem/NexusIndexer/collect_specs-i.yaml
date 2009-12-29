@@ -1,0 +1,10 @@
+--- !ruby/object:RI::MethodDescription 
+aliases: []
+
+block_params: 
+comment: 
+full_name: Gem::NexusIndexer#collect_specs
+is_singleton: false
+name: collect_specs
+params: (yamls = gemspec_file_list)
+visibility: public

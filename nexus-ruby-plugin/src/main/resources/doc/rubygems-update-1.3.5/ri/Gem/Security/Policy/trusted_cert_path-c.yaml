@@ -1,0 +1,12 @@
+--- !ruby/object:RI::MethodDescription 
+aliases: []
+
+block_params: 
+comment: 
+  - !ruby/struct:SM::Flow::P 
+    body: Get the path to the file for this cert.
+full_name: Gem::Security::Policy::trusted_cert_path
+is_singleton: true
+name: trusted_cert_path
+params: (cert, opt = {})
+visibility: public

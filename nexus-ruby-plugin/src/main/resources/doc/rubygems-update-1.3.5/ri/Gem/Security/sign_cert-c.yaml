@@ -1,0 +1,12 @@
+--- !ruby/object:RI::MethodDescription 
+aliases: []
+
+block_params: 
+comment: 
+  - !ruby/struct:SM::Flow::P 
+    body: Sign the cert cert with @signing_key and @signing_cert, using the digest algorithm opt[:dgst_algo]. Returns the newly signed certificate.
+full_name: Gem::Security::sign_cert
+is_singleton: true
+name: sign_cert
+params: (cert, signing_key, signing_cert, opt = {})
+visibility: public

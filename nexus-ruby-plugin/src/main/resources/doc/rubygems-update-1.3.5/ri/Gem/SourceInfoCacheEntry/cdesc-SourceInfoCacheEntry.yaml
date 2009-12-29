@@ -1,0 +1,30 @@
+--- !ruby/object:RI::ClassDescription 
+attributes: 
+  - !ruby/object:RI::Attribute 
+    comment: 
+      - !ruby/struct:SM::Flow::P 
+        body: The size of the source entry. Used to determine if the source index has changed.
+    name: size
+    rw: R
+  - !ruby/object:RI::Attribute 
+    comment: 
+      - !ruby/struct:SM::Flow::P 
+        body: The source index for this cache entry.
+    name: source_index
+    rw: R
+class_methods: 
+  - !ruby/object:RI::MethodSummary 
+    name: new
+comment: 
+  - !ruby/struct:SM::Flow::P 
+    body: Entries held by a SourceInfoCache.
+constants: []
+
+full_name: Gem::SourceInfoCacheEntry
+includes: []
+
+instance_methods: 
+  - !ruby/object:RI::MethodSummary 
+    name: refresh
+name: SourceInfoCacheEntry
+superclass: Object

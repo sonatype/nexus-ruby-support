@@ -1,0 +1,12 @@
+--- !ruby/object:RI::MethodDescription 
+aliases: []
+
+block_params: 
+comment: 
+  - !ruby/struct:SM::Flow::P 
+    body: A Zlib::Inflate#inflate wrapper
+full_name: Gem::inflate
+is_singleton: true
+name: inflate
+params: (data)
+visibility: public

@@ -1,0 +1,19 @@
+--- !ruby/object:RI::ClassDescription 
+attributes: []
+
+class_methods: []
+
+comment: 
+  - !ruby/struct:SM::Flow::P 
+    body: ++
+  - !ruby/struct:SM::Flow::VERB 
+    body: " Copyright (C) 2004 Mauricio Julio Fern\xE1ndez Pradier\n See LICENSE.txt for additional licensing information.\n"
+constants: []
+
+full_name: Gem::Package::FSyncDir
+includes: []
+
+instance_methods: []
+
+name: FSyncDir
+superclass: 

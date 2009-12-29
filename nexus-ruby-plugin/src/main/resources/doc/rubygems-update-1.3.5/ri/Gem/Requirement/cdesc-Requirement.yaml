@@ -1,0 +1,46 @@
+--- !ruby/object:RI::ClassDescription 
+attributes: 
+  - !ruby/object:RI::Attribute 
+    comment: 
+    name: requirements
+    rw: R
+class_methods: 
+  - !ruby/object:RI::MethodSummary 
+    name: create
+  - !ruby/object:RI::MethodSummary 
+    name: default
+  - !ruby/object:RI::MethodSummary 
+    name: new
+comment: 
+  - !ruby/struct:SM::Flow::P 
+    body: Requirement version includes a prefaced comparator in addition to a version number.
+  - !ruby/struct:SM::Flow::P 
+    body: A Requirement object can actually contain multiple, er, requirements, as in (&gt; 1.2, &lt; 2.0).
+constants: 
+  - !ruby/object:RI::Constant 
+    comment: 
+    name: OPS
+    value: "{     \"=\"  =>  lambda { |v, r| v == r },     \"!=\" =>  lambda { |v, r| v != r },     \">\"  =>  lambda { |v, r| v > r },     \"<\"  =>  lambda { |v, r| v < r },     \">=\" =>  lambda { |v, r| v >= r },     \"<=\" =>  lambda { |v, r| v <= r },     \"~>\" =>  lambda { |v, r| v = v.release;"
+  - !ruby/object:RI::Constant 
+    comment: 
+    name: OP_RE
+    value: OPS.keys.map{ |k| Regexp.quote k }.join '|'
+full_name: Gem::Requirement
+includes: 
+  - !ruby/object:RI::IncludedModule 
+    name: Comparable
+instance_methods: 
+  - !ruby/object:RI::MethodSummary 
+    name: as_list
+  - !ruby/object:RI::MethodSummary 
+    name: normalize
+  - !ruby/object:RI::MethodSummary 
+    name: parse
+  - !ruby/object:RI::MethodSummary 
+    name: prerelease?
+  - !ruby/object:RI::MethodSummary 
+    name: satisfied_by?
+  - !ruby/object:RI::MethodSummary 
+    name: satisfy?
+name: Requirement
+superclass: Object

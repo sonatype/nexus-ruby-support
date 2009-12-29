@@ -22,7 +22,7 @@ public class JRubyRubyGateway
     {
         scriptingContainer = new ScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
         
-        generateIndexes = scriptingContainer.parse( PathType.CLASSPATH, "ruby/generate_indexes.rb" );
+        generateIndexes = scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_indexes.rb" );
     }
 
     @Override
