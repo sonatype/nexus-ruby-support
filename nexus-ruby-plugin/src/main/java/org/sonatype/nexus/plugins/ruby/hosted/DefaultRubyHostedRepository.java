@@ -9,8 +9,8 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
-import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyHostedRepository;
+import org.sonatype.nexus.plugins.ruby.RubyIndexer;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
@@ -23,7 +23,6 @@ import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
-import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 
 @Component( role = Repository.class, hint = DefaultRubyHostedRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Hosted Repository" )
 public class DefaultRubyHostedRepository
@@ -39,7 +38,7 @@ public class DefaultRubyHostedRepository
     private DefaultRubyHostedRepositoryConfigurator defaultRubyHostedRepositoryConfigurator;
 
     @Requirement
-    private RubyGateway rubyGateway;
+    private RubyIndexer rubyIndexer;
 
     /**
      * Repository kind.
@@ -83,35 +82,7 @@ public class DefaultRubyHostedRepository
         return (DefaultRubyHostedRepositoryConfiguration) super.getExternalConfiguration( forWrite );
     }
 
-    protected void generateIndex()
-        throws StorageException
-    {
-        // for fun, we are publishing indexes at every change
-        // naturally, this will NOT scale, but for now (playing) is okay
-        rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) getLocalStorage() ).getBaseDir( this,
-            new ResourceStoreRequest( "/" ) ) );
-        getNotFoundCache().purge();
-    }
-
     // ==
-
-    @Override
-    public void deleteItem( boolean fromTask, ResourceStoreRequest request )
-        throws UnsupportedStorageOperationException, IllegalOperationException, ItemNotFoundException, StorageException
-    {
-        super.deleteItem( fromTask, request );
-
-        try
-        {
-            // to reflect modification
-            // TODO: we need smarter way to do this!
-            generateIndex();
-        }
-        catch ( StorageException e )
-        {
-            getLogger().warn( "Could not generate RubyGems index! Index may be stale, and change is not reflected!", e );
-        }
-    }
 
     @Override
     public void storeItem( boolean fromTask, StorageItem item )
@@ -119,15 +90,17 @@ public class DefaultRubyHostedRepository
     {
         super.storeItem( fromTask, item );
 
-        try
-        {
-            // to reflect modification
-            // TODO: we need smarter way to do this!
-            generateIndex();
-        }
-        catch ( StorageException e )
-        {
-            getLogger().warn( "Could not generate RubyGems index! Index may be stale, and change is not reflected!", e );
-        }
+        // to reflect modification
+        rubyIndexer.reindexRepository( this );
+    }
+
+    @Override
+    public void deleteItem( boolean fromTask, ResourceStoreRequest request )
+        throws UnsupportedStorageOperationException, IllegalOperationException, ItemNotFoundException, StorageException
+    {
+        super.deleteItem( fromTask, request );
+
+        // to reflect modification
+        rubyIndexer.reindexRepository( this );
     }
 }

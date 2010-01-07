@@ -12,6 +12,7 @@ import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyGateway;
+import org.sonatype.nexus.plugins.ruby.RubyIndexer;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepositoryHelper;
 import org.sonatype.nexus.plugins.ruby.RubyShadowRepository;
@@ -59,6 +60,9 @@ public class Maven2RubyGemShadowRepository
 
     @Requirement
     private RubyRepositoryHelper rubyRepositoryHelper;
+
+    @Requirement
+    private RubyIndexer rubyIndexer;
 
     @Requirement
     private RubyGateway rubyGateway;
@@ -153,14 +157,14 @@ public class Maven2RubyGemShadowRepository
 
             if ( mart == null )
             {
-                getLogger().info( "Skipping artifact " + item.getPath() + " in repository " + getId() );
+                getLogger().debug( "Skipping artifact " + item.getPath() + " in repository " + getId() );
 
                 return null;
             }
 
             String gemName = rubyGateway.getGemFileName( mart.getPom() );
 
-            getLogger().info(
+            getLogger().debug(
                 "Creating " + ( isLazyGemMaterialization() ? "lazily " : "" ) + " Gem " + gemName + " in repository "
                     + getId() );
 
@@ -209,9 +213,7 @@ public class Maven2RubyGemShadowRepository
 
         // for fun, we are publishing indexes at every change
         // naturally, this will NOT scale, but for now (playing) is okay
-        rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) getLocalStorage() ).getBaseDir( this,
-            new ResourceStoreRequest( "/" ) ) );
-        getNotFoundCache().purge();
+        rubyIndexer.reindexRepository( this );
 
         // nothing to return
         return null;

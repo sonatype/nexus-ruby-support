@@ -1,4 +1,5 @@
-require 'nexus_indexer'
-
-indexer = Gem::NexusIndexer.new @basedir
+require 'rubygems'
+require 'rubygems/indexer'
+ 
+indexer = Gem::Indexer.new @basedir
 indexer.generate_index

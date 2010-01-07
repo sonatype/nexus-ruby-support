@@ -18,19 +18,36 @@ public class JRubyRubyGateway
 
     private EmbedEvalUnit generateIndexes;
 
+    private EmbedEvalUnit generateLazyIndexes;
+
     public JRubyRubyGateway()
     {
         scriptingContainer = new ScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
-        
+
         generateIndexes = scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_indexes.rb" );
+
+        generateLazyIndexes = scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_lazy_indexes.rb" );
     }
 
     @Override
     public synchronized void gemGenerateIndexes( File basedir )
     {
+        getLogger().info( "Invoking Gem::Indexer for basedir \"" + basedir.getAbsolutePath() + "\"..." );
         scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
         Object ret = generateIndexes.run();
         System.out.println( ret );
         scriptingContainer.getVarMap().clear();
+        getLogger().info( "Invoking Gem::Indexer for basedir \"" + basedir.getAbsolutePath() + "\"... DONE" );
+    }
+
+    @Override
+    public synchronized void gemGenerateLazyIndexes( File basedir )
+    {
+        getLogger().info( "Invoking Gem::NexusIndexer for basedir \"" + basedir.getAbsolutePath() + "\"..." );
+        scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
+        Object ret = generateLazyIndexes.run();
+        System.out.println( ret );
+        scriptingContainer.getVarMap().clear();
+        getLogger().info( "Invoking Gem::NexusIndexer for basedir \"" + basedir.getAbsolutePath() + "\"... DONE" );
     }
 }

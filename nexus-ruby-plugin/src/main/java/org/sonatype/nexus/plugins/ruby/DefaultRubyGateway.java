@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.apache.maven.model.Model;
 import org.codehaus.plexus.component.annotations.Requirement;
+import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.FileUtils;
 import org.sonatype.nexus.ruby.MavenArtifact;
 import org.sonatype.nexus.ruby.MavenArtifactConverter;
@@ -20,10 +21,18 @@ public class DefaultRubyGateway
     implements RubyGateway
 {
     @Requirement
+    private Logger logger;
+
+    @Requirement
     private MavenArtifactConverter mavenArtifactConverter;
 
     @Requirement
     private GemSpecificationIO gemSpecificationIO;
+
+    protected Logger getLogger()
+    {
+        return logger;
+    }
 
     public MavenArtifactConverter getMavenArtifactConverter()
     {
@@ -58,7 +67,11 @@ public class DefaultRubyGateway
 
     public void gemGenerateIndexes( File basedir )
     {
-        // TODO: not possible without JRuby
+        // not possible without JRuby
     }
 
+    public void gemGenerateLazyIndexes( File basedir )
+    {
+        // not possible without JRuby
+    }
 }
