@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
+import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
@@ -22,6 +23,7 @@ import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.ContentGenerator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.item.StorageLinkItem;
@@ -152,8 +154,16 @@ public class Maven2RubyGemShadowRepository
 
         try
         {
-            MavenArtifact mart =
-                rubyRepositoryHelper.getMavenArtifactForItem( getMasterRepository(), (StorageFileItem) item );
+            MavenArtifact mart = null;
+
+            try
+            {
+                mart = rubyRepositoryHelper.getMavenArtifactForItem( getMasterRepository(), (StorageFileItem) item );
+            }
+            catch ( StorageException e )
+            {
+                // neglect it, will be skipped, look below
+            }
 
             if ( mart == null )
             {
@@ -211,8 +221,6 @@ public class Maven2RubyGemShadowRepository
             // TODO: fix this exception getGemSpecificationIO().write()
         }
 
-        // for fun, we are publishing indexes at every change
-        // naturally, this will NOT scale, but for now (playing) is okay
         rubyIndexer.reindexRepository( this );
 
         // nothing to return
@@ -232,11 +240,7 @@ public class Maven2RubyGemShadowRepository
 
         deleteItem( true, new ResourceStoreRequest( "/gems/" + gemName + ".gemspec" ) );
 
-        // for fun, we are publishing indexes at every change
-        // naturally, this will NOT scale, but for now (playing) is okay
-        rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) getLocalStorage() ).getBaseDir( this,
-            new ResourceStoreRequest( "/" ) ) );
-        getNotFoundCache().purge();
+        rubyIndexer.reindexRepository( this );
     }
 
     // ==
@@ -245,5 +249,61 @@ public class Maven2RubyGemShadowRepository
     protected Maven2RubyGemShadowRepositoryConfiguration getExternalConfiguration( boolean forWrite )
     {
         return (Maven2RubyGemShadowRepositoryConfiguration) super.getExternalConfiguration( forWrite );
+    }
+
+    // ==
+
+    @Override
+    public void synchronizeWithMaster()
+    {
+        getLogger().info(
+            "Syncing GEM shadow " + getId() + " with Maven2 master repository " + getMasterRepository().getId() );
+
+        ResourceStoreRequest request = new ResourceStoreRequest( RepositoryItemUid.PATH_ROOT, true );
+
+        expireCaches( request );
+
+        try
+        {
+            File masterBasedir = rubyRepositoryHelper.getMavenRepositoryBasedir( getMasterRepository() );
+
+            DirectoryScanner scanner = new DirectoryScanner();
+
+            scanner.setBasedir( masterBasedir );
+            scanner.addDefaultExcludes();
+            scanner.setIncludes( new String[] { "**/*.pom" } );
+
+            scanner.scan();
+
+            for ( String pomPath : scanner.getIncludedFiles() )
+            {
+                request.pushRequestPath( pomPath );
+
+                try
+                {
+                    StorageItem item = getMasterRepository().retrieveItem( request );
+
+                    if ( item instanceof StorageFileItem )
+                    {
+                        synchronizeLink( item );
+                    }
+                }
+                catch ( Exception e )
+                {
+                    // neglect any exception but log it
+                    getLogger().warn(
+                        "Got exception with path \"" + pomPath + "\" while syncing GEM shadow " + getId()
+                            + " with Maven2 master repository " + getMasterRepository().getId(), e );
+                }
+
+                request.popRequestPath();
+            }
+        }
+        catch ( StorageException e )
+        {
+            getLogger().warn(
+                "Got storage exception while syncing GEM shadow " + getId() + " with Maven2 master repository "
+                    + getMasterRepository().getId(), e );
+        }
     }
 }

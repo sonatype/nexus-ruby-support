@@ -135,7 +135,7 @@ public class DefaultMavenArtifactConverter
 
         if ( target == null )
         {
-            target = new File( artifact.getArtifact().getParentFile(), getGemFileName( artifact.getPom() ) );
+            throw new IOException( "Must specify target file, where to generate Gem!" );
         }
 
         // create "meta" ruby file
@@ -143,7 +143,10 @@ public class DefaultMavenArtifactConverter
         String rubyStubPath = "lib/" + gemspec.getName() + ".rb";
 
         ArrayList<GemFileEntry> entries = new ArrayList<GemFileEntry>();
-        entries.add( new GemFileEntry( artifact.getArtifact(), true ) );
+        if ( artifact.getArtifactFile() != null )
+        {
+            entries.add( new GemFileEntry( artifact.getArtifactFile(), true ) );
+        }
         entries.add( new GemFileEntry( rubyStubFile, rubyStubPath, true ) );
 
         // write file
@@ -157,7 +160,16 @@ public class DefaultMavenArtifactConverter
     private File generateRubyStub( GemSpecification gemspec, MavenArtifact artifact )
         throws IOException
     {
-        String rubyStub = IOUtil.toString( getClass().getResourceAsStream( "/metafile.rb.template" ) );
+        String rubyStub = null;
+
+        if ( artifact.getArtifactFile() != null )
+        {
+            rubyStub = IOUtil.toString( getClass().getResourceAsStream( "/metafile.rb.template" ) );
+        }
+        else
+        {
+            rubyStub = IOUtil.toString( getClass().getResourceAsStream( "/jarlessmetafile.rb.template" ) );
+        }
 
         String[] titleParts = artifact.getPom().getArtifactId().split( "-" );
         StringBuilder titleizedArtifactId = new StringBuilder();
@@ -169,11 +181,17 @@ public class DefaultMavenArtifactConverter
             }
         }
 
+        String artifactName = "";
+
+        if ( artifact.getArtifactFile() != null )
+        {
+            artifactName = artifact.getArtifactFile().getName();
+        }
+
         rubyStub =
             rubyStub.replaceFirst( "\\$\\{version\\}", gemspec.getVersion().getVersion() ).replaceFirst(
                 "\\$\\{maven_version\\}", getVersion( artifact.getPom() ) ).replaceFirst( "\\$\\{jar_file\\}",
-                artifact.getArtifact().getName() ).replaceFirst( "\\$\\{titleized_classname\\}",
-                titleizedArtifactId.toString() );
+                artifactName ).replaceFirst( "\\$\\{titleized_classname\\}", titleizedArtifactId.toString() );
 
         File rubyStubFile = File.createTempFile( "rubyStub", ".rb.tmp" );
 

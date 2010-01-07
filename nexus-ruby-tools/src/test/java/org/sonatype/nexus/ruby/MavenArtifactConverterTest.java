@@ -131,6 +131,7 @@ public class MavenArtifactConverterTest
     {
         doConversion( new File( "src/test/resources/repository/org/slf4j/slf4j-api/1.5.8/slf4j-api-1.5.8.pom" ) );
         doConversion( new File( "src/test/resources/repository/org/slf4j/slf4j-simple/1.5.8/slf4j-simple-1.5.8.pom" ) );
+        doConversion( new File( "src/test/resources/repository/org/apache/ant/ant-parent/1.7.1/ant-parent-1.7.1.pom" ) );
     }
 
     public GemArtifact doConversion( File pomFile )
@@ -140,13 +141,19 @@ public class MavenArtifactConverterTest
 
         File artifactFile = new File( pomFile.getParentFile(), pomFile.getName().replace( ".pom", ".jar" ) );
 
+        if ( !artifactFile.isFile() )
+        {
+            artifactFile = null;
+        }
+
         MavenXpp3Reader reader = new MavenXpp3Reader();
 
         Model pom = reader.read( new FileReader( pomFile ) );
 
         MavenArtifact artifact = new MavenArtifact( pom, artifactFile );
 
-        return converter.createGemFromArtifact( artifact, null );
+        return converter.createGemFromArtifact( artifact, getTestFile( "target/gems/"
+            + converter.getGemFileName( artifact.getPom() ) ) );
     }
 
 }

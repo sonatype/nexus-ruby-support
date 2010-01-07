@@ -1,15 +1,18 @@
 package org.sonatype.nexus.plugins.ruby;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 
 import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
-import org.sonatype.nexus.artifact.IllegalArtifactCoordinateException;
+import org.codehaus.plexus.util.IOUtil;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
-import org.sonatype.nexus.proxy.maven.ArtifactStoreRequest;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.maven.MetadataLocator;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
@@ -31,7 +34,7 @@ public class DefaultRubyRepositoryHelper
         throws StorageException
     {
         // TODO: this is here for simplicity only, jar's only for now
-        if ( !item.getName().endsWith( ".jar" ) )
+        if ( !item.getName().endsWith( ".pom" ) )
         {
             return null;
         }
@@ -44,21 +47,69 @@ public class DefaultRubyRepositoryHelper
 
         try
         {
-            ArtifactStoreRequest gavRequest = new ArtifactStoreRequest( masterRepository, item.getPath(), true );
+            File pomFile =
+                ( (DefaultFSLocalRepositoryStorage) masterRepository.getLocalStorage() ).getFileFromBase(
+                    masterRepository, new ResourceStoreRequest( item.getPath() ) );
 
-            Model pom = getMetadataLocator().retrievePom( gavRequest );
+            File jarFile =
+                ( (DefaultFSLocalRepositoryStorage) masterRepository.getLocalStorage() ).getFileFromBase(
+                    masterRepository, new ResourceStoreRequest( item.getPath().replace( ".pom", ".jar" ) ) );
 
-            return new MavenArtifact( pom, ( (DefaultFSLocalRepositoryStorage) masterRepository.getLocalStorage() )
-                .getFileFromBase( masterRepository, new ResourceStoreRequest( item.getPath() ) ) );
-        }
-        catch ( IllegalArtifactCoordinateException e )
-        {
-            throw new StorageException( "Not a valid Maven2 artifact!", e );
+            // pom must exists, jar don't have to
+            if ( !pomFile.isFile() )
+            {
+                return null;
+            }
+
+            if ( !jarFile.exists() )
+            {
+                jarFile = null;
+            }
+
+            Model model = null;
+
+            FileReader is = null;
+
+            try
+            {
+                is = new FileReader( pomFile );
+
+                MavenXpp3Reader rd = new MavenXpp3Reader();
+
+                model = rd.read( is );
+            }
+            catch ( XmlPullParserException e )
+            {
+                return null;
+            }
+            finally
+            {
+                IOUtil.close( is );
+            }
+
+            return new MavenArtifact( model, jarFile );
         }
         catch ( IOException e )
         {
             throw new StorageException( "We got IOException while retrieving POM file for \""
                 + item.getRepositoryItemUid() + "\"!", e );
+        }
+    }
+
+    public File getMavenRepositoryBasedir( MavenRepository mavenRepository )
+        throws StorageException
+    {
+        if ( mavenRepository.getLocalStorage() instanceof DefaultFSLocalRepositoryStorage )
+        {
+            File result =
+                ( (DefaultFSLocalRepositoryStorage) mavenRepository.getLocalStorage() ).getBaseDir( mavenRepository,
+                    new ResourceStoreRequest( "/" ) );
+
+            return result;
+        }
+        else
+        {
+            return null;
         }
     }
 

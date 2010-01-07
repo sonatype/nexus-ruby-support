@@ -13,6 +13,7 @@ import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
+import org.sonatype.nexus.proxy.access.Action;
 import org.sonatype.nexus.proxy.item.ContentGenerator;
 import org.sonatype.nexus.proxy.item.ContentLocator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
@@ -81,14 +82,25 @@ public class Maven2RubyGemShadowContentGenerator
             gemItem.getAttributes().putAll( item.getAttributes() );
             // except the content generator one, since we generated it
             gemItem.getAttributes().remove( ContentGenerator.CONTENT_GENERATOR_ID );
-            // store it
-            repository.storeItem( true, gemItem );
 
-            // cleanup
-            target.delete();
+            // replace it but with locking!
+            item.getRepositoryItemUid().lock( Action.create );
+            try
+            {
+                repository.deleteItem( true, item.getResourceStoreRequest() );
+                repository.storeItem( true, gemItem );
+            }
+            finally
+            {
+                item.getRepositoryItemUid().unlock();
+                // cleanup
+                target.delete();
+            }
 
             StorageFileItem newGemItem =
                 (StorageFileItem) repository.retrieveItem( true, new ResourceStoreRequest( item ) );
+            
+            item.setLength( newGemItem.getLength() );
 
             return newGemItem.getContentLocator();
         }

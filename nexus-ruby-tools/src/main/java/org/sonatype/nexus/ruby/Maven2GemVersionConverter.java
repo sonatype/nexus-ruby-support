@@ -9,6 +9,8 @@ import org.codehaus.plexus.util.StringUtils;
 
 public class Maven2GemVersionConverter
 {
+    public static final String DUMMY_VERSION = "999.0.0";
+
     /**
      * This is the pattern we match against. This is actually x.y.z... version format, that RubyGems support.
      */
@@ -113,7 +115,19 @@ public class Maven2GemVersionConverter
                 }
             }
 
-            return gemVersion.toString().substring( 0, gemVersion.length() - 1 );
+            String result = gemVersion.toString().substring( 0, gemVersion.length() - 1 );
+
+            if ( gemVersionPattern.matcher( result ).matches() )
+            {
+                // we did it
+                return result;
+            }
+            else
+            {
+                // we cannot convert version
+                // DoomedToFail: Unable to convert Maven2 version \"" + mavenVersion + "\" to proper Gem Version!"
+                return DUMMY_VERSION;
+            }
         }
     }
 

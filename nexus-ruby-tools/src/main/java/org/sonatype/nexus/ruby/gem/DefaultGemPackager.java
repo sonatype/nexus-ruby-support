@@ -22,7 +22,10 @@ public class DefaultGemPackager
     public void createGem( GemSpecification gemspec, Collection<GemFileEntry> filesToAdd, File gemFile )
         throws IOException
     {
-        File gemWorkdir = new File( "target/gemwork" );
+        File gemWorkdir =
+            new File( File.createTempFile( "nexus-gem-work", ".tmp" ).getParentFile(), "wd-"
+                + System.currentTimeMillis() );
+
         gemWorkdir.mkdirs();
 
         for ( GemFileEntry entry : filesToAdd )
@@ -85,6 +88,10 @@ public class DefaultGemPackager
             IOException ioe = new IOException( e.getMessage() );
             ioe.initCause( e );
             throw ioe;
+        }
+        finally
+        {
+            FileUtils.forceDelete( gemWorkdir );
         }
     }
 }

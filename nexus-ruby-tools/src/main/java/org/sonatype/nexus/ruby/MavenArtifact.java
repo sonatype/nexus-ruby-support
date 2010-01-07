@@ -13,13 +13,13 @@ public class MavenArtifact
 {
     private final Model pom;
 
-    private final File artifact;
+    private final File artifactFile;
 
     public MavenArtifact( Model pom, File artifact )
     {
         this.pom = pom;
 
-        this.artifact = artifact;
+        this.artifactFile = artifact;
     }
 
     public Model getPom()
@@ -27,8 +27,8 @@ public class MavenArtifact
         return pom;
     }
 
-    public File getArtifact()
+    public File getArtifactFile()
     {
-        return artifact;
+        return artifactFile;
     }
 }
