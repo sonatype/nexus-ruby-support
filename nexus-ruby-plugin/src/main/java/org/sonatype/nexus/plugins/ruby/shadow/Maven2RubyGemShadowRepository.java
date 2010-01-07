@@ -52,7 +52,7 @@ public class Maven2RubyGemShadowRepository
 
     public static final String ORIGINAL_ITEM_PATH = "item.originalItemPath";
 
-    private static final int SYNC_CHUNK_SIZE = 5000;
+    private static final int SYNC_CHUNK_SIZE = 10000;
 
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
     private ContentClass contentClass;
@@ -268,6 +268,9 @@ public class Maven2RubyGemShadowRepository
 
         try
         {
+            // while syncing, we want to control how and when to index
+            rubyIndexer.setAsyncReindexingEnabled( false, this );
+
             final File masterBasedir = rubyRepositoryHelper.getMavenRepositoryBasedir( getMasterRepository() );
             final int masterBasedirOffset = masterBasedir.getAbsolutePath().length() + 1;
 
@@ -328,7 +331,8 @@ public class Maven2RubyGemShadowRepository
 
                 public void directoryWalkFinished()
                 {
-                    // nothing
+                    // one final reindex
+                    rubyIndexer.reindexRepositorySync( Maven2RubyGemShadowRepository.this );
                 }
 
                 public void debug( String message )
@@ -336,7 +340,7 @@ public class Maven2RubyGemShadowRepository
                     // nothing
                 }
             } );
-            
+
             walker.scan();
 
             // DirectoryScanner scanner = new DirectoryScanner();
@@ -370,12 +374,19 @@ public class Maven2RubyGemShadowRepository
             //
             // request.popRequestPath();
             // }
+            // rubyIndexer.reindexRepositorySync( this );
+
         }
         catch ( StorageException e )
         {
             getLogger().warn(
                 "Got storage exception while syncing GEM shadow " + getId() + " with Maven2 master repository "
                     + getMasterRepository().getId(), e );
+        }
+        finally
+        {
+            // while syncing, we want to control how and when to index
+            rubyIndexer.setAsyncReindexingEnabled( true, this );
         }
     }
 }

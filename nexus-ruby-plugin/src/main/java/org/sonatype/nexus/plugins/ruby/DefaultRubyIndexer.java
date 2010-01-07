@@ -58,7 +58,64 @@ public class DefaultRubyIndexer
         this.silentPeriod = periodMillis;
     }
 
+    public void setAsyncReindexingEnabled( boolean enable, RubyRepository repository )
+    {
+        if ( enable )
+        {
+            getIndexerThread( repository ).enable();
+        }
+        else
+        {
+            getIndexerThread( repository ).disable();
+        }
+    }
+
     public void reindexRepository( RubyRepository repository )
+    {
+        getIndexerThread( repository ).reindex();
+    }
+
+    public void reindexRepositorySync( RubyRepository repository )
+    {
+        // kill the thread
+        getIndexerThread( repository ).shutdown();
+
+        reindexRepositorySync( true, repository );
+    }
+
+    public void onEvent( Event<?> evt )
+    {
+        if ( evt instanceof RepositoryRegistryEventRemove )
+        {
+            // remove the thread too to not prevent GC doing it's job
+            RepositoryRegistryEventRemove revt = (RepositoryRegistryEventRemove) evt;
+
+            IndexerThread it = indexers.get( revt.getRepository().getId() );
+
+            if ( it != null )
+            {
+                it.shutdown();
+
+                indexers.remove( revt.getRepository().getId() );
+            }
+        }
+    }
+
+    public void start()
+        throws StartingException
+    {
+        applicationEventMulticaster.addEventListener( this );
+    }
+
+    public void stop()
+        throws StoppingException
+    {
+        applicationEventMulticaster.removeEventListener( this );
+    }
+
+    // ==
+
+    protected IndexerThread getIndexerThread( RubyRepository repository )
     {
         IndexerThread newGuy = new IndexerThread( repository );
 
@@ -71,11 +128,21 @@ public class DefaultRubyIndexer
             indexerThread.start();
         }
 
-        indexerThread.reindex();
+        return indexerThread;
     }
 
-    public synchronized void reindexRepositorySync( RubyRepository repository )
+    protected synchronized void reindexRepositorySync( boolean fromUser, RubyRepository repository )
     {
+        if ( !fromUser && !getIndexerThread( repository ).isSilentPeriodOver() )
+        {
+            return;
+        }
+
+        if ( fromUser )
+        {
+            getIndexerThread( repository ).disable();
+        }
+
         try
         {
             // shadow repo needs "lazy" indexing, others "real" indexing
@@ -97,37 +164,14 @@ public class DefaultRubyIndexer
             DefaultRubyIndexer.this.getLogger().warn(
                 "Could not generate RubyGems index! Index may be stale, and change is not reflected!", e );
         }
-    }
-
-    public void onEvent( Event<?> evt )
-    {
-        if ( evt instanceof RepositoryRegistryEventRemove )
+        finally
         {
-            // remove the thread too to not prevent GC doing it's job
-            RepositoryRegistryEventRemove revt = (RepositoryRegistryEventRemove) evt;
-
-            IndexerThread it = indexers.get( revt.getRepository().getId() );
-
-            if ( it != null )
+            if ( fromUser )
             {
-                it.shutdown();
+                getIndexerThread( repository ).enable();
             }
         }
     }
-
-    public void start()
-        throws StartingException
-    {
-        applicationEventMulticaster.addEventListener( this );
-    }
-
-    public void stop()
-        throws StoppingException
-    {
-        applicationEventMulticaster.removeEventListener( this );
-    }
-
-    // ==
 
     public class IndexerThread
         extends Thread
@@ -139,6 +183,8 @@ public class DefaultRubyIndexer
         private volatile boolean active = true;
 
         private volatile boolean done = true;
+
+        private volatile boolean disabled = false;
 
         public IndexerThread( RubyRepository repository )
         {
@@ -152,9 +198,37 @@ public class DefaultRubyIndexer
             this.done = false;
         }
 
+        public void reindexNow()
+        {
+            DefaultRubyIndexer.this.reindexRepositorySync( false, this.repository );
+
+            this.done = true;
+        }
+
         public void shutdown()
         {
             this.active = false;
+        }
+
+        public boolean isDisabled()
+        {
+            return disabled;
+        }
+
+        public void enable()
+        {
+            this.disabled = false;
+        }
+
+        public void disable()
+        {
+            this.disabled = true;
+        }
+
+        public boolean isSilentPeriodOver()
+        {
+            return !isDisabled()
+                && System.currentTimeMillis() - lastReindexRequested > DefaultRubyIndexer.this.getSilentPeriod();
         }
 
         @Override
@@ -171,22 +245,14 @@ public class DefaultRubyIndexer
                 {
                     DefaultRubyIndexer.this.getLogger().warn( "Ruby IndexerThread interrupted, bailing out.", e );
 
-                    shutdown();
+                    this.active = false;
                 }
 
-                if ( !done )
+                if ( active && !done && isSilentPeriodOver() )
                 {
-                    if ( System.currentTimeMillis() - lastReindexRequested > DefaultRubyIndexer.this.getSilentPeriod() )
-                    {
-                        DefaultRubyIndexer.this.reindexRepositorySync( repository );
-
-                        done = true;
-                    }
+                    reindexNow();
                 }
             }
-
-            // cleanup
-            DefaultRubyIndexer.this.indexers.remove( repository.getId() );
         }
     }
 }

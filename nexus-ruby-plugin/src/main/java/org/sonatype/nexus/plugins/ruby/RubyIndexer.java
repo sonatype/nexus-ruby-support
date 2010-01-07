@@ -13,6 +13,16 @@ public interface RubyIndexer
     void setSilentPeriod( long periodMillis );
 
     /**
+     * Sets async reindexing for repository enabled or disabled. If disabled, the reindexRepository( repository ) will
+     * not do anything, until reenabled. The call will update async indexer internal state, but will NOT perform actual
+     * reindex.
+     * 
+     * @param enable true to enable, false to disable
+     * @param repository
+     */
+    void setAsyncReindexingEnabled( boolean enable, RubyRepository repository );
+
+    /**
      * Will perform the reindex in async mode, obeying the silentPeriod as described above.
      * 
      * @param repository
