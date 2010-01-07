@@ -13,11 +13,15 @@ public class MavenArtifact
 {
     private final Model pom;
 
+    private final String modelRepositoryPath;
+
     private final File artifactFile;
 
-    public MavenArtifact( Model pom, File artifact )
+    public MavenArtifact( Model pom, String modelPath, File artifact )
     {
         this.pom = pom;
+
+        this.modelRepositoryPath = modelPath;
 
         this.artifactFile = artifact;
     }
@@ -25,6 +29,11 @@ public class MavenArtifact
     public Model getPom()
     {
         return pom;
+    }
+
+    protected String getModelRepositoryPath()
+    {
+        return modelRepositoryPath;
     }
 
     public File getArtifactFile()

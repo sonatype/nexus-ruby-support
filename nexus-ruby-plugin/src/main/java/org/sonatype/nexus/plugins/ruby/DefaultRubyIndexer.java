@@ -33,7 +33,7 @@ public class DefaultRubyIndexer
     private ApplicationEventMulticaster applicationEventMulticaster;
 
     @Requirement
-    private RubyGateway rg;
+    private RubyGateway rubyGateway;
 
     /**
      * This is the amount of millis to wait before reindexing. If no content change occured during this period, reindex
@@ -60,7 +60,7 @@ public class DefaultRubyIndexer
 
     public void reindexRepository( RubyRepository repository )
     {
-        IndexerThread newGuy = new IndexerThread( repository, rg );
+        IndexerThread newGuy = new IndexerThread( repository );
 
         IndexerThread indexerThread = indexers.putIfAbsent( repository.getId(), newGuy );
 
@@ -72,6 +72,31 @@ public class DefaultRubyIndexer
         }
 
         indexerThread.reindex();
+    }
+
+    public synchronized void reindexRepositorySync( RubyRepository repository )
+    {
+        try
+        {
+            // shadow repo needs "lazy" indexing, others "real" indexing
+            if ( repository.getRepositoryKind().isFacetAvailable( RubyShadowRepository.class ) )
+            {
+                rubyGateway.gemGenerateLazyIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
+                    .getBaseDir( repository, new ResourceStoreRequest( "/" ) ) );
+            }
+            else
+            {
+                rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
+                    .getBaseDir( repository, new ResourceStoreRequest( "/" ) ) );
+            }
+
+            repository.getNotFoundCache().purge();
+        }
+        catch ( StorageException e )
+        {
+            DefaultRubyIndexer.this.getLogger().warn(
+                "Could not generate RubyGems index! Index may be stale, and change is not reflected!", e );
+        }
     }
 
     public void onEvent( Event<?> evt )
@@ -109,19 +134,15 @@ public class DefaultRubyIndexer
     {
         private RubyRepository repository;
 
-        private RubyGateway rubyGateway;
-
         private volatile long lastReindexRequested;
 
         private volatile boolean active = true;
 
         private volatile boolean done = true;
 
-        public IndexerThread( RubyRepository repository, RubyGateway rubyGateway )
+        public IndexerThread( RubyRepository repository )
         {
             this.repository = repository;
-
-            this.rubyGateway = rubyGateway;
         }
 
         public void reindex()
@@ -157,7 +178,7 @@ public class DefaultRubyIndexer
                 {
                     if ( System.currentTimeMillis() - lastReindexRequested > DefaultRubyIndexer.this.getSilentPeriod() )
                     {
-                        reindex( repository );
+                        DefaultRubyIndexer.this.reindexRepositorySync( repository );
 
                         done = true;
                     }
@@ -166,31 +187,6 @@ public class DefaultRubyIndexer
 
             // cleanup
             DefaultRubyIndexer.this.indexers.remove( repository.getId() );
-        }
-
-        protected void reindex( RubyRepository repository )
-        {
-            try
-            {
-                // shadow repo needs "lazy" indexing, others "real" indexing
-                if ( repository.getRepositoryKind().isFacetAvailable( RubyShadowRepository.class ) )
-                {
-                    rubyGateway.gemGenerateLazyIndexes( ( (DefaultFSLocalRepositoryStorage) repository
-                        .getLocalStorage() ).getBaseDir( repository, new ResourceStoreRequest( "/" ) ) );
-                }
-                else
-                {
-                    rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
-                        .getBaseDir( repository, new ResourceStoreRequest( "/" ) ) );
-                }
-
-                repository.getNotFoundCache().purge();
-            }
-            catch ( StorageException e )
-            {
-                DefaultRubyIndexer.this.getLogger().warn(
-                    "Could not generate RubyGems index! Index may be stale, and change is not reflected!", e );
-            }
         }
     }
 }

@@ -129,14 +129,16 @@ public class MavenArtifactConverterTest
     public void testConversion()
         throws Exception
     {
-        doConversion( new File( "src/test/resources/repository/org/slf4j/slf4j-api/1.5.8/slf4j-api-1.5.8.pom" ) );
-        doConversion( new File( "src/test/resources/repository/org/slf4j/slf4j-simple/1.5.8/slf4j-simple-1.5.8.pom" ) );
-        doConversion( new File( "src/test/resources/repository/org/apache/ant/ant-parent/1.7.1/ant-parent-1.7.1.pom" ) );
+        doConversion( "org/slf4j/slf4j-api/1.5.8/slf4j-api-1.5.8.pom" );
+        doConversion( "org/slf4j/slf4j-simple/1.5.8/slf4j-simple-1.5.8.pom" );
+        doConversion( "org/apache/ant/ant-parent/1.7.1/ant-parent-1.7.1.pom" );
     }
 
-    public GemArtifact doConversion( File pomFile )
+    public GemArtifact doConversion( String pomPath )
         throws Exception
     {
+        File pomFile = new File( new File( "src/test/resources/repository" ), pomPath );
+
         MavenArtifactConverter converter = lookup( MavenArtifactConverter.class );
 
         File artifactFile = new File( pomFile.getParentFile(), pomFile.getName().replace( ".pom", ".jar" ) );
@@ -150,7 +152,7 @@ public class MavenArtifactConverterTest
 
         Model pom = reader.read( new FileReader( pomFile ) );
 
-        MavenArtifact artifact = new MavenArtifact( pom, artifactFile );
+        MavenArtifact artifact = new MavenArtifact( pom, pomPath, artifactFile );
 
         return converter.createGemFromArtifact( artifact, getTestFile( "target/gems/"
             + converter.getGemFileName( artifact.getPom() ) ) );

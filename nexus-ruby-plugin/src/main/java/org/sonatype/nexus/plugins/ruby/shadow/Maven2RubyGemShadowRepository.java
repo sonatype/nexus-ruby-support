@@ -6,7 +6,8 @@ import java.util.Arrays;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.DirectoryWalkListener;
+import org.codehaus.plexus.util.DirectoryWalker;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
@@ -50,6 +51,8 @@ public class Maven2RubyGemShadowRepository
     public static final String ID = "maven2-gem";
 
     public static final String ORIGINAL_ITEM_PATH = "item.originalItemPath";
+
+    private static final int SYNC_CHUNK_SIZE = 5000;
 
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
     private ContentClass contentClass;
@@ -259,45 +262,114 @@ public class Maven2RubyGemShadowRepository
         getLogger().info(
             "Syncing GEM shadow " + getId() + " with Maven2 master repository " + getMasterRepository().getId() );
 
-        ResourceStoreRequest request = new ResourceStoreRequest( RepositoryItemUid.PATH_ROOT, true );
+        final ResourceStoreRequest request = new ResourceStoreRequest( RepositoryItemUid.PATH_ROOT, true );
 
         expireCaches( request );
 
         try
         {
-            File masterBasedir = rubyRepositoryHelper.getMavenRepositoryBasedir( getMasterRepository() );
+            final File masterBasedir = rubyRepositoryHelper.getMavenRepositoryBasedir( getMasterRepository() );
+            final int masterBasedirOffset = masterBasedir.getAbsolutePath().length() + 1;
 
-            DirectoryScanner scanner = new DirectoryScanner();
+            DirectoryWalker walker = new DirectoryWalker();
 
-            scanner.setBasedir( masterBasedir );
-            scanner.addDefaultExcludes();
-            scanner.setIncludes( new String[] { "**/*.pom" } );
+            walker.setBaseDir( masterBasedir );
+            walker.addSCMExcludes();
+            walker.addInclude( "**/*.pom" );
 
-            scanner.scan();
-
-            for ( String pomPath : scanner.getIncludedFiles() )
+            walker.addDirectoryWalkListener( new DirectoryWalkListener()
             {
-                request.pushRequestPath( pomPath );
+                private int counter;
 
-                try
+                public void directoryWalkStep( int percentage, File file )
                 {
-                    StorageItem item = getMasterRepository().retrieveItem( request );
-
-                    if ( item instanceof StorageFileItem )
+                    if ( !file.getName().endsWith( ".pom" ) )
                     {
-                        synchronizeLink( item );
+                        return;
+                    }
+
+                    counter++;
+
+                    String pomPath = file.getAbsolutePath().substring( masterBasedirOffset );
+
+                    request.pushRequestPath( pomPath );
+
+                    try
+                    {
+                        StorageItem item = getMasterRepository().retrieveItem( request );
+
+                        if ( item instanceof StorageFileItem )
+                        {
+                            synchronizeLink( item );
+                        }
+                    }
+                    catch ( Exception e )
+                    {
+                        // neglect any exception but log it
+                        getLogger().warn(
+                            "Got exception with path \"" + pomPath + "\" while syncing GEM shadow " + getId()
+                                + " with Maven2 master repository " + getMasterRepository().getId(), e );
+                    }
+
+                    request.popRequestPath();
+
+                    if ( counter % SYNC_CHUNK_SIZE == 0 )
+                    {
+                        getLogger().info( "Forcing Ruby reindex after " + counter + " count of lazy Gems created." );
+
+                        rubyIndexer.reindexRepositorySync( Maven2RubyGemShadowRepository.this );
                     }
                 }
-                catch ( Exception e )
+
+                public void directoryWalkStarting( File basedir )
                 {
-                    // neglect any exception but log it
-                    getLogger().warn(
-                        "Got exception with path \"" + pomPath + "\" while syncing GEM shadow " + getId()
-                            + " with Maven2 master repository " + getMasterRepository().getId(), e );
+                    // nothing
                 }
 
-                request.popRequestPath();
-            }
+                public void directoryWalkFinished()
+                {
+                    // nothing
+                }
+
+                public void debug( String message )
+                {
+                    // nothing
+                }
+            } );
+            
+            walker.scan();
+
+            // DirectoryScanner scanner = new DirectoryScanner();
+            //
+            // scanner.setBasedir( masterBasedir );
+            // scanner.addDefaultExcludes();
+            // scanner.setIncludes( new String[] { "**/*.pom" } );
+            //
+            // scanner.scan();
+            //
+            // for ( String pomPath : scanner.getIncludedFiles() )
+            // {
+            // request.pushRequestPath( pomPath );
+            //
+            // try
+            // {
+            // StorageItem item = getMasterRepository().retrieveItem( request );
+            //
+            // if ( item instanceof StorageFileItem )
+            // {
+            // synchronizeLink( item );
+            // }
+            // }
+            // catch ( Exception e )
+            // {
+            // // neglect any exception but log it
+            // getLogger().warn(
+            // "Got exception with path \"" + pomPath + "\" while syncing GEM shadow " + getId()
+            // + " with Maven2 master repository " + getMasterRepository().getId(), e );
+            // }
+            //
+            // request.popRequestPath();
+            // }
         }
         catch ( StorageException e )
         {

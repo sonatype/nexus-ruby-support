@@ -87,7 +87,7 @@ public class DefaultRubyRepositoryHelper
                 IOUtil.close( is );
             }
 
-            return new MavenArtifact( model, jarFile );
+            return new MavenArtifact( model, item.getPath(), jarFile );
         }
         catch ( IOException e )
         {

@@ -12,5 +12,18 @@ public interface RubyIndexer
 
     void setSilentPeriod( long periodMillis );
 
+    /**
+     * Will perform the reindex in async mode, obeying the silentPeriod as described above.
+     * 
+     * @param repository
+     */
     void reindexRepository( RubyRepository repository );
+
+    /**
+     * Will perform the reindex in sync mode (immediately). This will block the caller thread, until Gem indexer
+     * finishes.
+     * 
+     * @param repository
+     */
+    void reindexRepositorySync( RubyRepository repository );
 }
