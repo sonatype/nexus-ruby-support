@@ -26,108 +26,117 @@ public class Maven2GemVersionConverter
      */
     public String createGemVersion( String mavenVersion )
     {
-        if ( gemVersionPattern.matcher( mavenVersion ).matches() )
+        String result = null;
+
+        try
         {
-            return mavenVersion;
-        }
-        else
-        {
-            StringBuilder gemVersion = new StringBuilder();
-
-            StringBuilder currentRegion = new StringBuilder();
-
-            ChunkIterator chunkIterator = new ChunkIterator( mavenVersion );
-
-            boolean artificialHardBreak = false;
-
-            while ( chunkIterator.hasNext() )
+            if ( gemVersionPattern.matcher( mavenVersion ).matches() )
             {
-                String chunk = chunkIterator.next().toLowerCase();
-
-                if ( ".".equals( chunk ) || "-".equals( chunk ) )
-                {
-                    continue;
-                }
-                else if ( !StringUtils.isNumeric( chunk ) )
-                {
-                    if ( !chunkIterator.hasNext() )
-                    {
-                        if ( currentRegion.length() > 0 )
-                        {
-                            currentRegion.append( "." );
-                        }
-
-                        if ( gemVersion.length() == 0 )
-                        {
-                            currentRegion.append( "0." );
-                        }
-
-                        currentRegion.append( chunk.substring( 0, 1 ) );
-
-                        artificialHardBreak = true;
-                    }
-                    else if ( "alpha".equals( chunk ) )
-                    {
-                        if ( currentRegion.length() > 0 )
-                        {
-                            currentRegion.append( "." );
-                        }
-
-                        currentRegion.append( "0" );
-
-                        artificialHardBreak = true;
-                    }
-                    else if ( "beta".equals( chunk ) )
-                    {
-                        if ( currentRegion.length() > 0 )
-                        {
-                            currentRegion.append( "." );
-                        }
-
-                        currentRegion.append( "1" );
-
-                        artificialHardBreak = true;
-                    }
-                    else if ( chunk.contains( "pre" ) )
-                    {
-                        artificialHardBreak = true;
-                    }
-                    else
-                    {
-                        chunk = null;
-                    }
-                }
-                else
-                {
-                    currentRegion.append( chunk );
-                }
-
-                if ( chunkIterator.isHardBreak() || artificialHardBreak )
-                {
-                    // add it to result
-                    gemVersion.append( currentRegion.toString() );
-
-                    gemVersion.append( "." );
-
-                    currentRegion = new StringBuilder();
-
-                    artificialHardBreak = false;
-                }
-            }
-
-            String result = gemVersion.toString().substring( 0, gemVersion.length() - 1 );
-
-            if ( gemVersionPattern.matcher( result ).matches() )
-            {
-                // we did it
-                return result;
+                return mavenVersion;
             }
             else
             {
-                // we cannot convert version
-                // DoomedToFail: Unable to convert Maven2 version \"" + mavenVersion + "\" to proper Gem Version!"
-                return DUMMY_VERSION;
+                StringBuilder gemVersion = new StringBuilder();
+
+                StringBuilder currentRegion = new StringBuilder();
+
+                ChunkIterator chunkIterator = new ChunkIterator( mavenVersion );
+
+                boolean artificialHardBreak = false;
+
+                while ( chunkIterator.hasNext() )
+                {
+                    String chunk = chunkIterator.next().toLowerCase();
+
+                    if ( ".".equals( chunk ) || "-".equals( chunk ) )
+                    {
+                        continue;
+                    }
+                    else if ( !StringUtils.isNumeric( chunk ) )
+                    {
+                        if ( !chunkIterator.hasNext() )
+                        {
+                            if ( currentRegion.length() > 0 )
+                            {
+                                currentRegion.append( "." );
+                            }
+
+                            if ( gemVersion.length() == 0 )
+                            {
+                                currentRegion.append( "0." );
+                            }
+
+                            currentRegion.append( chunk.substring( 0, 1 ) );
+
+                            artificialHardBreak = true;
+                        }
+                        else if ( "alpha".equals( chunk ) )
+                        {
+                            if ( currentRegion.length() > 0 )
+                            {
+                                currentRegion.append( "." );
+                            }
+
+                            currentRegion.append( "0" );
+
+                            artificialHardBreak = true;
+                        }
+                        else if ( "beta".equals( chunk ) )
+                        {
+                            if ( currentRegion.length() > 0 )
+                            {
+                                currentRegion.append( "." );
+                            }
+
+                            currentRegion.append( "1" );
+
+                            artificialHardBreak = true;
+                        }
+                        else if ( chunk.contains( "pre" ) )
+                        {
+                            artificialHardBreak = true;
+                        }
+                        else
+                        {
+                            chunk = null;
+                        }
+                    }
+                    else
+                    {
+                        currentRegion.append( chunk );
+                    }
+
+                    if ( chunkIterator.isHardBreak() || artificialHardBreak )
+                    {
+                        // add it to result
+                        gemVersion.append( currentRegion.toString() );
+
+                        gemVersion.append( "." );
+
+                        currentRegion = new StringBuilder();
+
+                        artificialHardBreak = false;
+                    }
+                }
+
+                result = gemVersion.toString().substring( 0, gemVersion.length() - 1 );
             }
+        }
+        catch ( StringIndexOutOfBoundsException e )
+        {
+            return DUMMY_VERSION;
+        }
+
+        if ( result != null && gemVersionPattern.matcher( result ).matches() )
+        {
+            // we did it
+            return result;
+        }
+        else
+        {
+            // we cannot convert version
+            // DoomedToFail: Unable to convert Maven2 version \"" + mavenVersion + "\" to proper Gem Version!"
+            return DUMMY_VERSION;
         }
     }
 
