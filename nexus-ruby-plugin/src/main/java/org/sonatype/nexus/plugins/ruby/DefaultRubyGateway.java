@@ -3,7 +3,6 @@ package org.sonatype.nexus.plugins.ruby;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.maven.model.Model;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.FileUtils;
@@ -44,10 +43,20 @@ public class DefaultRubyGateway
         return gemSpecificationIO;
     }
 
-    public void createAndWriteGemspec( Model pom, File target )
+    public boolean canConvert( MavenArtifact mart )
+    {
+        return getMavenArtifactConverter().canConvert( mart );
+    }
+
+    public String getGemFileName( MavenArtifact mart )
+    {
+        return getMavenArtifactConverter().getGemFileName( mart );
+    }
+
+    public void createAndWriteGemspec( MavenArtifact mart, File target )
         throws IOException
     {
-        GemSpecification gemspec = getMavenArtifactConverter().createSpecification( pom );
+        GemSpecification gemspec = getMavenArtifactConverter().createSpecification( mart );
 
         String gemspecString = getGemSpecificationIO().write( gemspec );
 
@@ -58,11 +67,6 @@ public class DefaultRubyGateway
         throws IOException
     {
         getMavenArtifactConverter().createGemFromArtifact( mart, target );
-    }
-
-    public String getGemFileName( Model pom )
-    {
-        return getMavenArtifactConverter().getGemFileName( pom );
     }
 
     public void gemGenerateIndexes( File basedir )

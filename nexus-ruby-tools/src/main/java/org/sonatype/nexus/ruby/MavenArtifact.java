@@ -13,15 +13,15 @@ public class MavenArtifact
 {
     private final Model pom;
 
-    private final String modelRepositoryPath;
+    private final ArtifactCoordinates coordinates;
 
     private final File artifactFile;
 
-    public MavenArtifact( Model pom, String modelPath, File artifact )
+    public MavenArtifact( Model pom, ArtifactCoordinates coordinates, File artifact )
     {
         this.pom = pom;
 
-        this.modelRepositoryPath = modelPath;
+        this.coordinates = coordinates;
 
         this.artifactFile = artifact;
     }
@@ -31,9 +31,9 @@ public class MavenArtifact
         return pom;
     }
 
-    protected String getModelRepositoryPath()
+    protected ArtifactCoordinates getCoordinates()
     {
-        return modelRepositoryPath;
+        return coordinates;
     }
 
     public File getArtifactFile()

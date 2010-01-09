@@ -10,12 +10,15 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.sonatype.nexus.artifact.Gav;
+import org.sonatype.nexus.artifact.IllegalArtifactCoordinateException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.maven.MetadataLocator;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
+import org.sonatype.nexus.ruby.ArtifactCoordinates;
 import org.sonatype.nexus.ruby.MavenArtifact;
 
 @Component( role = RubyRepositoryHelper.class )
@@ -41,6 +44,23 @@ public class DefaultRubyRepositoryHelper
 
         // this works only on FS storages
         if ( !( masterRepository.getLocalStorage() instanceof DefaultFSLocalRepositoryStorage ) )
+        {
+            return null;
+        }
+
+        Gav gav = null;
+
+        try
+        {
+            gav = masterRepository.getGavCalculator().pathToGav( item.getPath() );
+        }
+        catch ( IllegalArtifactCoordinateException e )
+        {
+            return null;
+        }
+
+        // if the path does not represent a valid layouted artifact, skip it
+        if ( gav == null )
         {
             return null;
         }
@@ -87,7 +107,10 @@ public class DefaultRubyRepositoryHelper
                 IOUtil.close( is );
             }
 
-            return new MavenArtifact( model, item.getPath(), jarFile );
+            ArtifactCoordinates coords =
+                new ArtifactCoordinates( gav.getGroupId(), gav.getArtifactId(), gav.getVersion(), gav.getExtension() );
+
+            return new MavenArtifact( model, coords, jarFile );
         }
         catch ( IOException e )
         {

@@ -3,7 +3,6 @@ package org.sonatype.nexus.ruby;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.maven.model.Model;
 import org.sonatype.nexus.ruby.gem.GemSpecification;
 
 /**
@@ -14,56 +13,20 @@ import org.sonatype.nexus.ruby.gem.GemSpecification;
 public interface MavenArtifactConverter
 {
     /**
-     * The Java platform key.
-     */
-    String PLATFORM_JAVA = "java";
-
-    /**
-     * Creates valid Gem name from GAV.
+     * Returns is the artifact convertable safely into Gem.
      * 
-     * @param groupId
-     * @param artifactId
-     * @param version
-     * @return
+     * @param pom
+     * @return true if yes.
      */
-    String createGemName( String groupId, String artifactId, String version );
+    boolean canConvert( MavenArtifact artifact );
 
     /**
-     * Returns the "regular" gem filename, as it is expected to be called.
-     * 
-     * @param groupId
-     * @param artifactId
-     * @param version
-     * @param platform
-     * @return
-     */
-    String getGemFileName( String groupId, String artifactId, String version, String platform );
-
-    /**
-     * Returns the "regular" gem filename, as it is expected to be called.
+     * Returns the "regular" gem filename, as it is expected this artifact to be called as Gem.
      * 
      * @param pom
      * @return
      */
-    String getGemFileName( Model pom );
-
-    /**
-     * Returns the "regular" gem filename, as it is expected to be called.
-     * 
-     * @param gemspec
-     * @return
-     */
-    String getGemFileName( GemSpecification gemspec );
-
-    /**
-     * Creates valid Gem version. Gem versions are "stricter" than Maven versions: they are in form of "x.y.z...". They
-     * have to start with integer, and be followed by a '.'. You can have as many like these you want, but Maven version
-     * like "1.0-alpha-2" is invalid Gem version. Hence, some trickery has to be applied.
-     * 
-     * @param mavenVersion
-     * @return
-     */
-    String createGemVersion( String mavenVersion );
+    String getGemFileName( MavenArtifact artifact );
 
     /**
      * Creates a Gem::Specification (the equivalent JavaBeans actually) filled up properly based on informaton from POM.
@@ -72,7 +35,7 @@ public interface MavenArtifactConverter
      * @param artifact
      * @return
      */
-    GemSpecification createSpecification( Model pom );
+    GemSpecification createSpecification( MavenArtifact artifact );
 
     /**
      * Creates a valid Ruby Gem, and returns File pointing to the result.

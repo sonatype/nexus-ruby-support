@@ -15,7 +15,7 @@ public class Maven2GemVersionConverter
      * This is the pattern we match against. This is actually x.y.z... version format, that RubyGems support.
      */
     public static final Pattern gemVersionPattern = Pattern.compile( "\\d+(\\.\\d+)*(\\.[a-zA-Z])?" );
-
+    
     /**
      * Creates valid GEM version out of Maven2 version. Gem versions are "stricter" than Maven versions: they are in
      * form of "x.y.z...". They have to start with integer, and be followed by a '.'. You can have as many like these

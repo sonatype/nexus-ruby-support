@@ -175,7 +175,14 @@ public class Maven2RubyGemShadowRepository
                 return null;
             }
 
-            String gemName = rubyGateway.getGemFileName( mart.getPom() );
+            if ( !rubyGateway.canConvert( mart ) )
+            {
+                getLogger().info( "Can't convert artifact on path " + item.getPath() + " in repository " + getId() );
+
+                return null;
+            }
+
+            String gemName = rubyGateway.getGemFileName( mart );
 
             getLogger().debug(
                 "Creating " + ( isLazyGemMaterialization() ? "lazily " : "" ) + " Gem " + gemName + " in repository "
@@ -201,7 +208,7 @@ public class Maven2RubyGemShadowRepository
                     ( (DefaultFSLocalRepositoryStorage) getLocalStorage() ).getFileFromBase( this,
                         new ResourceStoreRequest( "/gems/" + gemName + ".gemspec" ) );
 
-                rubyGateway.createAndWriteGemspec( mart.getPom(), gemspecFile );
+                rubyGateway.createAndWriteGemspec( mart, gemspecFile );
             }
             else
             {
@@ -237,7 +244,7 @@ public class Maven2RubyGemShadowRepository
         MavenArtifact mart =
             rubyRepositoryHelper.getMavenArtifactForItem( getMasterRepository(), (StorageFileItem) item );
 
-        String gemName = rubyGateway.getGemFileName( mart.getPom() );
+        String gemName = rubyGateway.getGemFileName( mart );
 
         deleteItem( true, new ResourceStoreRequest( "/gems/" + gemName ) );
 

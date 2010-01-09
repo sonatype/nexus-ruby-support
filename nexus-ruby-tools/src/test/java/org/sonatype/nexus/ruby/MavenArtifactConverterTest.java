@@ -129,12 +129,15 @@ public class MavenArtifactConverterTest
     public void testConversion()
         throws Exception
     {
-        doConversion( "org/slf4j/slf4j-api/1.5.8/slf4j-api-1.5.8.pom" );
-        doConversion( "org/slf4j/slf4j-simple/1.5.8/slf4j-simple-1.5.8.pom" );
-        doConversion( "org/apache/ant/ant-parent/1.7.1/ant-parent-1.7.1.pom" );
+        doConversion( "org/slf4j/slf4j-api/1.5.8/slf4j-api-1.5.8.pom", new ArtifactCoordinates( "org.slf4j",
+            "slf4j-api", "1.5.8" ) );
+        doConversion( "org/slf4j/slf4j-simple/1.5.8/slf4j-simple-1.5.8.pom", new ArtifactCoordinates( "org.slf4j",
+            "slf4j-simple", "1.5.8" ) );
+        doConversion( "org/apache/ant/ant-parent/1.7.1/ant-parent-1.7.1.pom", new ArtifactCoordinates(
+            "org.apache.ant", "ant-parent", "1.7.1" ) );
     }
 
-    public GemArtifact doConversion( String pomPath )
+    public GemArtifact doConversion( String pomPath, ArtifactCoordinates coords )
         throws Exception
     {
         File pomFile = new File( new File( "src/test/resources/repository" ), pomPath );
@@ -152,10 +155,10 @@ public class MavenArtifactConverterTest
 
         Model pom = reader.read( new FileReader( pomFile ) );
 
-        MavenArtifact artifact = new MavenArtifact( pom, pomPath, artifactFile );
+        MavenArtifact artifact = new MavenArtifact( pom, coords, artifactFile );
 
         return converter.createGemFromArtifact( artifact, getTestFile( "target/gems/"
-            + converter.getGemFileName( artifact.getPom() ) ) );
+            + converter.getGemFileName( artifact ) ) );
     }
 
 }

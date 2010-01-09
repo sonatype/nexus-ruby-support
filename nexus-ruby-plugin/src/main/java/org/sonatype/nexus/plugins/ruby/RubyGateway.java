@@ -3,7 +3,6 @@ package org.sonatype.nexus.plugins.ruby;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.maven.model.Model;
 import org.sonatype.nexus.ruby.MavenArtifact;
 
 /**
@@ -16,12 +15,20 @@ import org.sonatype.nexus.ruby.MavenArtifact;
 public interface RubyGateway
 {
     /**
+     * Queries is the MavenArtifact convertable to Gem.
+     * 
+     * @param pom Pom of the artifact.
+     * @return true if yes, false otherwise.
+     */
+    boolean canConvert( MavenArtifact mart );
+
+    /**
      * Just builds proper GEM filename out from information in POM object.
      * 
      * @param pom Pom of the artifact.
      * @return
      */
-    String getGemFileName( Model pom );
+    String getGemFileName( MavenArtifact mart );
 
     /**
      * Does Maven2 artifact conversion into Gem and writes the Gem to the target file. The file written to target should
@@ -42,7 +49,7 @@ public interface RubyGateway
      * @param target
      * @throws IOException
      */
-    void createAndWriteGemspec( Model pom, File target )
+    void createAndWriteGemspec( MavenArtifact mart, File target )
         throws IOException;
 
     /**
