@@ -5,6 +5,12 @@ require 'rubygems/indexer'
 require 'yaml'
 
 class Gem::NexusIndexer < Gem::Indexer
+
+  def initialize(directory, options = {})
+    super(directory, options)
+    @build_legacy = false
+  end
+  
   def collect_specs(yamls = gemspec_file_list)
     index = Gem::SourceIndex.new
     progress = ui.progress_reporter yamls.size, "Loading #{yamls.size} yamls", "loaded all yamls"
@@ -49,8 +55,14 @@ class Gem::NexusIndexer < Gem::Indexer
     end
     index
   end
+
   def gemspec_file_list
     Dir.glob(File.join(@dest_directory, "gems", "*.gemspec")) 
   end
+
+  def gem_file_list
+    gemspec_file_list
+  end
+
 end
 

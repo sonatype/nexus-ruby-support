@@ -91,7 +91,7 @@ public class DefaultRubyHostedRepository
         super.storeItem( fromTask, item );
 
         // to reflect modification
-        rubyIndexer.reindexRepository( this );
+        rubyIndexer.reindexRepository( this, true );
     }
 
     @Override
@@ -101,6 +101,6 @@ public class DefaultRubyHostedRepository
         super.deleteItem( fromTask, request );
 
         // to reflect modification
-        rubyIndexer.reindexRepository( this );
+        rubyIndexer.reindexRepository( this, true );
     }
 }

@@ -69,12 +69,12 @@ public class DefaultRubyGateway
         getMavenArtifactConverter().createGemFromArtifact( mart, target );
     }
 
-    public void gemGenerateIndexes( File basedir )
+    public void gemGenerateIndexes( File basedir, boolean update )
     {
         // not possible without JRuby
     }
 
-    public void gemGenerateLazyIndexes( File basedir )
+    public void gemGenerateLazyIndexes( File basedir, boolean update )
     {
         // not possible without JRuby
     }

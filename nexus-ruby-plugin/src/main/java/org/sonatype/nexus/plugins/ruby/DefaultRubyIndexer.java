@@ -70,17 +70,17 @@ public class DefaultRubyIndexer
         }
     }
 
-    public void reindexRepository( RubyRepository repository )
+    public void reindexRepository( RubyRepository repository, boolean update )
     {
-        getIndexerThread( repository ).reindex();
+        getIndexerThread( repository ).reindex( update );
     }
 
-    public void reindexRepositorySync( RubyRepository repository )
+    public void reindexRepositorySync( RubyRepository repository, boolean update )
     {
         // kill the thread
         getIndexerThread( repository ).shutdown();
 
-        reindexRepositorySync( true, repository );
+        reindexRepositorySync( true, repository, update );
     }
 
     public void onEvent( Event<?> evt )
@@ -131,7 +131,7 @@ public class DefaultRubyIndexer
         return indexerThread;
     }
 
-    protected synchronized void reindexRepositorySync( boolean fromUser, RubyRepository repository )
+    protected synchronized void reindexRepositorySync( boolean fromUser, RubyRepository repository, boolean update )
     {
         if ( !fromUser && !getIndexerThread( repository ).isSilentPeriodOver() )
         {
@@ -149,12 +149,12 @@ public class DefaultRubyIndexer
             if ( repository.getRepositoryKind().isFacetAvailable( RubyShadowRepository.class ) )
             {
                 rubyGateway.gemGenerateLazyIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
-                    .getBaseDir( repository, new ResourceStoreRequest( "/" ) ) );
+                    .getBaseDir( repository, new ResourceStoreRequest( "/" ) ), update );
             }
             else
             {
                 rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
-                    .getBaseDir( repository, new ResourceStoreRequest( "/" ) ) );
+                    .getBaseDir( repository, new ResourceStoreRequest( "/" ) ), update );
             }
 
             repository.getNotFoundCache().purge();
@@ -185,22 +185,26 @@ public class DefaultRubyIndexer
         private volatile boolean done = true;
 
         private volatile boolean disabled = false;
+        
+        private volatile boolean update = true;
 
         public IndexerThread( RubyRepository repository )
         {
             this.repository = repository;
         }
 
-        public void reindex()
+        public void reindex( boolean update )
         {
             this.lastReindexRequested = System.currentTimeMillis();
 
             this.done = false;
+            
+            this.update = update;
         }
 
         public void reindexNow()
         {
-            DefaultRubyIndexer.this.reindexRepositorySync( false, this.repository );
+            DefaultRubyIndexer.this.reindexRepositorySync( false, this.repository, this.update );
 
             this.done = true;
         }

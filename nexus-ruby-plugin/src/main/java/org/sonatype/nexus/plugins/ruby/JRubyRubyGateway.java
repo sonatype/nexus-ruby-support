@@ -30,24 +30,34 @@ public class JRubyRubyGateway
     }
 
     @Override
-    public synchronized void gemGenerateIndexes( File basedir )
+    public synchronized void gemGenerateIndexes( File basedir, boolean update )
     {
-        getLogger().info( "Invoking Gem::Indexer for basedir \"" + basedir.getAbsolutePath() + "\"..." );
+        getLogger().info(
+            "Invoking Gem::Indexer for " + ( update ? "update" : "generate" ) + " on basedir \""
+                + basedir.getAbsolutePath() + "\"..." );
         scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
+        scriptingContainer.put( "@update", update );
         Object ret = generateIndexes.run();
         System.out.println( ret );
         scriptingContainer.getVarMap().clear();
-        getLogger().info( "Invoking Gem::Indexer for basedir \"" + basedir.getAbsolutePath() + "\"... DONE" );
+        getLogger().info(
+            "Invoking Gem::Indexer for " + ( update ? "update" : "generate" ) + " on basedir \""
+                + basedir.getAbsolutePath() + "\"... DONE" );
     }
 
     @Override
-    public synchronized void gemGenerateLazyIndexes( File basedir )
+    public synchronized void gemGenerateLazyIndexes( File basedir, boolean update )
     {
-        getLogger().info( "Invoking Gem::NexusIndexer for basedir \"" + basedir.getAbsolutePath() + "\"..." );
+        getLogger().info(
+            "Invoking Gem::NexusIndexer for " + ( update ? "update" : "generate" ) + " on basedir \""
+                + basedir.getAbsolutePath() + "\"..." );
         scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
+        scriptingContainer.put( "@update", update );
         Object ret = generateLazyIndexes.run();
         System.out.println( ret );
         scriptingContainer.getVarMap().clear();
-        getLogger().info( "Invoking Gem::NexusIndexer for basedir \"" + basedir.getAbsolutePath() + "\"... DONE" );
+        getLogger().info(
+            "Invoking Gem::NexusIndexer for " + ( update ? "update" : "generate" ) + " on basedir \""
+                + basedir.getAbsolutePath() + "\"... DONE" );
     }
 }

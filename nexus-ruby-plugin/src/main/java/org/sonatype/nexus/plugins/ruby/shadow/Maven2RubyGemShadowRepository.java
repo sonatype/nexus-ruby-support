@@ -231,7 +231,7 @@ public class Maven2RubyGemShadowRepository
             // TODO: fix this exception getGemSpecificationIO().write()
         }
 
-        rubyIndexer.reindexRepository( this );
+        rubyIndexer.reindexRepository( this, true );
 
         // nothing to return
         return null;
@@ -250,7 +250,7 @@ public class Maven2RubyGemShadowRepository
 
         deleteItem( true, new ResourceStoreRequest( "/gems/" + gemName + ".gemspec" ) );
 
-        rubyIndexer.reindexRepository( this );
+        rubyIndexer.reindexRepository( this, true );
     }
 
     // ==
@@ -275,6 +275,34 @@ public class Maven2RubyGemShadowRepository
 
         try
         {
+            try
+            {
+                // purge all the contents of this shadow
+                getLocalStorage().shredItem( this, request );
+            }
+            catch ( ItemNotFoundException e )
+            {
+                // just ignore this one
+            }
+            catch ( StorageException e )
+            {
+                // uh-oh, return from this
+                getLogger().warn(
+                    "Could not purge local storage of ShadowRepository \"" + getName() + "\" (ID=\"" + getId()
+                        + "\"), bailing out of the sync!", e );
+
+                return;
+            }
+            catch ( UnsupportedStorageOperationException e )
+            {
+                // uh-oh, return from this
+                getLogger().warn(
+                    "Could not purge local storage of ShadowRepository \"" + getName() + "\" (ID=\"" + getId()
+                        + "\"), bailing out of the sync!", e );
+
+                return;
+            }
+
             // while syncing, we want to control how and when to index
             rubyIndexer.setAsyncReindexingEnabled( false, this );
 
@@ -298,8 +326,6 @@ public class Maven2RubyGemShadowRepository
                         return;
                     }
 
-                    counter++;
-
                     String pomPath = file.getAbsolutePath().substring( masterBasedirOffset );
 
                     request.pushRequestPath( pomPath );
@@ -310,6 +336,8 @@ public class Maven2RubyGemShadowRepository
 
                         if ( item instanceof StorageFileItem )
                         {
+                            counter++;
+
                             synchronizeLink( item );
                         }
                     }
@@ -327,19 +355,20 @@ public class Maven2RubyGemShadowRepository
                     {
                         getLogger().info( "Forcing Ruby reindex after " + counter + " count of lazy Gems created." );
 
-                        rubyIndexer.reindexRepositorySync( Maven2RubyGemShadowRepository.this );
+                        rubyIndexer.reindexRepositorySync( Maven2RubyGemShadowRepository.this, true );
                     }
                 }
 
                 public void directoryWalkStarting( File basedir )
                 {
-                    // nothing
+                    // one "generate" (noy update) reindex
+                    rubyIndexer.reindexRepositorySync( Maven2RubyGemShadowRepository.this, false );
                 }
 
                 public void directoryWalkFinished()
                 {
                     // one final reindex
-                    rubyIndexer.reindexRepositorySync( Maven2RubyGemShadowRepository.this );
+                    rubyIndexer.reindexRepositorySync( Maven2RubyGemShadowRepository.this, true );
                 }
 
                 public void debug( String message )
