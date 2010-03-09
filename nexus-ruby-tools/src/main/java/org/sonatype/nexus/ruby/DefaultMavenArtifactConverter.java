@@ -162,7 +162,7 @@ public class DefaultMavenArtifactConverter
         {
             return null;
         }
-        
+
         // for now, just to overcome the JRuby 1.4 Yaml parse but revealed by
         // this POM: http://repo1.maven.org/maven2/org/easytesting/fest-assert/1.0/fest-assert-1.0.pom
         return val.replaceAll( "'", "" ).replaceAll( "\"", "" ).replace( '\n', ' ' );
@@ -286,7 +286,21 @@ public class DefaultMavenArtifactConverter
         // ruby scopes
         // :development
         // :runtime
-        return ":runtime";
+        if ( "provided".equals( dependencyScope ) || "test".equals( dependencyScope ) )
+        {
+            return ":development";
+        }
+        else if ( "compile".equals( dependencyScope ) || "runtime".equals( dependencyScope ) )
+        {
+            return ":runtime";
+        }
+        else
+        // dependencyScope: "system"
+        {
+            //TODO better throw an exception since there will be no gem for such a dependency or something else
+            return ":runtime";
+        }
+
     }
 
     private String getDependencyVersion( MavenArtifact artifact, Dependency dependency )
