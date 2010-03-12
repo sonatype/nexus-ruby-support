@@ -2,11 +2,11 @@ package org.sonatype.nexus.ruby;
 
 import junit.framework.TestCase;
 
-public class Maven2GemVersionConverterTest
-    extends TestCase
+public class Maven2GemVersionConverterTest extends TestCase
 {
     private Maven2GemVersionConverter converter;
 
+    @Override
     protected void setUp()
         throws Exception
     {
@@ -18,17 +18,30 @@ public class Maven2GemVersionConverterTest
     public void testSimple()
     {
         check( "1.2.3", "1.2.3", true );
-        check( "1-2-3", "1.2.3", false );
-        check( "1-2.3", "1.2.3", false );
+        check( "1.2-3", "1.2.0.3", true );
+        check( "1-2-3", "1.0.0.2.3", false );
+        check( "1-2.3", "1.0.0.2.3", false );
         check( "1.2.3a", "1.2.3.a", false );
         check( "1.2.3alpha", "1.2.3.a", false );
         check( "1.2.3beta", "1.2.3.b", false );
         check( "1.2.3.gamma", "1.2.3.g", false );
-        check( "1.2.3-alpha-2", "1.2.3.0.2", false );
-        check( "12.23beta23", "12.23.1.23", false );
-        check( "R8pre2", "8.2", false );
-        check( "R8RC2.3", "8.2.3", false );
-        check( "Somethin", "0.s", false ); // unbelievable to have something like this. but who knows
+        check( "2.3.3-RC1", "2.3.3.r.1", false );
+        check( "1.2.3-alpha-2", "1.2.3.a.2", false );
+        check( "12.23beta23", "12.23.b.23", false );
+        check( "3.0-alpha-1.20020912.045138", "3.0.0.a.1.20020912.045138", false );
+        check( "2.2-b1", "2.2.0.b.1", false );
+        check( "2.2b1", "2.2.b.1", false );
+        check( "3.3.2.GA", "3.3.2.ga", false );
+        check( "3.3.0.SP1", "3.3.0.s.1", false );
+        check( "3.3.0.CR1", "3.3.0.r.1", false );
+        check( "1.0.0.RC3_JONAS", "1.0.0.r.3.jonas", false );
+        check( "1.1.0-M1b-JONAS", "1.1.0.m.1.b.jonas", false );
+        check( "2.0-m5", "2.0.0.m.5", false );
+        check( "2.1_3", "2.1.0.3", false );
+        check( "1.2beta4", "1.2.b.4", false );
+        check( "R8pre2", "999.0.0", false );
+        check( "R8RC2.3", "999.0.0", false );
+        check( "Somethin", "999.0.0", false );
     }
 
     // ==

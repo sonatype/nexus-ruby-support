@@ -1,21 +1,25 @@
 package org.sonatype.nexus.ruby;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.regex.Pattern;
-
-import org.codehaus.plexus.util.StringUtils;
 
 public class Maven2GemVersionConverter
 {
     public static final String DUMMY_VERSION = "999.0.0";
 
     /**
-     * This is the pattern we match against. This is actually x.y.z... version format, that RubyGems support.
+     * This is the pattern we match against. This is actually x.y.z... version format, that RubyGems 1.3.5 support.
+     * {@link http://github.com/jbarnette/rubygems/blob/REL_1_3_5/lib/rubygems/version.rb} and 
+     * {@link http://github.com/jbarnette/rubygems/blob/REL_1_3_6/lib/rubygems/version.rb}
      */
-    public static final Pattern gemVersionPattern = Pattern.compile( "\\d+(\\.\\d+)*(\\.[a-zA-Z])?" );
-    
+    public static final Pattern gemVersionPattern = Pattern.compile( "[0-9]+(\\.[0-9a-z]+)*" );
+
+    private static final Pattern numbersOnlyGemVersionPattern = Pattern.compile( "[0-9]+(\\.[0-9]+)*" );
+
+    private static final Pattern dummyGemVersionPattern = Pattern.compile( "^[^0-9].*" );
+
+    private static final Pattern majorOnlyPattern = Pattern.compile( "^[0-9]+$" );
+    private static final Pattern majorMinorOnlyPattern = Pattern.compile( "^[0-9]+\\.[0-9]+$" );
+
     /**
      * Creates valid GEM version out of Maven2 version. Gem versions are "stricter" than Maven versions: they are in
      * form of "x.y.z...". They have to start with integer, and be followed by a '.'. You can have as many like these
@@ -26,210 +30,45 @@ public class Maven2GemVersionConverter
      */
     public String createGemVersion( String mavenVersion )
     {
-        String result = null;
-
-        try
-        {
-            if ( gemVersionPattern.matcher( mavenVersion ).matches() )
-            {
-                return mavenVersion;
-            }
-            else
-            {
-                StringBuilder gemVersion = new StringBuilder();
-
-                StringBuilder currentRegion = new StringBuilder();
-
-                ChunkIterator chunkIterator = new ChunkIterator( mavenVersion );
-
-                boolean artificialHardBreak = false;
-
-                while ( chunkIterator.hasNext() )
-                {
-                    String chunk = chunkIterator.next().toLowerCase();
-
-                    if ( ".".equals( chunk ) || "-".equals( chunk ) )
-                    {
-                        continue;
-                    }
-                    else if ( !StringUtils.isNumeric( chunk ) )
-                    {
-                        if ( !chunkIterator.hasNext() )
-                        {
-                            if ( currentRegion.length() > 0 )
-                            {
-                                currentRegion.append( "." );
-                            }
-
-                            if ( gemVersion.length() == 0 )
-                            {
-                                currentRegion.append( "0." );
-                            }
-
-                            currentRegion.append( chunk.substring( 0, 1 ) );
-
-                            artificialHardBreak = true;
-                        }
-                        else if ( "alpha".equals( chunk ) )
-                        {
-                            if ( currentRegion.length() > 0 )
-                            {
-                                currentRegion.append( "." );
-                            }
-
-                            currentRegion.append( "0" );
-
-                            artificialHardBreak = true;
-                        }
-                        else if ( "beta".equals( chunk ) )
-                        {
-                            if ( currentRegion.length() > 0 )
-                            {
-                                currentRegion.append( "." );
-                            }
-
-                            currentRegion.append( "1" );
-
-                            artificialHardBreak = true;
-                        }
-                        else if ( chunk.contains( "pre" ) )
-                        {
-                            artificialHardBreak = true;
-                        }
-                        else
-                        {
-                            chunk = null;
-                        }
-                    }
-                    else
-                    {
-                        currentRegion.append( chunk );
-                    }
-
-                    if ( chunkIterator.isHardBreak() || artificialHardBreak )
-                    {
-                        // add it to result
-                        gemVersion.append( currentRegion.toString() );
-
-                        gemVersion.append( "." );
-
-                        currentRegion = new StringBuilder();
-
-                        artificialHardBreak = false;
-                    }
-                }
-
-                result = gemVersion.toString().substring( 0, gemVersion.length() - 1 );
-            }
-        }
-        catch ( StringIndexOutOfBoundsException e )
+        if ( dummyGemVersionPattern.matcher( mavenVersion ).matches() )
         {
             return DUMMY_VERSION;
         }
-
-        if ( result != null && gemVersionPattern.matcher( result ).matches() )
+        else if ( numbersOnlyGemVersionPattern.matcher( mavenVersion ).matches() )
         {
-            // we did it
-            return result;
-        }
-        else
-        {
-            // we cannot convert version
-            // DoomedToFail: Unable to convert Maven2 version \"" + mavenVersion + "\" to proper Gem Version!"
-            return DUMMY_VERSION;
-        }
-    }
-
-    // ==
-
-    private static class ChunkIterator
-        implements Iterator<String>
-    {
-        private final String mavenVersion;
-
-        private final int mavenVersionLength;
-
-        private int lastMarker = 0;
-
-        private Set<Character> hardBreakers;
-
-        private boolean hardBreak;
-
-        public ChunkIterator( String mavenVersion )
-        {
-            this.mavenVersion = mavenVersion.trim();
-
-            this.mavenVersionLength = this.mavenVersion.length();
-
-            this.hardBreakers = new HashSet<Character>();
-
-            // default ones
-            this.hardBreakers.add( '.' );
-            this.hardBreakers.add( '-' );
+            return mavenVersion;
         }
 
-        public boolean hasNext()
+        // make all lowercase for rubygems 1.3.5
+        mavenVersion = mavenVersion.toLowerCase();
+
+        // first transform the main part (everything before the first '-' or '_'
+        // to follow the pattern "major.minor.build"
+        // motivation: 1.0-2 should be lower then 1.0.1, i.e. the first one is variant of 1.0.0
+        String mainPart = mavenVersion.replaceAll( "[\\-_].*", "" );
+        String extraPart = mavenVersion.substring( mainPart.length() );
+        StringBuilder version = new StringBuilder( mainPart );
+        if ( majorOnlyPattern.matcher( mainPart ).matches() )
         {
-            return lastMarker < mavenVersionLength
-                && StringUtils.isNotBlank( getChunk( mavenVersion, mavenVersionLength, lastMarker ) );
+            version.append( ".0.0" );
         }
-
-        public String next()
+        else if ( majorMinorOnlyPattern.matcher( mainPart ).matches() )
         {
-            String chunk = getChunk( mavenVersion, mavenVersionLength, lastMarker );
-
-            lastMarker += chunk.length();
-
-            return chunk;
+            version.append( ".0" );
         }
+        version.append( extraPart );
 
-        public void remove()
-        {
-            // unsupported
-        }
+        // now the remaining transformations
+        return version.toString()
+            // split alphanumeric parts in numeric parts and alphabetic parts
+            .replaceAll( "([0-9]+)([a-z]+)", "$1.$2" )
+            .replaceAll( "([a-z]+)([0-9]+)", "$1.$2" )
+            // "-"/"_" to "."
+            .replaceAll( "-|_", "." )
+            // shorten predefined qualifiers or replace aliases
+            // TODO SNAPSHOT", "final", "ga" are missing and do not sort correctly 
+            .replaceAll( "alpha", "a" ).replaceAll( "beta", "b" ).replaceAll( "gamma", "g" ).replaceAll( "cr", "r" )
+            .replaceAll( "rc", "r" ).replaceAll( "sp", "s" ).replaceAll( "milestone", "m" );
 
-        public boolean isHardBreak()
-        {
-            return hardBreak;
-        }
-
-        // ==
-
-        private final String getChunk( String s, int slength, int marker )
-        {
-            StringBuilder chunk = new StringBuilder();
-            char c = s.charAt( marker );
-            chunk.append( c );
-            marker++;
-            if ( !hardBreakers.contains( c ) )
-            {
-                if ( Character.isDigit( c ) )
-                {
-                    while ( marker < slength )
-                    {
-                        c = s.charAt( marker );
-                        if ( !Character.isDigit( c ) )
-                            break;
-                        chunk.append( c );
-                        marker++;
-                    }
-                }
-                else
-                {
-                    while ( marker < slength )
-                    {
-                        c = s.charAt( marker );
-                        if ( Character.isDigit( c ) || hardBreakers.contains( c ) )
-                            break;
-                        chunk.append( c );
-                        marker++;
-                    }
-                }
-            }
-
-            this.hardBreak = marker >= slength || hardBreakers.contains( c );
-
-            return chunk.toString();
-        }
     }
 }
