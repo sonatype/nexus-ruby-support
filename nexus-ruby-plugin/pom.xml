@@ -14,7 +14,7 @@
 
   <properties>
     <!-- Set the Nexus version here, against which you build the plugin -->
-    <nexus-version>1.4.2-SNAPSHOT</nexus-version>
+    <nexus-version>1.5.1-SNAPSHOT</nexus-version>
   </properties>
 
   <dependencies>
@@ -26,10 +26,13 @@
     </dependency>
 
     <!--
-      Note: there are two sets of dependencies here, the basic (minimal dependencies needed to build Nexus plugins), and
-      the ITset, that is needed if you want to write IT tests using real Nexus environment to test your plugins. If you
-      are using other technique (like having separate module for IT tests), you can freely remove or just move outside
-      of this module these dependencies. The ITset of requirements in this POM are put in between "#ITSet BEGINS" and
+      Note: there are two sets of dependencies here, the basic (minimal
+      dependencies needed to build Nexus plugins), and the ITset, that
+      is needed if you want to write IT tests using real Nexus
+      environment to test your plugins. If you are using other technique
+      (like having separate module for IT tests), you can freely remove
+      or just move outside of this module these dependencies. The ITset
+      of requirements in this POM are put in between "#ITSet BEGINS" and
       "#ITSet ENDS" pair of comments.
     -->
 
@@ -56,7 +59,10 @@
     </dependency>
 
     <!-- #ITSet BEGINS -->
-    <!-- Nexus IT setup (dependencies below are needed if you have extensive ITs and you want to use Nexus Environment) -->
+    <!--
+      Nexus IT setup (dependencies below are needed if you have
+      extensive ITs and you want to use Nexus Environment)
+    -->
     <!-- There are plugins connected to this dependency, see below! -->
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
@@ -69,8 +75,14 @@
   </dependencies>
 
   <!-- #ITSet BEGINS -->
-  <!-- Nexus IT setup (dependencies below are needed if you have extensive ITs and you want to use Nexus Environment) -->
-  <!-- There are plugins and dependencies connected to this import, see below and above! -->
+  <!--
+    Nexus IT setup (dependencies below are needed if you have extensive
+    ITs and you want to use Nexus Environment)
+  -->
+  <!--
+    There are plugins and dependencies connected to this import, see
+    below and above!
+  -->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -110,13 +122,13 @@
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>app-lifecycle-maven-plugin</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
         <extensions>true</extensions>
         <dependencies>
           <dependency>
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>app-lifecycle-nexus</artifactId>
-            <version>1.0</version>
+            <version>1.1</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -141,12 +153,18 @@
       </plugin>
 
       <!-- #ITSet BEGINS -->
-      <!-- Nexus IT setup (dependencies below are needed if you have extensive ITs and you want to use Nexus Environment) -->
-      <!-- There are dependencies connected to this set of plugin, see above! -->
+      <!--
+        Nexus IT setup (dependencies below are needed if you have
+        extensive ITs and you want to use Nexus Environment)
+      -->
+      <!--
+        There are dependencies connected to this set of plugin, see
+        above!
+      -->
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-test-environment-maven-plugin</artifactId>
-        <version>1.3-SNAPSHOT</version>
+        <version>1.4-SNAPSHOT</version>
         <executions>
           <execution>
             <goals>
@@ -155,6 +173,14 @@
           </execution>
         </executions>
         <configuration>
+          <nexusBundleArtifact>
+            <groupId>org.sonatype.nexus</groupId>
+            <artifactId>nexus-oss-webapp</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <classifier>bundle</classifier>
+          </nexusBundleArtifact>
+          <nexusBundleName>nexus-oss-webapp-${project.version}</nexusBundleName>
           <nexusVersion>${nexus-version}</nexusVersion>
         </configuration>
       </plugin>

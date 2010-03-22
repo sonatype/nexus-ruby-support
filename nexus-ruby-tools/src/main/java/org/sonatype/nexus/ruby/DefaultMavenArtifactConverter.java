@@ -219,11 +219,11 @@ public class DefaultMavenArtifactConverter
 
         if ( artifact.getArtifactFile() != null )
         {
-            rubyStub = IOUtil.toString( getClass().getResourceAsStream( "/metafile.rb.template" ) );
+            rubyStub = IOUtil.toString( getClass().getResourceAsStream( "/metafile.rb.template" ), "UTF-8" );
         }
         else
         {
-            rubyStub = IOUtil.toString( getClass().getResourceAsStream( "/jarlessmetafile.rb.template" ) );
+            rubyStub = IOUtil.toString( getClass().getResourceAsStream( "/jarlessmetafile.rb.template" ), "UTF-8" );
         }
 
         String[] titleParts = artifact.getPom().getArtifactId().split( "-" );
