@@ -1,6 +1,10 @@
 package org.sonatype.nexus.ruby;
 
+import java.io.IOException;
+
 import junit.framework.TestCase;
+
+import org.codehaus.plexus.util.IOUtil;
 
 public class Maven2GemVersionConverterTest extends TestCase
 {
@@ -17,8 +21,11 @@ public class Maven2GemVersionConverterTest extends TestCase
 
     public void testSimple()
     {
+        check( "1", "1.0.0", false );
+        check( "1.2", "1.2.0", false );
         check( "1.2.3", "1.2.3", true );
-        check( "1.2-3", "1.2.0.3", true );
+        check( "1.2-3", "1.2.0.3", false );
+        check( "1_2_3", "1.0.0.2.3", false );
         check( "1-2-3", "1.0.0.2.3", false );
         check( "1-2.3", "1.0.0.2.3", false );
         check( "1.2.3a", "1.2.3.a", false );
@@ -39,9 +46,23 @@ public class Maven2GemVersionConverterTest extends TestCase
         check( "2.0-m5", "2.0.0.m.5", false );
         check( "2.1_3", "2.1.0.3", false );
         check( "1.2beta4", "1.2.b.4", false );
-        check( "R8pre2", "999.0.0", false );
-        check( "R8RC2.3", "999.0.0", false );
-        check( "Somethin", "999.0.0", false );
+        check( "R8pre2", "0.0.0.r.8.pre.2", false );
+        check( "R8RC2.3", "0.0.0.r.8.r.2.3", false );
+        check( "Somethin", "0.0.0.somethin", false );
+    }
+
+    public void testMore()
+        throws IOException
+    {
+        String[] versions =
+            IOUtil.toString( Thread.currentThread().getContextClassLoader().getResourceAsStream( "versions.txt" ) )
+                .split( "\\s" );
+        for ( String version : versions )
+        {
+            String gemVersion = converter.createGemVersion( version );
+            assertTrue( Maven2GemVersionConverter.gemVersionPattern.matcher( gemVersion ).matches() );
+            assertNotSame( Maven2GemVersionConverter.DUMMY_VERSION, gemVersion );
+        }
     }
 
     // ==

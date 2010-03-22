@@ -6,6 +6,8 @@ public class Maven2GemVersionConverter
 {
     public static final String DUMMY_VERSION = "999.0.0";
 
+    public static final String DUMMY_PREFIX = "0.0.0-";
+
     /**
      * This is the pattern we match against. This is actually x.y.z... version format, that RubyGems 1.3.5 support.
      * {@link http://github.com/jbarnette/rubygems/blob/REL_1_3_5/lib/rubygems/version.rb} and 
@@ -13,7 +15,9 @@ public class Maven2GemVersionConverter
      */
     public static final Pattern gemVersionPattern = Pattern.compile( "[0-9]+(\\.[0-9a-z]+)*" );
 
-    private static final Pattern numbersOnlyGemVersionPattern = Pattern.compile( "[0-9]+(\\.[0-9]+)*" );
+    private static final Pattern goodVersionPattern = Pattern.compile( "[0-9a-zA-Z-_.]+" );
+
+    private static final Pattern numbersOnlyGemVersionPattern = Pattern.compile( "[0-9]+(\\.[0-9]+){2}(\\.[0-9]+)*" );
 
     private static final Pattern dummyGemVersionPattern = Pattern.compile( "^[^0-9].*" );
 
@@ -32,10 +36,18 @@ public class Maven2GemVersionConverter
     {
         if ( dummyGemVersionPattern.matcher( mavenVersion ).matches() )
         {
-            return DUMMY_VERSION;
+            if ( goodVersionPattern.matcher( mavenVersion ).matches() )
+            {
+                return createGemVersion( DUMMY_PREFIX + mavenVersion );
+            }
+            else
+            {
+                return DUMMY_VERSION;
+            }
         }
         else if ( numbersOnlyGemVersionPattern.matcher( mavenVersion ).matches() )
         {
+            // has at least two dots !!!
             return mavenVersion;
         }
 
@@ -46,7 +58,7 @@ public class Maven2GemVersionConverter
         // to follow the pattern "major.minor.build"
         // motivation: 1.0-2 should be lower then 1.0.1, i.e. the first one is variant of 1.0.0
         String mainPart = mavenVersion.replaceAll( "[\\-_].*", "" );
-        String extraPart = mavenVersion.substring( mainPart.length() );
+        String extraPart = mavenVersion.substring( mainPart.length() ).replaceAll( "[_-][_-]", "-" );
         StringBuilder version = new StringBuilder( mainPart );
         if ( majorOnlyPattern.matcher( mainPart ).matches() )
         {
