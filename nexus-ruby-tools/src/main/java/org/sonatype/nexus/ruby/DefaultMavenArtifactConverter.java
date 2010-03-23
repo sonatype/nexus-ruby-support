@@ -68,8 +68,9 @@ public class DefaultMavenArtifactConverter
         }
 
         return StringUtils.equals( packaging, artifact.getPom().getPackaging() )
-            && ( ( extension == null && artifact.getArtifactFile() == null ) || ( extension != null
-                && artifact.getArtifactFile() != null && artifact.getArtifactFile().getName().endsWith( fixedExtension ) ) );
+               && ( ( extension == null && artifact.getArtifactFile() == null ) || ( extension != null
+                                                                                     && artifact.getArtifactFile() != null && artifact
+                               .getArtifactFile().getName().endsWith( fixedExtension ) ) );
     }
 
     public String getGemFileName( MavenArtifact artifact )
@@ -87,7 +88,7 @@ public class DefaultMavenArtifactConverter
 
         // the must ones
         result.setName( createGemName( artifact.getCoordinates().getGroupId(), artifact.getCoordinates()
-            .getArtifactId(), artifact.getCoordinates().getVersion() ) );
+                        .getArtifactId(), artifact.getCoordinates().getVersion() ) );
         result.setVersion( new GemVersion( createGemVersion( artifact.getCoordinates().getVersion() ) ) );
 
         // dependencies
@@ -102,7 +103,7 @@ public class DefaultMavenArtifactConverter
         // and other stuff "nice to have"
         result.setDate( new Date() ); // now
         result.setDescription( sanitizeStringValue( artifact.getPom().getDescription() != null ? artifact.getPom()
-            .getDescription() : artifact.getPom().getName() ) );
+                        .getDescription() : artifact.getPom().getName() ) );
         result.setSummary( sanitizeStringValue( artifact.getPom().getName() ) );
         result.setHomepage( sanitizeStringValue( artifact.getPom().getUrl() ) );
 
@@ -118,7 +119,7 @@ public class DefaultMavenArtifactConverter
             for ( Developer developer : artifact.getPom().getDevelopers() )
             {
                 result.getAuthors()
-                    .add( sanitizeStringValue( developer.getName() + " (" + developer.getEmail() + ")" ) );
+                                .add( sanitizeStringValue( developer.getName() + " (" + developer.getEmail() + ")" ) );
             }
         }
 
@@ -206,6 +207,7 @@ public class DefaultMavenArtifactConverter
     }
 
     protected String createGemVersion( String mavenVersion )
+        throws NullPointerException
     {
         return maven2GemVersionConverter.createGemVersion( mavenVersion );
     }
@@ -273,8 +275,8 @@ public class DefaultMavenArtifactConverter
 
         // TODO: we are adding "hard" dependencies here, but we should maybe support Maven ranges too
         // based on http://blog.zenspider.com/2008/10/rubygems-howto-preventing-cata.html
-        requirement.addRequirement( "~>", new GemVersion(
-            createGemVersion( getDependencyVersion( artifact, dependency ) ) ) );
+        requirement.addRequirement( "~>",
+            new GemVersion( createGemVersion( getDependencyVersion( artifact, dependency ) ) ) );
 
         result.setVersion_requirement( requirement );
 
@@ -297,7 +299,7 @@ public class DefaultMavenArtifactConverter
         else
         // dependencyScope: "system"
         {
-            //TODO better throw an exception since there will be no gem for such a dependency or something else
+            // TODO better throw an exception since there will be no gem for such a dependency or something else
             return ":runtime";
         }
 

@@ -2,6 +2,13 @@ package org.sonatype.nexus.ruby;
 
 import java.util.regex.Pattern;
 
+/**
+ * Class doing conversion from Maven "versioning space" into Ruby Gems "versioning space". The job is not trivial, since
+ * Maven is much more liberal in accepting versions then Gems are.
+ * 
+ * @author cstamas
+ * @author mkristian
+ */
 public class Maven2GemVersionConverter
 {
     public static final String DUMMY_VERSION = "999.0.0";
@@ -10,8 +17,8 @@ public class Maven2GemVersionConverter
 
     /**
      * This is the pattern we match against. This is actually x.y.z... version format, that RubyGems 1.3.5 support.
-     * {@link http://github.com/jbarnette/rubygems/blob/REL_1_3_5/lib/rubygems/version.rb} and 
-     * {@link http://github.com/jbarnette/rubygems/blob/REL_1_3_6/lib/rubygems/version.rb}
+     * {@link http://github.com/jbarnette/rubygems/blob/REL_1_3_5/lib/rubygems/version.rb} and {@link http
+     * ://github.com/jbarnette/rubygems/blob/REL_1_3_6/lib/rubygems/version.rb}
      */
     public static final Pattern gemVersionPattern = Pattern.compile( "[0-9]+(\\.[0-9a-z]+)*" );
 
@@ -22,6 +29,7 @@ public class Maven2GemVersionConverter
     private static final Pattern dummyGemVersionPattern = Pattern.compile( "^[^0-9].*" );
 
     private static final Pattern majorOnlyPattern = Pattern.compile( "^[0-9]+$" );
+
     private static final Pattern majorMinorOnlyPattern = Pattern.compile( "^[0-9]+\\.[0-9]+$" );
 
     /**
@@ -33,7 +41,13 @@ public class Maven2GemVersionConverter
      * @return
      */
     public String createGemVersion( String mavenVersion )
+        throws NullPointerException
     {
+        if ( mavenVersion == null || mavenVersion.trim().length() == 0 )
+        {
+            throw new NullPointerException( "The passed in mavenVersion cannot be empty!" );
+        }
+
         if ( dummyGemVersionPattern.matcher( mavenVersion ).matches() )
         {
             if ( goodVersionPattern.matcher( mavenVersion ).matches() )
@@ -72,15 +86,14 @@ public class Maven2GemVersionConverter
 
         // now the remaining transformations
         return version.toString()
-            // split alphanumeric parts in numeric parts and alphabetic parts
-            .replaceAll( "([0-9]+)([a-z]+)", "$1.$2" )
-            .replaceAll( "([a-z]+)([0-9]+)", "$1.$2" )
-            // "-"/"_" to "."
-            .replaceAll( "-|_", "." )
-            // shorten predefined qualifiers or replace aliases
-            // TODO SNAPSHOT", "final", "ga" are missing and do not sort correctly 
-            .replaceAll( "alpha", "a" ).replaceAll( "beta", "b" ).replaceAll( "gamma", "g" ).replaceAll( "cr", "r" )
-            .replaceAll( "rc", "r" ).replaceAll( "sp", "s" ).replaceAll( "milestone", "m" );
+        // split alphanumeric parts in numeric parts and alphabetic parts
+                        .replaceAll( "([0-9]+)([a-z]+)", "$1.$2" ).replaceAll( "([a-z]+)([0-9]+)", "$1.$2" )
+                        // "-"/"_" to "."
+                        .replaceAll( "-|_", "." )
+                        // shorten predefined qualifiers or replace aliases
+                        // TODO SNAPSHOT", "final", "ga" are missing and do not sort correctly
+                        .replaceAll( "alpha", "a" ).replaceAll( "beta", "b" ).replaceAll( "gamma", "g" ).replaceAll(
+                            "cr", "r" ).replaceAll( "rc", "r" ).replaceAll( "sp", "s" ).replaceAll( "milestone", "m" );
 
     }
 }

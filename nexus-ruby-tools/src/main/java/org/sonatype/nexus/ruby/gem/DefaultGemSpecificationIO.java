@@ -15,7 +15,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 
 /**
  * This is here just be able to quickly switch between snakeYaml and YamlBeans, since they are both good, with their own
- * quirks. Not sure yet which to use. YamlBeans makes better looking Yaml.
+ * quirks. SnakeYaml won ;) So we can clear up this later.
  * 
  * @author cstamas
  */

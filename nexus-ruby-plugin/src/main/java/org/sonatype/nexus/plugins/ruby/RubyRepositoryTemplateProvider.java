@@ -24,8 +24,9 @@ public class RubyRepositoryTemplateProvider
             templates.add( new Maven2RubyGemShadowRepositoryTemplate( this, Maven2RubyGemShadowRepository.ID,
                 "Maven2 to RubyGem Virtual Repository" ) );
 
-            templates.add( new DefaultRubyHostedRepositoryTemplate( this, DefaultRubyHostedRepository.ID,
-                "RubyGem Hosted Repository" ) );
+            // disabled for now
+            //templates.add( new DefaultRubyHostedRepositoryTemplate( this, DefaultRubyHostedRepository.ID,
+            //    "RubyGem Hosted Repository" ) );
         }
         catch ( Exception e )
         {
