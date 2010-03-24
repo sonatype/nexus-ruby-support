@@ -1,18 +1,24 @@
 package org.sonatype.nexus.ruby;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.License;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.context.Context;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
+import org.codehaus.plexus.velocity.VelocityComponent;
 import org.sonatype.nexus.ruby.gem.GemDependency;
 import org.sonatype.nexus.ruby.gem.GemFileEntry;
 import org.sonatype.nexus.ruby.gem.GemPackager;
@@ -24,11 +30,48 @@ import org.sonatype.nexus.ruby.gem.GemVersion;
  * This is full of "workarounds" here, since for true artifact2gem conversion I would need interpolated POM!
  * 
  * @author cstamas
+ * @author mkristian
  */
 @Component( role = MavenArtifactConverter.class )
 public class DefaultMavenArtifactConverter
     implements MavenArtifactConverter
 {
+    private static final String LIB_PATH = "lib/maven/";
+
+    enum RubyDependencyType
+    {
+
+        RUNTIME, DEVELOPMENT;
+
+        @Override
+        public String toString()
+        {
+            return ":" + name().toLowerCase();
+        }
+
+        public static RubyDependencyType toRubyDependencyType( String dependencyScope )
+        {
+            // ruby scopes
+            // :development
+            // :runtime
+            if ( "provided".equals( dependencyScope ) || "test".equals( dependencyScope ) )
+            {
+                return DEVELOPMENT;
+            }
+            else if ( "compile".equals( dependencyScope ) || "runtime".equals( dependencyScope ) )
+            {
+                return RUNTIME;
+            }
+            else
+            // dependencyScope: "system"
+            {
+                //TODO better throw an exception since there will be no gem for such a dependency or something else
+                return RUNTIME;
+            }
+
+        }
+    }
+
     /**
      * The Java platform key.
      */
@@ -36,6 +79,9 @@ public class DefaultMavenArtifactConverter
 
     @Requirement
     private GemPackager gemPackager;
+
+    @Requirement
+    private VelocityComponent velocityComponent;
 
     private Maven2GemVersionConverter maven2GemVersionConverter = new Maven2GemVersionConverter();
 
@@ -137,16 +183,40 @@ public class DefaultMavenArtifactConverter
             throw new IOException( "Must specify target file, where to generate Gem!" );
         }
 
-        // create "meta" ruby file
-        File rubyStubFile = generateRubyStub( gemspec, artifact );
-        String rubyStubPath = "lib/" + gemspec.getName() + ".rb";
-
         ArrayList<GemFileEntry> entries = new ArrayList<GemFileEntry>();
         if ( artifact.getArtifactFile() != null )
         {
-            entries.add( new GemFileEntry( artifact.getArtifactFile(), true ) );
+            entries.add( new GemFileEntry( artifact.getArtifactFile(), LIB_PATH
+                + createRequireName( artifact.getCoordinates().getGroupId(), artifact.getCoordinates().getArtifactId(),
+                    artifact.getCoordinates().getVersion() ) + ".jar", false ) );
         }
+
+        // create "meta" ruby file
+        String rubyStubMetaPath =
+            LIB_PATH
+                + createRequireName( artifact.getCoordinates().getGroupId(), artifact.getCoordinates().getArtifactId(),
+                    artifact.getCoordinates().getVersion() ) + "-maven-meta.rb";
+        //System.err.println( rubyStubMetaPath );
+        File rubyStubMetaFile = generateRubyMetaStub( gemspec, artifact );
+        entries.add( new GemFileEntry( rubyStubMetaFile, rubyStubMetaPath, false ) );
+
+        // create runtime ruby file
+        String rubyStubPath =
+            LIB_PATH
+                + createRequireName( artifact.getCoordinates().getGroupId(), artifact.getCoordinates().getArtifactId(),
+                    artifact.getCoordinates().getVersion() ) + ".rb";
+        //System.err.println( rubyStubPath );
+        File rubyStubFile = generateRubyStub( gemspec, artifact, RubyDependencyType.RUNTIME );
         entries.add( new GemFileEntry( rubyStubFile, rubyStubPath, true ) );
+
+        // create development ruby file
+        String rubyDevelopmentStubPath =
+            LIB_PATH
+                + createRequireName( artifact.getCoordinates().getGroupId(), artifact.getCoordinates().getArtifactId(),
+                    artifact.getCoordinates().getVersion() ) + "-dev.rb";
+        //System.err.println( rubyDevelopmentStubPath );
+        File rubyDevelopmentStubFile = generateRubyStub( gemspec, artifact, RubyDependencyType.DEVELOPMENT );
+        entries.add( new GemFileEntry( rubyDevelopmentStubFile, rubyDevelopmentStubPath, true ) );
 
         // write file
         gemPackager.createGem( gemspec, entries, target );
@@ -166,6 +236,16 @@ public class DefaultMavenArtifactConverter
         // for now, just to overcome the JRuby 1.4 Yaml parse but revealed by
         // this POM: http://repo1.maven.org/maven2/org/easytesting/fest-assert/1.0/fest-assert-1.0.pom
         return val.replaceAll( "'", "" ).replaceAll( "\"", "" ).replace( '\n', ' ' );
+    }
+
+    protected String createRequireName( String groupId, String artifactId, String version )
+    {
+        return groupId + "/" + artifactId;
+    }
+
+    protected String createJarfileName( String groupId, String artifactId, String version )
+    {
+        return artifactId + ".jar";
     }
 
     protected String createGemName( String groupId, String artifactId, String version )
@@ -212,53 +292,100 @@ public class DefaultMavenArtifactConverter
 
     // ==
 
-    private File generateRubyStub( GemSpecification gemspec, MavenArtifact artifact )
+    private File generateRubyMetaStub( GemSpecification gemspec, MavenArtifact artifact )
         throws IOException
     {
-        String rubyStub = null;
-
+        VelocityContext context = new VelocityContext();
+        context.put( "gemVersion", gemspec.getVersion().getVersion() );
+        context.put( "groupId", artifact.getCoordinates().getGroupId() );
+        context.put( "artifactId", artifact.getCoordinates().getArtifactId() );
+        context.put( "type", artifact.getPom().getPackaging() );
+        context.put( "version", artifact.getCoordinates().getVersion() );
         if ( artifact.getArtifactFile() != null )
         {
-            rubyStub = IOUtil.toString( getClass().getResourceAsStream( "/metafile.rb.template" ) );
+            context.put( "filename", createJarfileName( artifact.getCoordinates().getGroupId(), artifact
+                .getCoordinates().getArtifactId(), artifact.getCoordinates().getVersion() ) );
         }
-        else
-        {
-            rubyStub = IOUtil.toString( getClass().getResourceAsStream( "/jarlessmetafile.rb.template" ) );
-        }
+        List<String> packageParts = new ArrayList<String>();
 
-        String[] titleParts = artifact.getPom().getArtifactId().split( "-" );
-        StringBuilder titleizedArtifactId = new StringBuilder();
-        for ( String part : titleParts )
+        for ( String part : artifact.getCoordinates().getGroupId().split( "\\." ) )
         {
-            if ( part != null && part.length() != 0 )
+            packageParts.add( titleize( part ) );
+        }
+        packageParts.add( titleize( artifact.getCoordinates().getArtifactId() ) );
+        context.put( "packageParts", packageParts );
+
+        return generateRubyFile( "metafile", context, "rubyMetaStub" );
+    }
+
+    private File generateRubyStub( GemSpecification gemspec, MavenArtifact artifact, RubyDependencyType type )
+        throws IOException
+    {
+        VelocityContext context = new VelocityContext();
+        switch (type)
+        {
+        case RUNTIME:
+            if ( artifact.getArtifactFile() != null )
             {
-                titleizedArtifactId.append( StringUtils.capitalise( part ) );
+                context.put( "jarfile", createJarfileName( artifact.getCoordinates().getGroupId(), artifact
+                    .getCoordinates().getArtifactId(), artifact.getCoordinates().getVersion() ) );
+            }
+            break;
+        case DEVELOPMENT:
+            context.put( "filename", artifact.getCoordinates().getArtifactId() + ".rb" );
+            break;
+        }
+        List<String> deps = new ArrayList<String>();
+        for ( Dependency dependency : artifact.getPom().getDependencies() )
+        {
+            if ( RubyDependencyType.toRubyDependencyType( dependency.getScope() ) == type )
+            {
+                deps.add( createRequireName( dependency.getGroupId(), dependency.getArtifactId(), dependency
+                    .getVersion() ) );
             }
         }
+        context.put( "dependencies", deps );
 
-        String artifactName = "";
+        return generateRubyFile( "require" + type.name(), context, "rubyStub" + type.name() );
+    }
 
-        if ( artifact.getArtifactFile() != null )
+    private File generateRubyFile( String templateName, Context context, String stubFilename )
+        throws IOException
+    {
+        InputStream input = getClass().getResourceAsStream( "/" + templateName + ".rb.vm" );
+
+        if ( input == null )
         {
-            artifactName = artifact.getArtifactFile().getName();
+            throw new FileNotFoundException( templateName + ".rb.vm" );
         }
 
-        rubyStub =
-            rubyStub.replaceFirst( "\\$\\{version\\}", gemspec.getVersion().getVersion() ).replaceFirst(
-                "\\$\\{maven_version\\}", artifact.getCoordinates().getVersion() ).replaceFirst( "\\$\\{jar_file\\}",
-                artifactName ).replaceFirst( "\\$\\{titleized_classname\\}", titleizedArtifactId.toString() );
+        String rubyTemplate = IOUtil.toString( input );
 
-        File rubyStubFile = File.createTempFile( "rubyStub", ".rb.tmp" );
+        File rubyFile = File.createTempFile( stubFilename, ".rb.tmp" );
 
-        FileWriter fw = new FileWriter( rubyStubFile );
+        FileWriter fw = new FileWriter( rubyFile );
 
-        fw.write( rubyStub );
+        velocityComponent.getEngine().evaluate( context, fw, "ruby", rubyTemplate );
 
         fw.flush();
 
         fw.close();
 
-        return rubyStubFile;
+        return rubyFile;
+    }
+
+    private String titleize( String string )
+    {
+        String[] titleParts = string.split( "[-._]" );
+        StringBuilder titleizedString = new StringBuilder();
+        for ( String part : titleParts )
+        {
+            if ( part != null && part.length() != 0 )
+            {
+                titleizedString.append( StringUtils.capitalise( part ) );
+            }
+        }
+        return titleizedString.toString();
     }
 
     private GemDependency convertDependency( MavenArtifact artifact, Dependency dependency )
@@ -267,7 +394,7 @@ public class DefaultMavenArtifactConverter
 
         result.setName( createGemName( dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion() ) );
 
-        result.setType( getRubyDependencyType( dependency.getScope() ) );
+        result.setType( RubyDependencyType.toRubyDependencyType( dependency.getScope() ).toString() );
 
         GemRequirement requirement = new GemRequirement();
 
@@ -279,28 +406,6 @@ public class DefaultMavenArtifactConverter
         result.setVersion_requirement( requirement );
 
         return result;
-    }
-
-    private String getRubyDependencyType( String dependencyScope )
-    {
-        // ruby scopes
-        // :development
-        // :runtime
-        if ( "provided".equals( dependencyScope ) || "test".equals( dependencyScope ) )
-        {
-            return ":development";
-        }
-        else if ( "compile".equals( dependencyScope ) || "runtime".equals( dependencyScope ) )
-        {
-            return ":runtime";
-        }
-        else
-        // dependencyScope: "system"
-        {
-            //TODO better throw an exception since there will be no gem for such a dependency or something else
-            return ":runtime";
-        }
-
     }
 
     private String getDependencyVersion( MavenArtifact artifact, Dependency dependency )
