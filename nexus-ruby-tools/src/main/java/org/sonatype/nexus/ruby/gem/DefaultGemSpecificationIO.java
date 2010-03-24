@@ -1,13 +1,8 @@
 package org.sonatype.nexus.ruby.gem;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.sourceforge.yamlbeans.YamlException;
-import net.sourceforge.yamlbeans.YamlReader;
-import net.sourceforge.yamlbeans.YamlWriter;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.sonatype.nexus.ruby.gem.yaml.MappingConstructor;
@@ -20,7 +15,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 
 /**
  * This is here just be able to quickly switch between snakeYaml and YamlBeans, since they are both good, with their own
- * quirks. Not sure yet which to use. YamlBeans makes better looking Yaml.
+ * quirks. SnakeYaml won ;) So we can clear up this later.
  * 
  * @author cstamas
  */
@@ -49,7 +44,7 @@ public class DefaultGemSpecificationIO
         // snake has some problems i could not overcome
         // return readGemSpecfromYamlWithSnakeYaml( gemspec );
         // yamlbeans makes better yaml at 1st glance
-        return readGemSpecfromYamlWithYamlBeans( gemspecString );
+        return readGemSpecfromYamlWithSnakeYaml( gemspecString );
     }
 
     protected String writeGemSpectoYaml( GemSpecification gemspec )
@@ -58,7 +53,7 @@ public class DefaultGemSpecificationIO
         // snake has some problems i could not overcome
         // return writeGemSpectoYamlWithSnakeYaml( gemspec );
         // yamlbeans makes better yaml at 1st glance
-        return writeGemSpectoYamlWithYamlBeans( gemspec );
+        return writeGemSpectoYamlWithSnakeYaml( gemspec );
     }
 
     // == SnakeYaml
@@ -111,71 +106,6 @@ public class DefaultGemSpecificationIO
         Yaml yaml = new Yaml( loader, dumper );
 
         return yaml.dump( gemspec );
-    }
-
-    // == YamlBeans
-
-    protected GemSpecification readGemSpecfromYamlWithYamlBeans( String gemspecString )
-        throws IOException
-    {
-        Map<String, Class<?>> mapping = new HashMap<String, Class<?>>();
-        mapping.put( "ruby/object:Gem::Specification", GemSpecification.class );
-        mapping.put( "ruby/object:Gem::Dependency", GemDependency.class );
-        mapping.put( "ruby/object:Gem::Requirement", GemRequirement.class );
-        mapping.put( "ruby/object:Gem::Version", GemVersion.class );
-
-        YamlReader yaml = new YamlReader( gemspecString );
-        for ( Map.Entry<String, Class<?>> entry : mapping.entrySet() )
-        {
-            yaml.getConfig().setClassTag( entry.getKey(), entry.getValue() );
-        }
-
-        try
-        {
-            GemSpecification obj = yaml.read( GemSpecification.class );
-
-            return obj;
-        }
-        catch ( YamlException e )
-        {
-            IOException e1 = new IOException( e.getMessage() );
-            e1.initCause( e );
-            throw e1;
-        }
-    }
-
-    private String writeGemSpectoYamlWithYamlBeans( GemSpecification gemspec )
-        throws IOException
-    {
-        Map<String, Class<?>> mapping = new HashMap<String, Class<?>>();
-        mapping.put( "ruby/object:Gem::Specification", GemSpecification.class );
-        mapping.put( "ruby/object:Gem::Dependency", GemDependency.class );
-        mapping.put( "ruby/object:Gem::Requirement", GemRequirement.class );
-        mapping.put( "ruby/object:Gem::Version", GemVersion.class );
-
-        StringWriter fw = new StringWriter();
-
-        YamlWriter writer = new YamlWriter( fw );
-        writer.getConfig().writeConfig.setWriteDefaultValues( true );
-        writer.getConfig().writeConfig.setExplicitFirstDocument( true );
-        writer.getConfig().writeConfig.setAlwaysWriteClassname( true );
-        for ( Map.Entry<String, Class<?>> entry : mapping.entrySet() )
-        {
-            writer.getConfig().setClassTag( entry.getKey(), entry.getValue() );
-        }
-
-        try
-        {
-            writer.write( gemspec );
-            writer.close();
-            return fw.toString();
-        }
-        catch ( YamlException e )
-        {
-            IOException e1 = new IOException( e.getMessage() );
-            e1.initCause( e );
-            throw e1;
-        }
     }
 
 }

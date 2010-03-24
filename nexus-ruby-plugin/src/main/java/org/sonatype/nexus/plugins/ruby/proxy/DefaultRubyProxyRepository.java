@@ -2,6 +2,7 @@ package org.sonatype.nexus.plugins.ruby.proxy;
 
 import java.util.Arrays;
 
+import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.nexus.configuration.Configurator;
@@ -13,12 +14,16 @@ import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
+import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 
+@Component( role = Repository.class, hint = DefaultRubyProxyRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Proxy" )
 public class DefaultRubyProxyRepository
     extends AbstractProxyRepository
     implements RubyProxyRepository
 {
+    public static final String ID = "ruby-gem-proxy";
+    
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
     private ContentClass contentClass;
 

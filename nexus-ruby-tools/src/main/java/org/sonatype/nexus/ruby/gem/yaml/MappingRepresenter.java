@@ -3,7 +3,7 @@ package org.sonatype.nexus.ruby.gem.yaml;
 import java.util.Map;
 
 import org.yaml.snakeyaml.nodes.Node;
-import org.yaml.snakeyaml.nodes.Tags;
+import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Represent;
 import org.yaml.snakeyaml.representer.Representer;
 
@@ -32,7 +32,7 @@ public class MappingRepresenter
     {
         public Node representData( Object data )
         {
-            return representScalar( Tags.NULL, "" );
+            return representScalar( Tag.NULL, "" );
         }
     }
 }

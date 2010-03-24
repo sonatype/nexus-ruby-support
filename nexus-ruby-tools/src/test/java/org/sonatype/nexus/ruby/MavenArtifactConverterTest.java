@@ -6,21 +6,18 @@ import static org.jruby.embed.LocalVariableBehavior.PERSISTENT;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import net.sourceforge.yamlbeans.YamlException;
-import net.sourceforge.yamlbeans.YamlReader;
-import net.sourceforge.yamlbeans.YamlWriter;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.PlexusTestCase;
 import org.codehaus.plexus.util.FileUtils;
 import org.jruby.embed.ScriptingContainer;
+import org.junit.Assert;
 import org.sonatype.nexus.ruby.gem.GemDependency;
 import org.sonatype.nexus.ruby.gem.GemRequirement;
 import org.sonatype.nexus.ruby.gem.GemSpecification;
@@ -100,58 +97,16 @@ public class MavenArtifactConverterTest extends PlexusTestCase
         // Assert.assertEquals( yamlString, gemspecString );
     }
 
-    public void testYamlBeans()
-        throws IOException, YamlException
-    {
-        File yamlFile = new File( "src/test/resources/metadata-prawn" );
-
-        Map<String, Class<?>> mapping = new HashMap<String, Class<?>>();
-        mapping.put( "ruby/object:Gem::Specification", GemSpecification.class );
-        mapping.put( "ruby/object:Gem::Dependency", GemDependency.class );
-        mapping.put( "ruby/object:Gem::Requirement", GemRequirement.class );
-        mapping.put( "ruby/object:Gem::Version", GemVersion.class );
-
-        String yamlString = FileUtils.fileRead( yamlFile );
-
-        YamlReader yaml = new YamlReader( yamlString );
-        for ( Map.Entry<String, Class<?>> entry : mapping.entrySet() )
-        {
-            yaml.getConfig().setClassTag( entry.getKey(), entry.getValue() );
-        }
-
-        GemSpecification obj = yaml.read( GemSpecification.class );
-
-        StringWriter sw = new StringWriter();
-        YamlWriter writer = new YamlWriter( sw );
-        writer.getConfig().writeConfig.setWriteDefaultValues( true );
-        // writes root tag with prefix '--- '
-        writer.getConfig().writeConfig.setExplicitFirstDocument( true );
-        // writes out every unknown classname
-        writer.getConfig().writeConfig.setAlwaysWriteClassname( true );
-        for ( Map.Entry<String, Class<?>> entry : mapping.entrySet() )
-        {
-            writer.getConfig().setClassTag( entry.getKey(), entry.getValue() );
-        }
-        writer.write( obj );
-        writer.close();
-        sw.flush();
-
-        System.out.println( "YamlBeans ****" );
-        System.out.println( sw.toString() );
-
-        // will fail
-        // Assert.assertEquals( yamlString, sw.toString() );
-    }
-
     public void testConversion()
         throws Exception
     {
         doConversion( "org/slf4j/slf4j-api/1.5.8/slf4j-api-1.5.8.pom", new ArtifactCoordinates( "org.slf4j",
-            "slf4j-api", "1.5.8" ) );
+                                                                                                "slf4j-api", "1.5.8" ) );
         doConversion( "org/slf4j/slf4j-simple/1.5.8/slf4j-simple-1.5.8.pom", new ArtifactCoordinates( "org.slf4j",
-            "slf4j-simple", "1.5.8" ) );
-        doConversion( "org/apache/ant/ant-parent/1.7.1/ant-parent-1.7.1.pom", new ArtifactCoordinates(
-            "org.apache.ant", "ant-parent", "1.7.1" ) );
+                                                                                                      "slf4j-simple",
+                                                                                                      "1.5.8" ) );
+        doConversion( "org/apache/ant/ant-parent/1.7.1/ant-parent-1.7.1.pom",
+            new ArtifactCoordinates( "org.apache.ant", "ant-parent", "1.7.1" ) );
 
         // load helper script
         Object gemTester =
@@ -200,7 +155,7 @@ public class MavenArtifactConverterTest extends PlexusTestCase
         MavenArtifact artifact = new MavenArtifact( pom, coords, artifactFile );
 
         return converter.createGemFromArtifact( artifact, getTestFile( "target/gems/"
-            + converter.getGemFileName( artifact ) ) );
+                                                                       + converter.getGemFileName( artifact ) ) );
     }
 
 }

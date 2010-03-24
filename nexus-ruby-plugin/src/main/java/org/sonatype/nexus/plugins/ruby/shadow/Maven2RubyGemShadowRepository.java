@@ -43,7 +43,7 @@ import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage
 import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
 import org.sonatype.nexus.ruby.MavenArtifact;
 
-@Component( role = ShadowRepository.class, hint = Maven2RubyGemShadowRepository.ID )
+@Component( role = ShadowRepository.class, hint = Maven2RubyGemShadowRepository.ID, instantiationStrategy = "per-lookup", description = "Maven2 to RubyGem" )
 public class Maven2RubyGemShadowRepository
     extends AbstractShadowRepository
     implements RubyShadowRepository
@@ -186,14 +186,14 @@ public class Maven2RubyGemShadowRepository
 
             getLogger().debug(
                 "Creating " + ( isLazyGemMaterialization() ? "lazily " : "" ) + " Gem " + gemName + " in repository "
-                    + getId() );
+                                + getId() );
 
             if ( isLazyGemMaterialization() )
             {
                 // 1st, we create the stub file, which is just the gemspec file in Yaml
                 DefaultStorageFileItem gemStub =
                     new DefaultStorageFileItem( this, new ResourceStoreRequest( "/gems/" + gemName, true ), true,
-                        false, new StringContentLocator( "STUB" ) );
+                                                false, new StringContentLocator( "STUB" ) );
 
                 gemStub.getAttributes().put( ContentGenerator.CONTENT_GENERATOR_ID,
                     Maven2RubyGemShadowContentGenerator.ID );
@@ -218,7 +218,7 @@ public class Maven2RubyGemShadowRepository
 
                 DefaultStorageFileItem gemItem =
                     new DefaultStorageFileItem( this, new ResourceStoreRequest( "/gems/" + gemName, true ), true,
-                        false, new FileContentLocator( target, "binary/octet-stream" ) );
+                                                false, new FileContentLocator( target, "binary/octet-stream" ) );
 
                 gemItem.getAttributes().put( ORIGINAL_ITEM_PATH, item.getPath() );
 
@@ -289,7 +289,7 @@ public class Maven2RubyGemShadowRepository
                 // uh-oh, return from this
                 getLogger().warn(
                     "Could not purge local storage of ShadowRepository \"" + getName() + "\" (ID=\"" + getId()
-                        + "\"), bailing out of the sync!", e );
+                                    + "\"), bailing out of the sync!", e );
 
                 return;
             }
@@ -298,7 +298,7 @@ public class Maven2RubyGemShadowRepository
                 // uh-oh, return from this
                 getLogger().warn(
                     "Could not purge local storage of ShadowRepository \"" + getName() + "\" (ID=\"" + getId()
-                        + "\"), bailing out of the sync!", e );
+                                    + "\"), bailing out of the sync!", e );
 
                 return;
             }
@@ -346,7 +346,7 @@ public class Maven2RubyGemShadowRepository
                         // neglect any exception but log it
                         getLogger().warn(
                             "Got exception with path \"" + pomPath + "\" while syncing GEM shadow " + getId()
-                                + " with Maven2 master repository " + getMasterRepository().getId(), e );
+                                            + " with Maven2 master repository " + getMasterRepository().getId(), e );
                     }
 
                     request.popRequestPath();
@@ -417,7 +417,7 @@ public class Maven2RubyGemShadowRepository
         {
             getLogger().warn(
                 "Got storage exception while syncing GEM shadow " + getId() + " with Maven2 master repository "
-                    + getMasterRepository().getId(), e );
+                                + getMasterRepository().getId(), e );
         }
         finally
         {
