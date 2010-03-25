@@ -22,11 +22,23 @@ public class JRubyRubyGateway
 
     public JRubyRubyGateway()
     {
-        scriptingContainer = new ScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
+        ClassLoader oldTCCL = Thread.currentThread().getContextClassLoader();
 
-        generateIndexes = scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_indexes.rb" );
+        try
+        {
+            Thread.currentThread().setContextClassLoader( getClass().getClassLoader() );
 
-        generateLazyIndexes = scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_lazy_indexes.rb" );
+            scriptingContainer = new ScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
+
+            generateIndexes = scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_indexes.rb" );
+
+            generateLazyIndexes =
+                scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_lazy_indexes.rb" );
+        }
+        finally
+        {
+            Thread.currentThread().setContextClassLoader( oldTCCL );
+        }
     }
 
     @Override
