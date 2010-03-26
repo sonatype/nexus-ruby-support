@@ -1,9 +1,12 @@
 package org.sonatype.nexus.ruby.gem.yaml;
 
-import java.util.Map;
-
+import org.sonatype.nexus.ruby.gem.GemDependency;
+import org.sonatype.nexus.ruby.gem.GemRequirement;
+import org.sonatype.nexus.ruby.gem.GemSpecification;
+import org.sonatype.nexus.ruby.gem.GemVersion;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.nodes.Tag;
 
 /**
  * A helper for snakeYaml.
@@ -13,18 +16,15 @@ import org.yaml.snakeyaml.constructor.Constructor;
 public class MappingConstructor
     extends Constructor
 {
-    public MappingConstructor( Map<String, Class<?>> tag2class )
+    public MappingConstructor()
     {
-        this( tag2class, Object.class );
-    }
+        super();
 
-    public MappingConstructor( Map<String, Class<?>> tag2class, Class<? extends Object> theRoot )
-    {
-        super( theRoot );
-
-        for ( Map.Entry<String, Class<?>> entry : tag2class.entrySet() )
-        {
-            addTypeDescription( new TypeDescription( entry.getValue(), entry.getKey() ) );
-        }
+        this.addTypeDescription( new TypeDescription( GemSpecification.class,
+                                                      new Tag( "!ruby/object:Gem::Specification" ) ) );
+        this.addTypeDescription( new TypeDescription( GemDependency.class, new Tag( "!ruby/object:Gem::Dependency" ) ) );
+        this
+            .addTypeDescription( new TypeDescription( GemRequirement.class, new Tag( "!ruby/object:Gem::Requirement" ) ) );
+        this.addTypeDescription( new TypeDescription( GemVersion.class, new Tag( "!ruby/object:Gem::Version" ) ) );
     }
 }

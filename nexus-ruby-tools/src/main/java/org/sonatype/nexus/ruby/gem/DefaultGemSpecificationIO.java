@@ -1,8 +1,6 @@
 package org.sonatype.nexus.ruby.gem;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.sonatype.nexus.ruby.gem.yaml.MappingConstructor;
@@ -23,6 +21,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 public class DefaultGemSpecificationIO
     implements GemSpecificationIO
 {
+    protected Yaml _yaml;
 
     public GemSpecification read( String string )
         throws IOException
@@ -37,6 +36,27 @@ public class DefaultGemSpecificationIO
     }
 
     // ==
+
+    protected Yaml getYaml()
+    {
+        if ( _yaml == null )
+        {
+            Constructor constructor = new MappingConstructor();
+            Loader loader = new Loader( constructor );
+            MappingRepresenter representer = new MappingRepresenter();
+
+            DumperOptions dumperOptions = new DumperOptions();
+            dumperOptions.setExplicitStart( true );
+            dumperOptions.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
+            dumperOptions.setDefaultScalarStyle( DumperOptions.ScalarStyle.SINGLE_QUOTED );
+
+            Dumper dumper = new Dumper( representer, dumperOptions );
+
+            _yaml = new Yaml( loader, dumper );
+        }
+
+        return _yaml;
+    }
 
     protected GemSpecification readGemSpecfromYaml( String gemspecString )
         throws IOException
@@ -61,51 +81,13 @@ public class DefaultGemSpecificationIO
     protected GemSpecification readGemSpecfromYamlWithSnakeYaml( String gemspecString )
         throws IOException
     {
-        Map<String, Class<?>> mapping = new HashMap<String, Class<?>>();
-        mapping.put( "!ruby/object:Gem::Specification", GemSpecification.class );
-        mapping.put( "!ruby/object:Gem::Dependency", GemDependency.class );
-        mapping.put( "!ruby/object:Gem::Requirement", GemRequirement.class );
-        mapping.put( "!ruby/object:Gem::Version", GemVersion.class );
-
-        Constructor constructor = new MappingConstructor( mapping );
-        Loader loader = new Loader( constructor );
-
-        MappingRepresenter representer = new MappingRepresenter( mapping );
-        DumperOptions dumperOptions = new DumperOptions();
-        dumperOptions.setExplicitStart( true );
-        dumperOptions.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
-        dumperOptions.setDefaultScalarStyle( DumperOptions.ScalarStyle.PLAIN );
-
-        Dumper dumper = new Dumper( representer, dumperOptions );
-
-        Yaml yaml = new Yaml( loader, dumper );
-
-        return (GemSpecification) yaml.load( gemspecString );
+        return (GemSpecification) getYaml().load( gemspecString );
     }
 
     protected String writeGemSpectoYamlWithSnakeYaml( GemSpecification gemspec )
         throws IOException
     {
-        Map<String, Class<?>> mapping = new HashMap<String, Class<?>>();
-        mapping.put( "!ruby/object:Gem::Specification", GemSpecification.class );
-        mapping.put( "!ruby/object:Gem::Dependency", GemDependency.class );
-        mapping.put( "!ruby/object:Gem::Requirement", GemRequirement.class );
-        mapping.put( "!ruby/object:Gem::Version", GemVersion.class );
-
-        Constructor constructor = new MappingConstructor( mapping );
-        Loader loader = new Loader( constructor );
-
-        MappingRepresenter representer = new MappingRepresenter( mapping );
-        DumperOptions dumperOptions = new DumperOptions();
-        dumperOptions.setExplicitStart( true );
-        dumperOptions.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
-        dumperOptions.setDefaultScalarStyle( DumperOptions.ScalarStyle.PLAIN );
-
-        Dumper dumper = new Dumper( representer, dumperOptions );
-
-        Yaml yaml = new Yaml( loader, dumper );
-
-        return yaml.dump( gemspec );
+        return getYaml().dump( gemspec );
     }
 
 }
