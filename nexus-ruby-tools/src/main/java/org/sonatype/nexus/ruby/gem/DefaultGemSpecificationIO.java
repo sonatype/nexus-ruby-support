@@ -43,13 +43,13 @@ public class DefaultGemSpecificationIO
         {
             Constructor constructor = new MappingConstructor();
             Loader loader = new Loader( constructor );
-            MappingRepresenter representer = new MappingRepresenter();
 
             DumperOptions dumperOptions = new DumperOptions();
             dumperOptions.setExplicitStart( true );
             dumperOptions.setDefaultFlowStyle( DumperOptions.FlowStyle.BLOCK );
-            dumperOptions.setDefaultScalarStyle( DumperOptions.ScalarStyle.SINGLE_QUOTED );
+            dumperOptions.setDefaultScalarStyle( DumperOptions.ScalarStyle.PLAIN );
 
+            MappingRepresenter representer = new MappingRepresenter();
             Dumper dumper = new Dumper( representer, dumperOptions );
 
             _yaml = new Yaml( loader, dumper );
@@ -87,21 +87,6 @@ public class DefaultGemSpecificationIO
     protected String writeGemSpectoYamlWithSnakeYaml( GemSpecification gemspec )
         throws IOException
     {
-        // TODO remove this big hack
-
-        // just correct certain short comings of snakeYaml 
-        StringBuilder yaml = new StringBuilder();
-        for ( String line : getYaml().dump( gemspec ).split( "\n" ) )
-        {
-            // skip line with null values
-            if ( !line.contains( "!!null" ) )
-            {
-                // remove all typecast which starts with !! and add the typecast for Gem::Dependency
-                yaml.append(
-                    line.replaceFirst( "!!\\w", "" ).replaceFirst( "- 'name':",
-                        "- !ruby/object:Gem::Dependency\n  'name':" ) ).append( "\n" );
-            }
-        }
-        return yaml.toString();
+        return getYaml().dump( gemspec );
     }
 }

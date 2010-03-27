@@ -22,7 +22,7 @@ public class MappingRepresenter
         super();
 
         this.nullRepresenter = new RepresentNull();
-
+        
         this.addClassTag( GemSpecification.class, new Tag( "!ruby/object:Gem::Specification" ) );
         this.addClassTag( GemDependency.class, new Tag( "!ruby/object:Gem::Dependency" ) );
         this.addClassTag( GemRequirement.class, new Tag( "!ruby/object:Gem::Requirement" ) );

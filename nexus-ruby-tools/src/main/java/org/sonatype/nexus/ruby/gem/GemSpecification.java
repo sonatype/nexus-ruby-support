@@ -24,7 +24,7 @@ public class GemSpecification
 
     private String default_executable;
 
-    private List<GemDependency> dependencies;
+    private List<Object> dependencies;
 
     private String description;
 
@@ -151,19 +151,19 @@ public class GemSpecification
         default_executable = defaultExecutable;
     }
 
-    public List<GemDependency> getDependencies()
+    public List<Object> getDependencies()
     {
         if ( dependencies == null )
         {
-            dependencies = new ArrayList<GemDependency>();
+            dependencies = new ArrayList<Object>();
         }
 
         return dependencies;
     }
 
-    public void setDependencies( List<GemDependency> dependencies )
+    public void setDependencies( List<Object> dependencies )
     {
-        this.dependencies = dependencies;
+        getDependencies().addAll( dependencies );
     }
 
     public String getDescription()

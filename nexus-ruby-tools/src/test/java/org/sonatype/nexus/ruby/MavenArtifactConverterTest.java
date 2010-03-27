@@ -14,6 +14,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.PlexusTestCase;
 import org.codehaus.plexus.util.FileUtils;
 import org.jruby.embed.ScriptingContainer;
+import org.junit.Assert;
 import org.sonatype.nexus.ruby.gem.GemSpecification;
 import org.sonatype.nexus.ruby.gem.GemSpecificationIO;
 
