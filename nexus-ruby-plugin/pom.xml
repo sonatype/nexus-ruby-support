@@ -11,6 +11,8 @@
   <packaging>nexus-plugin</packaging>
 
   <name>Nexus Ruby Plugin</name>
+  
+  <description>Nexus Ruby Plugin</description>
 
   <properties>
     <!-- Set the Nexus version here, against which you build the plugin -->

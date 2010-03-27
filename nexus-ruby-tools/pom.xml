@@ -11,6 +11,8 @@
   <packaging>jar</packaging>
 
   <name>Nexus Ruby Tools</name>
+  
+  <description>Nexus Ruby Tools for Jar2Gem conversion.</description>
 
   <properties>
     <plexus.version>1.5.4</plexus.version>
