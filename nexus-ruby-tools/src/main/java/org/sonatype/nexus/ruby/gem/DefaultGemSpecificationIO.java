@@ -87,7 +87,21 @@ public class DefaultGemSpecificationIO
     protected String writeGemSpectoYamlWithSnakeYaml( GemSpecification gemspec )
         throws IOException
     {
-        return getYaml().dump( gemspec );
-    }
+        // TODO remove this big hack
 
+        // just correct certain short comings of snakeYaml 
+        StringBuilder yaml = new StringBuilder();
+        for ( String line : getYaml().dump( gemspec ).split( "\n" ) )
+        {
+            // skip line with null values
+            if ( !line.contains( "!!null" ) )
+            {
+                // remove all typecast which starts with !! and add the typecast for Gem::Dependency
+                yaml.append(
+                    line.replaceFirst( "!!\\w", "" ).replaceFirst( "- 'name':",
+                        "- !ruby/object:Gem::Dependency\n  'name':" ) ).append( "\n" );
+            }
+        }
+        return yaml.toString();
+    }
 }
