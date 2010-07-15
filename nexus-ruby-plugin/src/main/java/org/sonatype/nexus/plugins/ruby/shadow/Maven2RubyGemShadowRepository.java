@@ -22,13 +22,11 @@ import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
-import org.sonatype.nexus.proxy.item.ContentGenerator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.item.StorageLinkItem;
-import org.sonatype.nexus.proxy.item.StringContentLocator;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.maven.maven2.Maven2ContentClass;
 import org.sonatype.nexus.proxy.registry.ContentClass;
@@ -39,7 +37,6 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.repository.ShadowRepository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
-import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
 import org.sonatype.nexus.ruby.MavenArtifact;
 
@@ -187,43 +184,22 @@ public class Maven2RubyGemShadowRepository
             getLogger().debug(
                 "Creating " + ( isLazyGemMaterialization() ? "lazily " : "" ) + " Gem " + gemName + " in repository "
                                 + getId() );
-
+            File target = File.createTempFile( "nexus-gem", ".gem.tmp" );
             if ( isLazyGemMaterialization() )
             {
-                // 1st, we create the stub file, which is just the gemspec file in Yaml
-                DefaultStorageFileItem gemStub =
-                    new DefaultStorageFileItem( this, new ResourceStoreRequest( "/gems/" + gemName, true ), true,
-                                                false, new StringContentLocator( "STUB" ) );
-
-                gemStub.getAttributes().put( ContentGenerator.CONTENT_GENERATOR_ID,
-                    Maven2RubyGemShadowContentGenerator.ID );
-
-                gemStub.getAttributes().put( ORIGINAL_ITEM_PATH, item.getPath() );
-
-                storeItem( true, gemStub );
-
-                // 2nd, we create the raw gemspec file for indexer
-                // THIS IS DIRTY!
-                File gemspecFile =
-                    ( (DefaultFSLocalRepositoryStorage) getLocalStorage() ).getFileFromBase( this,
-                        new ResourceStoreRequest( "/gems/" + gemName + ".gemspec" ) );
-
-                rubyGateway.createAndWriteGemspec( mart, gemspecFile );
+                rubyGateway.createGemStubFromArtifact( mart, target );
             }
             else
             {
-                File target = File.createTempFile( "nexus-gem", ".gem.tmp" );
-
                 rubyGateway.createGemFromArtifact( mart, target );
-
-                DefaultStorageFileItem gemItem =
-                    new DefaultStorageFileItem( this, new ResourceStoreRequest( "/gems/" + gemName, true ), true,
-                                                false, new FileContentLocator( target, "binary/octet-stream" ) );
-
-                gemItem.getAttributes().put( ORIGINAL_ITEM_PATH, item.getPath() );
-
-                storeItem( true, gemItem );
             }
+            DefaultStorageFileItem gemItem =
+                new DefaultStorageFileItem( this, new ResourceStoreRequest( "/gems/" + gemName, true ), true, false,
+                    new FileContentLocator( target, "binary/octet-stream" ) );
+
+            gemItem.getAttributes().put( ORIGINAL_ITEM_PATH, item.getPath() );
+
+            storeItem( true, gemItem );
         }
         catch ( IOException e )
         {
@@ -247,8 +223,6 @@ public class Maven2RubyGemShadowRepository
         String gemName = rubyGateway.getGemFileName( mart );
 
         deleteItem( true, new ResourceStoreRequest( "/gems/" + gemName ) );
-
-        deleteItem( true, new ResourceStoreRequest( "/gems/" + gemName + ".gemspec" ) );
 
         rubyIndexer.reindexRepository( this, true );
     }

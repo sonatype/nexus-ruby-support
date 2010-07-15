@@ -19,6 +19,12 @@ public class DefaultGemPackager
     @Requirement
     private GemSpecificationIO gemSpecificationIO;
 
+    public void createGemStub( GemSpecification gemspec, File gemFile )
+        throws IOException
+    {
+        createGem( gemspec, null, gemFile );
+    }
+
     public void createGem( GemSpecification gemspec, Collection<GemFileEntry> filesToAdd, File gemFile )
         throws IOException
     {
@@ -28,18 +34,21 @@ public class DefaultGemPackager
 
         gemWorkdir.mkdirs();
 
-        for ( GemFileEntry entry : filesToAdd )
+        if ( filesToAdd != null )
         {
-            if ( !entry.getSource().isFile() )
+            for ( GemFileEntry entry : filesToAdd )
             {
-                throw new IOException( "The GEM entry must be a file!" );
-            }
+                if ( !entry.getSource().isFile() )
+                {
+                    throw new IOException( "The GEM entry must be a file!" );
+                }
 
-            gemspec.getFiles().add( entry.getPathInGem() );
+                gemspec.getFiles().add( entry.getPathInGem() );
 
-            if ( entry.isOnLoadPath() )
-            {
-                // we should ensure it's folder (usually "lib/" is here)
+                if ( entry.isOnLoadPath() )
+                {
+                    // we should ensure it's folder (usually "lib/" is here)
+                }
             }
         }
 
@@ -62,24 +71,31 @@ public class DefaultGemPackager
             gzip.addFile( metadata, "metadata.gz" );
             gzip.createArchive();
 
-            // tar.gz the content into data.tar.gz
-            File dataTarGz = new File( gemWorkdir, "data.tar.gz" );
             TarArchiver tar = new TarArchiver();
             TarCompressionMethod compression = new TarCompressionMethod();
-            compression.setValue( "gzip" );
-            tar.setCompression( compression );
-            tar.setDestFile( dataTarGz );
-            for ( GemFileEntry entry : filesToAdd )
+            File dataTarGz = null;
+            if ( filesToAdd != null )
             {
-                tar.addFile( entry.getSource(), entry.getPathInGem() );
+                // tar.gz the content into data.tar.gz
+                dataTarGz = new File( gemWorkdir, "data.tar.gz" );
+                compression.setValue( "gzip" );
+                tar.setCompression( compression );
+                tar.setDestFile( dataTarGz );
+                for ( GemFileEntry entry : filesToAdd )
+                {
+                    tar.addFile( entry.getSource(), entry.getPathInGem() );
+                }
+                tar.createArchive();
             }
-            tar.createArchive();
 
             // and finally create gem by tar.gz-ing data.tar.gz and metadata.gz
             tar.setDestFile( gemFile );
             compression.setValue( "none" );
             tar.setCompression( compression );
-            tar.addFile( dataTarGz, dataTarGz.getName() );
+            if ( dataTarGz != null )
+            {
+                tar.addFile( dataTarGz, dataTarGz.getName() );
+            }
             tar.addFile( metadataGz, metadataGz.getName() );
             tar.createArchive();
         }

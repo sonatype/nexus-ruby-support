@@ -28,7 +28,7 @@ import org.sonatype.nexus.ruby.gem.GemVersion;
 
 /**
  * This is full of "workarounds" here, since for true artifact2gem conversion I would need interpolated POM!
- * 
+ *
  * @author cstamas
  * @author mkristian
  */
@@ -114,9 +114,8 @@ public class DefaultMavenArtifactConverter
         }
 
         return StringUtils.equals( packaging, artifact.getPom().getPackaging() )
-               && ( ( extension == null && artifact.getArtifactFile() == null ) || ( extension != null
-                                                                                     && artifact.getArtifactFile() != null && artifact
-                               .getArtifactFile().getName().endsWith( fixedExtension ) ) );
+                && ( ( extension == null && artifact.getArtifactFile() == null ) || ( extension != null
+                && artifact.getArtifactFile() != null && artifact.getArtifactFile().getName().endsWith( fixedExtension ) ) );
     }
 
     public String getGemFileName( MavenArtifact artifact )
@@ -172,6 +171,22 @@ public class DefaultMavenArtifactConverter
         // by default, we pack into lib/ inside gem (where is the jar and the stub ruby)
         result.getRequire_paths().add( "lib" );
         return result;
+    }
+
+    public GemArtifact createGemStubFromArtifact( MavenArtifact artifact, File target )
+        throws IOException
+    {
+        GemSpecification gemspec = createSpecification( artifact );
+
+        if ( target == null )
+        {
+            throw new IOException( "Must specify target file, where to generate Gem!" );
+        }
+
+        // write file
+        gemPackager.createGemStub( gemspec, target );
+
+        return new GemArtifact( gemspec, target );
     }
 
     public GemArtifact createGemFromArtifact( MavenArtifact artifact, File target )

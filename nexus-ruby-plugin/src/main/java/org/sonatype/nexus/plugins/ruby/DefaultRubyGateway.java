@@ -63,6 +63,12 @@ public class DefaultRubyGateway
         FileUtils.fileWrite( target.getAbsolutePath(), "UTF-8", gemspecString );
     }
 
+    public void createGemStubFromArtifact(MavenArtifact mart, File target)
+        throws IOException
+    {
+        getMavenArtifactConverter().createGemStubFromArtifact( mart, target );
+    }
+
     public void createGemFromArtifact( MavenArtifact mart, File target )
         throws IOException
     {
