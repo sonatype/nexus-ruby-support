@@ -16,7 +16,7 @@
 
   <properties>
     <!-- Set the Nexus version here, against which you build the plugin -->
-    <nexus-version>1.7.1</nexus-version>
+    <nexus-version>1.8.0</nexus-version>
   </properties>
 
   <dependencies>
