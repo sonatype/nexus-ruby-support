@@ -3,7 +3,7 @@ package org.sonatype.nexus.plugins.ruby;
 import java.io.File;
 import java.io.IOException;
 
-import org.sonatype.nexus.ruby.MavenArtifact;
+import de.saumya.mojo.gems.MavenArtifact;
 
 /**
  * This component is the central "ruby interaction" point, and is meant to focus all "ruby related" calls to make it

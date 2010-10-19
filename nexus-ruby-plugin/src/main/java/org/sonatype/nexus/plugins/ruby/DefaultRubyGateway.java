@@ -6,14 +6,15 @@ import java.io.IOException;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.FileUtils;
-import org.sonatype.nexus.ruby.MavenArtifact;
-import org.sonatype.nexus.ruby.MavenArtifactConverter;
-import org.sonatype.nexus.ruby.gem.GemSpecification;
-import org.sonatype.nexus.ruby.gem.GemSpecificationIO;
+
+import de.saumya.mojo.gems.MavenArtifact;
+import de.saumya.mojo.gems.MavenArtifactConverter;
+import de.saumya.mojo.gems.spec.GemSpecification;
+import de.saumya.mojo.gems.spec.GemSpecificationIO;
 
 /**
  * This is the naive implementation of the RubyGateway, that not uses JRuby to do the work, and is incomplete.
- * 
+ *
  * @author cstamas
  */
 public class DefaultRubyGateway
@@ -25,7 +26,7 @@ public class DefaultRubyGateway
     @Requirement
     private MavenArtifactConverter mavenArtifactConverter;
 
-    @Requirement
+    @Requirement(hint="yaml")
     private GemSpecificationIO gemSpecificationIO;
 
     protected Logger getLogger()

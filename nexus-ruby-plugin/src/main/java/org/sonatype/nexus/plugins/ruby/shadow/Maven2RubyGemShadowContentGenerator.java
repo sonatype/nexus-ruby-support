@@ -22,7 +22,8 @@ import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
-import org.sonatype.nexus.ruby.MavenArtifact;
+
+import de.saumya.mojo.gems.MavenArtifact;
 
 @Component( role = ContentGenerator.class, hint = Maven2RubyGemShadowContentGenerator.ID )
 public class Maven2RubyGemShadowContentGenerator
@@ -99,7 +100,7 @@ public class Maven2RubyGemShadowContentGenerator
 
             StorageFileItem newGemItem =
                 (StorageFileItem) repository.retrieveItem( true, new ResourceStoreRequest( item ) );
-            
+
             item.setLength( newGemItem.getLength() );
 
             return newGemItem.getContentLocator();

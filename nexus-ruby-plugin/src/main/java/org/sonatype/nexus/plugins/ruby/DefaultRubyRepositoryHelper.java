@@ -18,8 +18,9 @@ import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.maven.MetadataLocator;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
-import org.sonatype.nexus.ruby.ArtifactCoordinates;
-import org.sonatype.nexus.ruby.MavenArtifact;
+
+import de.saumya.mojo.gems.ArtifactCoordinates;
+import de.saumya.mojo.gems.MavenArtifact;
 
 @Component( role = RubyRepositoryHelper.class )
 public class DefaultRubyRepositoryHelper

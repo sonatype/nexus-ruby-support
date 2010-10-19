@@ -5,7 +5,8 @@ import java.io.File;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
-import org.sonatype.nexus.ruby.MavenArtifact;
+
+import de.saumya.mojo.gems.MavenArtifact;
 
 public interface RubyRepositoryHelper
 {
@@ -17,7 +18,7 @@ public interface RubyRepositoryHelper
 
     /**
      * Returns the basedirectory of the maven repository. Works only if FS local storage used. Otherwise returns null!
-     * 
+     *
      * @param mavenRepository
      * @return
      * @throws StorageException

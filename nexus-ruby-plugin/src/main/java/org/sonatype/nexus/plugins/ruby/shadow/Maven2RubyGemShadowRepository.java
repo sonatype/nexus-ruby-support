@@ -38,7 +38,8 @@ import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.repository.ShadowRepository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
-import org.sonatype.nexus.ruby.MavenArtifact;
+
+import de.saumya.mojo.gems.MavenArtifact;
 
 @Component( role = ShadowRepository.class, hint = Maven2RubyGemShadowRepository.ID, instantiationStrategy = "per-lookup", description = "Maven2 to RubyGem" )
 public class Maven2RubyGemShadowRepository
