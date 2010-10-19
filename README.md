@@ -3,7 +3,16 @@ Nexus Ruby Support
 
 This repository contains components and Nexus plugins to enhance Nexus with Ruby support. Stay tuned!
 
-Powered with JRuby.
+This plugin is powered with JRuby.
+
+
+What we currently convert to Gem
+--------------------------------
+
+ * Maven2 artifacts with packaging "jar" -- plain libraries
+ * Maven2 artifacts with packaging "pom" -- usually needed as metadata source (like dependency-grouping, or parent POMs)
+
+Other artifacts (WARs, EARs, etc) are currently left out completely, since we still don't know how to make them usable in Ruby-world.
 
 Problems to solve:
 

@@ -16,7 +16,7 @@
 
   <properties>
     <!-- Set the Nexus version here, against which you build the plugin -->
-    <nexus-version>1.5.1-SNAPSHOT</nexus-version>
+    <nexus-version>1.8.0</nexus-version>
   </properties>
 
   <dependencies>
@@ -166,7 +166,7 @@
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-test-environment-maven-plugin</artifactId>
-        <version>1.6-SNAPSHOT</version>
+        <version>1.5</version>
         <executions>
           <execution>
             <goals>
