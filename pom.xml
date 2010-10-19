@@ -20,7 +20,7 @@
   </scm>
 
   <modules>
-    <module>nexus-ruby-tools</module>
+  <!--  <module>nexus-ruby-tools</module> -->
     <module>nexus-ruby-plugin</module>
   </modules>
 
