@@ -44,6 +44,9 @@ public class JRubyRubyGateway
     @Override
     public synchronized void gemGenerateIndexes( File basedir, boolean update )
     {
+        // work around on ubuntu systems since jruby can not delete the directory
+        basedir.delete();
+
         getLogger().info(
             "Invoking Gem::Indexer for " + ( update ? "update" : "generate" ) + " on basedir \""
                 + basedir.getAbsolutePath() + "\"..." );
