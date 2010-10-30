@@ -29,6 +29,8 @@ public class DefaultRubyGateway
     @Requirement(hint="yaml")
     private GemSpecificationIO gemSpecificationIO;
 
+    private GemspecStore store = new GemspecStore();
+
     protected Logger getLogger()
     {
         return logger;
@@ -67,7 +69,10 @@ public class DefaultRubyGateway
     public void createGemStubFromArtifact(MavenArtifact mart, File target)
         throws IOException
     {
-        getMavenArtifactConverter().createGemStubFromArtifact( mart, target );
+        String name = getMavenArtifactConverter().getGemFileName( mart );
+        String spec = getGemSpecificationIO().write( getMavenArtifactConverter().createSpecification( mart ) );
+
+        store.add( name, spec );
     }
 
     public void createGemFromArtifact( MavenArtifact mart, File target )
