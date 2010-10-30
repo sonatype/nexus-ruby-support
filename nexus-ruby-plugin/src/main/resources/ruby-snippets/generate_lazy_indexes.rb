@@ -1,6 +1,6 @@
-require 'nexus_indexer'
+require 'nexus_lazy_indexer'
 
-indexer = Gem::NexusIndexer.new @basedir
+indexer = Gem::NexusLazyIndexer.new @basedir
 
 if @update then
   indexer.update_index

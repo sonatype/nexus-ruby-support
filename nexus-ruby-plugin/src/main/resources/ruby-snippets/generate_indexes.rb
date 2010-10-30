@@ -1,7 +1,6 @@
-require 'rubygems'
-require 'rubygems/indexer'
+require 'nexus_indexer'
 
-indexer = Gem::Indexer.new @basedir
+indexer = Gem::NexusIndexer.new @basedir
 
 if @update then
   indexer.update_index
