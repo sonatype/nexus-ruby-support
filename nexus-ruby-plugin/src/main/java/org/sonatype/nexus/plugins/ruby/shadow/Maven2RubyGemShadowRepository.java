@@ -37,6 +37,7 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.repository.ShadowRepository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
 
 import de.saumya.mojo.gems.MavenArtifact;
@@ -188,7 +189,8 @@ public class Maven2RubyGemShadowRepository
             File target = File.createTempFile( "nexus-gem", ".gem.tmp" );
             if ( isLazyGemMaterialization() )
             {
-                rubyGateway.createGemStubFromArtifact( mart, target );
+                File basedir = ( (DefaultFSLocalRepositoryStorage) this.getLocalStorage() ).getBaseDir( this, new ResourceStoreRequest( "/" ) );
+                rubyGateway.createGemStubFromArtifact( mart, basedir );
             }
             else
             {

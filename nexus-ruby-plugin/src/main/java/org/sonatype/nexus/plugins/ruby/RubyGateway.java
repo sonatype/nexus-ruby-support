@@ -46,10 +46,10 @@ public interface RubyGateway
      * The file written to target should be a Ruby Gem without data.tar.gz.
      *
      * @param mart
-     * @param target
+     * @param basedir where to put the file
      * @throws IOException
      */
-    void createGemStubFromArtifact(MavenArtifact mart, File target)
+    void createGemStubFromArtifact(MavenArtifact mart, File basedir)
         throws IOException;
 
     /**

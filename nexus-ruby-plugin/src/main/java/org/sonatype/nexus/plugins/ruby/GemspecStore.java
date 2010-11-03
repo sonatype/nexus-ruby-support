@@ -23,28 +23,29 @@ import org.codehaus.plexus.util.FileUtils;
 public class GemspecStore
 {
 
-    private static final String GEMSPEC_STORE = "/tmp/gemspec.store";
+    private static final String GEMSPEC_STORE = "gemspec.store";
     private static final String SEPARATOR = "########################";
 
-    File getFile(){
-        return new File(GEMSPEC_STORE);
+    File getFile(File basedir){
+        return new File(basedir, GEMSPEC_STORE);
     }
 
-    void add(String name, String spec) throws IOException{
+    void add(File basedir, String name, String spec) throws IOException{
         if(spec != null){
-            delete(name);
-            FileUtils.fileAppend( GEMSPEC_STORE, "UTF-8", name + SEPARATOR + "\n" + spec + "\n" + SEPARATOR + name + "\n");
+            delete(basedir, name);
+            FileUtils.fileAppend( getFile(basedir).getAbsolutePath(), "UTF-8", name + SEPARATOR + "\n" + spec + "\n" + SEPARATOR + name + "\n");
         }
     }
 
-    void delete(String name) throws IOException{
-        if(!getFile().exists())
+    void delete(File basedir, String name) throws IOException{
+        File store = getFile(basedir);
+        if(!store.exists())
         {
             return;
         }
-        String store = FileUtils.fileRead( GEMSPEC_STORE, "UTF-8");
+        String storeContent = FileUtils.fileRead( store.getAbsoluteFile(), "UTF-8");
 
-        FileUtils.fileWrite( GEMSPEC_STORE, "UTF-8", store
+        FileUtils.fileWrite( store.getAbsolutePath(), "UTF-8", storeContent
             .replaceAll("\n", "__NEW_LINE__")
             .replaceFirst( name + SEPARATOR + ".*" + SEPARATOR + name + "\\s*" + "__NEW_LINE__", "" )
             .replaceAll("__NEW_LINE__", "\n") );

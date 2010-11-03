@@ -1,5 +1,7 @@
 package org.sonatype.nexus.plugins.ruby;
 
+import java.io.File;
+
 import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;
@@ -11,6 +13,8 @@ public class GemspecStoreTest
 {
     private GemspecStore store;
 
+    private File basedir;
+
     private static String CONTENT = "name-1########################\nspec-1\n########################name-1\n" +
     		"name-3########################\nspec-3\n########################name-3\n" +
     		"name-5########################\nspec-5\n########################name-5\n" +
@@ -21,7 +25,8 @@ public class GemspecStoreTest
     @Before
     protected void setUp(){
         this.store = new GemspecStore();
-        store.getFile().delete();
+        this.basedir = new File("target");
+        store.getFile(basedir).delete();
     }
 
     @Test
@@ -29,14 +34,14 @@ public class GemspecStoreTest
         throws Exception
     {
         for(int i = 0; i< 10; i ++){
-            store.add( "name-" + i, "spec-" + i );
+            store.add( basedir, "name-" + i, "spec-" + i );
         }
         for(int i = 0; i< 10; i = i + 2){
-            store.delete( "name-" + i);
+            store.delete( basedir, "name-" + i);
         }
         //System.out.println(FileUtils.readFileToString( store.getFile()));
         //System.out.println(CONTENT);
-        assertEquals( CONTENT, FileUtils.readFileToString( store.getFile()) );
+        assertEquals( CONTENT, FileUtils.readFileToString( store.getFile(basedir)) );
     }
 
     @Test
@@ -44,12 +49,12 @@ public class GemspecStoreTest
         throws Exception
     {
         for(int i = 0; i< 10; i ++){
-            store.add( "name-" + i, "spec-" + i );
+            store.add( basedir, "name-" + i, "spec-" + i );
         }
-        String content = FileUtils.readFileToString( store.getFile());
+        String content = FileUtils.readFileToString( store.getFile(basedir));
         for(int i = 0; i< 10; i ++){
-            store.add( "name-" + i, "spec-" + i );
+            store.add( basedir, "name-" + i, "spec-" + i );
         }
-        assertEquals( content, FileUtils.readFileToString( store.getFile()) );
+        assertEquals( content, FileUtils.readFileToString( store.getFile(basedir)) );
     }
 }
