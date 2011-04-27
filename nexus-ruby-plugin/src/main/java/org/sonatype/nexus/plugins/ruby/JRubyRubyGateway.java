@@ -30,6 +30,13 @@ public class JRubyRubyGateway
 
             scriptingContainer = new ScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
 
+	    scriptingContainer.getProvider().getRubyInstanceConfig()
+                .setJRubyHome(Thread.currentThread()
+                        .getContextClassLoader()
+                        .getResource("META-INF/jruby.home")
+                        .toString()
+                        .replaceFirst("^jar:", ""));
+
             generateIndexes = scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_indexes.rb" );
 
             generateLazyIndexes =
