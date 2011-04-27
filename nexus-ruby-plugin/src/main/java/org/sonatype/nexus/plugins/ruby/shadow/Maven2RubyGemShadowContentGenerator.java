@@ -44,6 +44,11 @@ public class Maven2RubyGemShadowContentGenerator
 
     @Requirement
     private RubyGateway rubyGateway;
+    
+    public String getGeneratorId()
+    {
+        return ID;
+    }
 
     /**
      * What we do here is pretty hacky: on-demand GEM creation. If this ContentGenerator is invoked, it means that an
