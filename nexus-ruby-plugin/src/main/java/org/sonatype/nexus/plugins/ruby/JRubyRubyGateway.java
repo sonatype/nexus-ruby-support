@@ -6,7 +6,6 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.jruby.embed.EmbedEvalUnit;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
-import org.jruby.embed.PathType;
 import org.jruby.embed.ScriptingContainer;
 
 @Component( role = RubyGateway.class )
@@ -22,30 +21,24 @@ public class JRubyRubyGateway
 
     public JRubyRubyGateway()
     {
-        ClassLoader oldTCCL = Thread.currentThread().getContextClassLoader();
+        scriptingContainer = new ScriptingContainer( LocalContextScope.THREADSAFE, 
+                LocalVariableBehavior.PERSISTENT );
 
-        try
-        {
-            Thread.currentThread().setContextClassLoader( getClass().getClassLoader() );
-
-            scriptingContainer = new ScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
-
-	    scriptingContainer.getProvider().getRubyInstanceConfig()
+        scriptingContainer.getProvider().getRubyInstanceConfig()
                 .setJRubyHome(Thread.currentThread()
                         .getContextClassLoader()
                         .getResource("META-INF/jruby.home")
                         .toString()
                         .replaceFirst("^jar:", ""));
 
-            generateIndexes = scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_indexes.rb" );
+	    generateIndexes = scriptingContainer.parse( Thread.currentThread()
+	            .getContextClassLoader()
+	            .getResourceAsStream("ruby-snippets/generate_indexes.rb" ), "generate_index.rb");
 
-            generateLazyIndexes =
-                scriptingContainer.parse( PathType.CLASSPATH, "ruby-snippets/generate_lazy_indexes.rb" );
-        }
-        finally
-        {
-            Thread.currentThread().setContextClassLoader( oldTCCL );
-        }
+	    generateLazyIndexes =
+	        scriptingContainer.parse( Thread.currentThread()
+	                .getContextClassLoader()
+	                .getResourceAsStream("ruby-snippets/generate_lazy_indexes.rb"), "generate_lazy_indexes.rb");
     }
 
     @Override
