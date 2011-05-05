@@ -19,7 +19,7 @@
 
   <properties>
     <!-- Set the Nexus version here, against which you build the plugin -->
-    <nexus-version>1.9.1</nexus-version>
+    <nexus-version>1.9.2-SNAPSHOT</nexus-version>
   </properties>
 
   <repositories>
