@@ -27,7 +27,7 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 @Component( role = Repository.class, hint = DefaultRubyHostedRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Hosted" )
 public class DefaultRubyHostedRepository
     extends AbstractRepository
-    implements RubyHostedRepository
+    implements RubyHostedRepository, Repository
 {
     public static final String ID = "ruby-gem-hosted";
 
@@ -43,8 +43,8 @@ public class DefaultRubyHostedRepository
     /**
      * Repository kind.
      */
-    private final RepositoryKind repositoryKind =
-        new DefaultRepositoryKind( RubyHostedRepository.class, Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
+    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( RubyHostedRepository.class,
+        Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
 
     @Override
     protected Configurator getConfigurator()

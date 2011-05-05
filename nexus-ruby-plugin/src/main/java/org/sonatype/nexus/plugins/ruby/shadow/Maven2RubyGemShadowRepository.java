@@ -45,7 +45,7 @@ import de.saumya.mojo.gems.MavenArtifact;
 @Component( role = ShadowRepository.class, hint = Maven2RubyGemShadowRepository.ID, instantiationStrategy = "per-lookup", description = "Maven2 to RubyGem" )
 public class Maven2RubyGemShadowRepository
     extends AbstractShadowRepository
-    implements RubyShadowRepository
+    implements RubyShadowRepository, ShadowRepository
 {
     public static final String ID = "maven2-gem";
 

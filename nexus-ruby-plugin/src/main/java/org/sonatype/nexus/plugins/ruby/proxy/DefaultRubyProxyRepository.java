@@ -20,10 +20,10 @@ import org.sonatype.nexus.proxy.repository.RepositoryKind;
 @Component( role = Repository.class, hint = DefaultRubyProxyRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Proxy" )
 public class DefaultRubyProxyRepository
     extends AbstractProxyRepository
-    implements RubyProxyRepository
+    implements RubyProxyRepository, Repository
 {
     public static final String ID = "ruby-gem-proxy";
-    
+
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
     private ContentClass contentClass;
 
@@ -33,8 +33,8 @@ public class DefaultRubyProxyRepository
     /**
      * Repository kind.
      */
-    private final RepositoryKind repositoryKind =
-        new DefaultRepositoryKind( RubyProxyRepository.class, Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
+    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( RubyProxyRepository.class,
+        Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
 
     @Override
     protected Configurator getConfigurator()

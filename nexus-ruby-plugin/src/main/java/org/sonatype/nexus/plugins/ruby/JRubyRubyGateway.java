@@ -21,24 +21,22 @@ public class JRubyRubyGateway
 
     public JRubyRubyGateway()
     {
-        scriptingContainer = new ScriptingContainer( LocalContextScope.THREADSAFE, 
-                LocalVariableBehavior.PERSISTENT );
+        scriptingContainer = new ScriptingContainer( LocalContextScope.THREADSAFE, LocalVariableBehavior.PERSISTENT );
 
-        scriptingContainer.getProvider().getRubyInstanceConfig()
-                .setJRubyHome(Thread.currentThread()
-                        .getContextClassLoader()
-                        .getResource("META-INF/jruby.home")
-                        .toString()
-                        .replaceFirst("^jar:", ""));
+        // The JRuby is in this plugin's CL!
+        scriptingContainer.getProvider().getRubyInstanceConfig().setJRubyHome(
+            JRubyRubyGateway.class.getClassLoader().getResource( "META-INF/jruby.home" ).toString().replaceFirst(
+                "^jar:", "" ) );
 
-	    generateIndexes = scriptingContainer.parse( Thread.currentThread()
-	            .getContextClassLoader()
-	            .getResourceAsStream("ruby-snippets/generate_indexes.rb" ), "generate_index.rb");
+        generateIndexes =
+            scriptingContainer.parse(
+                Thread.currentThread().getContextClassLoader().getResourceAsStream( "ruby-snippets/generate_indexes.rb" ),
+                "generate_index.rb" );
 
-	    generateLazyIndexes =
-	        scriptingContainer.parse( Thread.currentThread()
-	                .getContextClassLoader()
-	                .getResourceAsStream("ruby-snippets/generate_lazy_indexes.rb"), "generate_lazy_indexes.rb");
+        generateLazyIndexes =
+            scriptingContainer.parse(
+                Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                    "ruby-snippets/generate_lazy_indexes.rb" ), "generate_lazy_indexes.rb" );
     }
 
     @Override
