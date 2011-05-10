@@ -21,21 +21,22 @@ public class JRubyRubyGateway
 
     public JRubyRubyGateway()
     {
-        scriptingContainer = new ScriptingContainer( LocalContextScope.THREADSAFE, LocalVariableBehavior.PERSISTENT );
+        scriptingContainer = new ScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
+        scriptingContainer.setClassLoader(JRubyRubyGateway.class.getClassLoader());
 
-        // The JRuby is in this plugin's CL!
+        // The JRuby and all the scripts is in this plugin's CL!
         scriptingContainer.getProvider().getRubyInstanceConfig().setJRubyHome(
             JRubyRubyGateway.class.getClassLoader().getResource( "META-INF/jruby.home" ).toString().replaceFirst(
                 "^jar:", "" ) );
 
         generateIndexes =
             scriptingContainer.parse(
-                Thread.currentThread().getContextClassLoader().getResourceAsStream( "ruby-snippets/generate_indexes.rb" ),
+                    JRubyRubyGateway.class.getClassLoader().getResourceAsStream( "ruby-snippets/generate_indexes.rb" ),
                 "generate_index.rb" );
 
         generateLazyIndexes =
             scriptingContainer.parse(
-                Thread.currentThread().getContextClassLoader().getResourceAsStream(
+                    JRubyRubyGateway.class.getClassLoader().getResourceAsStream(
                     "ruby-snippets/generate_lazy_indexes.rb" ), "generate_lazy_indexes.rb" );
     }
 
@@ -50,8 +51,7 @@ public class JRubyRubyGateway
                 + basedir.getAbsolutePath() + "\"..." );
         scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
         scriptingContainer.put( "@update", update );
-        Object ret = generateIndexes.run();
-        System.out.println( ret );
+        generateIndexes.run();
         scriptingContainer.getVarMap().clear();
         getLogger().info(
             "Invoking Gem::Indexer for " + ( update ? "update" : "generate" ) + " on basedir \""
@@ -66,9 +66,9 @@ public class JRubyRubyGateway
                 + basedir.getAbsolutePath() + "\"..." );
         scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
         scriptingContainer.put( "@update", update );
-        Object ret = generateLazyIndexes.run();
-        System.out.println( ret );
+        generateLazyIndexes.run();
         scriptingContainer.getVarMap().clear();
+
         getLogger().info(
             "Invoking Gem::NexusIndexer for " + ( update ? "update" : "generate" ) + " on basedir \""
                 + basedir.getAbsolutePath() + "\"... DONE" );
