@@ -75,10 +75,10 @@ public class DefaultRubyGateway
         store.add( basedir, name, spec );
     }
 
-    public void createGemFromArtifact( MavenArtifact mart, File target )
+    public File createGemFromArtifact( MavenArtifact mart, File targetDir )
         throws IOException
     {
-        getMavenArtifactConverter().createGemFromArtifact( mart, target );
+        return getMavenArtifactConverter().createGemFromArtifact( mart, targetDir ).getGemFile();
     }
 
     public void gemGenerateIndexes( File basedir, boolean update )

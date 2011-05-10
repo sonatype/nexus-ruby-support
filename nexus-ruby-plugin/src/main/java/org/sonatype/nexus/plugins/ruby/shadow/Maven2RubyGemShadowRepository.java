@@ -18,8 +18,11 @@ import org.sonatype.nexus.plugins.ruby.RubyIndexer;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepositoryHelper;
 import org.sonatype.nexus.plugins.ruby.RubyShadowRepository;
+import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
+import org.sonatype.nexus.proxy.IllegalRequestException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
@@ -186,6 +189,7 @@ public class Maven2RubyGemShadowRepository
             getLogger().debug(
                 "Creating " + ( isLazyGemMaterialization() ? "lazily " : "" ) + " Gem " + gemName + " in repository "
                                 + getId() );
+
             File target = File.createTempFile( "nexus-gem", ".gem.tmp" );
             if ( isLazyGemMaterialization() )
             {
@@ -194,8 +198,13 @@ public class Maven2RubyGemShadowRepository
             }
             else
             {
-                rubyGateway.createGemFromArtifact( mart, target );
+                // switch temp file to temp directory
+                target.delete();
+                target.mkdir();
+                // result is the actual target file
+                target = rubyGateway.createGemFromArtifact( mart, target );
             }
+
             DefaultStorageFileItem gemItem =
                 new DefaultStorageFileItem( this, new ResourceStoreRequest( "/gems/" + gemName, true ), true, false,
                     new FileContentLocator( target, "binary/octet-stream" ) );
@@ -208,6 +217,7 @@ public class Maven2RubyGemShadowRepository
         {
             // should not happen
             // TODO: fix this exception getGemSpecificationIO().write()
+            getLogger().error("should not happen", e);
         }
 
         rubyIndexer.reindexRepository( this, true );
@@ -338,7 +348,7 @@ public class Maven2RubyGemShadowRepository
 
                 public void directoryWalkStarting( File basedir )
                 {
-                    // one "generate" (noy update) reindex
+                    // one "generate" (no update) reindex
                     rubyIndexer.reindexRepositorySync( Maven2RubyGemShadowRepository.this, false );
                 }
 
