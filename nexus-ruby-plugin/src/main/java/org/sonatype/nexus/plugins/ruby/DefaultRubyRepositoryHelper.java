@@ -38,7 +38,7 @@ public class DefaultRubyRepositoryHelper
         throws StorageException
     {
         // TODO: this is here for simplicity only, jar's only for now
-        if ( !item.getName().endsWith( ".pom" ) )
+        if ( !item.getName().endsWith( ".pom" ) && !item.getName().endsWith( ".jar" ) )
         {
             return null;
         }
@@ -51,9 +51,11 @@ public class DefaultRubyRepositoryHelper
 
         Gav gav = null;
 
+        // item.getPath is either the pom or the jar
+        // use the pom filename for GAV
         try
         {
-            gav = masterRepository.getGavCalculator().pathToGav( item.getPath() );
+            gav = masterRepository.getGavCalculator().pathToGav( item.getPath().replace( ".jar", ".pom" ) );
         }
         catch ( IllegalArtifactCoordinateException e )
         {
@@ -68,9 +70,10 @@ public class DefaultRubyRepositoryHelper
 
         try
         {
+            // get both possible files: jar-file as well pom-files
             File pomFile =
                 ( (DefaultFSLocalRepositoryStorage) masterRepository.getLocalStorage() ).getFileFromBase(
-                    masterRepository, new ResourceStoreRequest( item.getPath() ) );
+                    masterRepository, new ResourceStoreRequest( item.getPath().replace( ".jar", ".pom" )  ) );
 
             File jarFile =
                 ( (DefaultFSLocalRepositoryStorage) masterRepository.getLocalStorage() ).getFileFromBase(
@@ -111,6 +114,10 @@ public class DefaultRubyRepositoryHelper
             ArtifactCoordinates coords =
                 new ArtifactCoordinates( gav.getGroupId(), gav.getArtifactId(), gav.getVersion(), gav.getExtension() );
 
+            // we have a jar artifact but no jarfile, so skip this one
+            if( "jar".equals(model.getPackaging()) && jarFile == null ){
+                return null;
+            }
             return new MavenArtifact( model, coords, jarFile );
         }
         catch ( IOException e )
