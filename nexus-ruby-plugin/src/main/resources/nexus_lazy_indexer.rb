@@ -7,7 +7,7 @@ require 'yaml'
 # do not understand why this is needed but does not work otherwise with jruby
 class Dir
   class <<self
-    alias_method :tmpdir_old, :tmpdir  
+    alias_method :tmpdir_old, :tmpdir
     def tmpdir(dir = nil)
       @_d_i_r_ ||= dir
       if @_d_i_r_
@@ -29,7 +29,9 @@ class Gem::GemspecStore
 
   def initialize(store)
     @file = File.expand_path(store)
-    @store = File.open(store)
+    # create an empty file if missing
+    File.open(@file, 'w') {} unless File.exists? @file
+    @store = File.open(@file)
   end
 
   def next
@@ -52,11 +54,11 @@ class Gem::NexusLazyIndexer < Gem::Indexer
 
   def initialize(directory, options = {})
     # do not understand why this is needed but does not work otherwise with jruby
-    Dir.tmpdir(File.join(directory, "tmp"))    
+    Dir.tmpdir(File.join(directory, "tmp"))
     super(directory, options)
     @build_legacy = false
   end
-  
+
   def collect_specs(yamls = gemspec_file_list)
     index = Gem::SourceIndex.new
     store = Gem::GemspecStore.new(File.join(@dest_directory, "gemspec.store"))
@@ -66,27 +68,31 @@ class Gem::NexusLazyIndexer < Gem::Indexer
       while(entry) do
         if entry[0].string.size == 0 then
           alert_warning "Skipping zero-length yaml: #{entry[1]}"
-	  next
+       next
         end
 
-	begin
-          spec = Gem::Specification.from_yaml(entry[0].string)
-	  spec.loaded_from = entry[1]
+     begin
+       file = entry[0].string
+          spec = if yaml_file =~ /.spec$/
+             Gem::Specification.from_yaml(file)
+              spec.loaded_from = entry[1]
+           else
+             raise "TODO"
+           end
 
-	  abbreviate spec
-	  sanitize spec
+          abbreviate spec
+          sanitize spec
 
-	  index.add_spec spec, spec.original_name
+          index.add_spec spec, spec.original_name
 
-	  progress.updated spec.original_name
+          progress.updated spec.original_name
 
-	  rescue SignalException => e
-	    alert_error "Received signal, existing"
-	    raise
-	  rescue Exception => e
-	    alert_error "Unable to process #{entry[1]}\n#{e.message} (#{e.class})\n\t#{e.backtrace.join "\n\t"}"
-
-	end
+        rescue SignalException => e
+          alert_error "Received signal, existing"
+       raise
+        rescue Exception => e
+          alert_error "Unable to process #{entry[1]}\n#{e.message} (#{e.class})\n\t#{e.backtrace.join "\n\t"}"
+     end
         entry = store.next
       end
       progress.done
@@ -95,12 +101,14 @@ class Gem::NexusLazyIndexer < Gem::Indexer
   end
 
   def gemspec_file_list
-    []#Dir.glob(File.join(@dest_directory, "gems", "*.gem")) 
+    Dir.glob(File.join(@dest_directory, "gems", "*.gem"))  + Dir.glob(File.join(@dest_directory, "gems", "*.spec"))
   end
 
   def gem_file_list
     gemspec_file_list
   end
 
+  def terminate_interaction *args
+  end
 end
 
