@@ -24,7 +24,7 @@ public class DefaultRubyIndexer
     /**
      * Default silent period of 5 minutes.
      */
-    private static final long SILENT_PERIOD = 1000 * 60 * 5;
+    private static final long SILENT_PERIOD = 1000 * 60 * 1;
 
     @Requirement
     private Logger logger;
@@ -77,9 +77,6 @@ public class DefaultRubyIndexer
 
     public void reindexRepositorySync( RubyRepository repository, boolean update )
     {
-        // kill the thread
-        getIndexerThread( repository ).shutdown();
-
         reindexRepositorySync( true, repository, update );
     }
 
@@ -125,6 +122,8 @@ public class DefaultRubyIndexer
         {
             indexerThread = newGuy;
 
+            getLogger().debug("Starting new indexer thread");
+
             indexerThread.start();
         }
 
@@ -145,17 +144,8 @@ public class DefaultRubyIndexer
 
         try
         {
-            // shadow repo needs "lazy" indexing, others "real" indexing
-            if ( repository.getRepositoryKind().isFacetAvailable( RubyShadowRepository.class ) )
-            {
-                rubyGateway.gemGenerateLazyIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
+            rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
                     .getBaseDir( repository, new ResourceStoreRequest( "/" ) ), update );
-            }
-            else
-            {
-                rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
-                    .getBaseDir( repository, new ResourceStoreRequest( "/" ) ), update );
-            }
 
             repository.getNotFoundCache().purge();
         }
@@ -185,7 +175,7 @@ public class DefaultRubyIndexer
         private volatile boolean done = true;
 
         private volatile boolean disabled = false;
-        
+
         private volatile boolean update = true;
 
         public IndexerThread( RubyRepository repository )
@@ -198,7 +188,7 @@ public class DefaultRubyIndexer
             this.lastReindexRequested = System.currentTimeMillis();
 
             this.done = false;
-            
+
             this.update = update;
         }
 
