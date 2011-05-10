@@ -38,7 +38,7 @@ public interface RubyGateway
      * @param target
      * @throws IOException
      */
-    void createGemFromArtifact( MavenArtifact mart, File target )
+    File createGemFromArtifact( MavenArtifact mart, File target )
         throws IOException;
 
     /**
