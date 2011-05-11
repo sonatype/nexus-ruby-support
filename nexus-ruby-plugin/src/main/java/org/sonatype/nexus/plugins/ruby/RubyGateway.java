@@ -35,10 +35,10 @@ public interface RubyGateway
      * be a complete Ruby Gem.
      *
      * @param mart
-     * @param target
+     * @param basedir where to put the file
      * @throws IOException
      */
-    File createGemFromArtifact( MavenArtifact mart, File target )
+    File createGemFromArtifact( MavenArtifact mart, File basedir )
         throws IOException;
 
     /**
@@ -49,7 +49,7 @@ public interface RubyGateway
      * @param basedir where to put the file
      * @throws IOException
      */
-    void createGemStubFromArtifact(MavenArtifact mart, File basedir)
+    File createGemStubFromArtifact(MavenArtifact mart, File basedir)
         throws IOException;
 
     /**

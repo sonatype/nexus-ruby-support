@@ -18,13 +18,11 @@ import org.sonatype.nexus.plugins.ruby.RubyIndexer;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepositoryHelper;
 import org.sonatype.nexus.plugins.ruby.RubyShadowRepository;
-import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
-import org.sonatype.nexus.proxy.IllegalRequestException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
-import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
+import org.sonatype.nexus.proxy.item.ContentGenerator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
@@ -40,7 +38,6 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.repository.ShadowRepository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
-import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
 
 import de.saumya.mojo.gems.MavenArtifact;
@@ -137,7 +134,7 @@ public class Maven2RubyGemShadowRepository
 
     public boolean isLazyGemMaterialization()
     {
-        return getExternalConfiguration( false ).isLazyGemMaterialization();
+        return true;//getExternalConfiguration( false ).isLazyGemMaterialization();
     }
 
     public void setLazyGemMaterialization( boolean val )
@@ -191,16 +188,16 @@ public class Maven2RubyGemShadowRepository
                                 + getId() );
 
             File target = File.createTempFile( "nexus-gem", ".gem.tmp" );
+            // switch temp file to temp directory
+            target.delete();
+            target.mkdir();
             if ( isLazyGemMaterialization() )
             {
-                File basedir = ( (DefaultFSLocalRepositoryStorage) this.getLocalStorage() ).getBaseDir( this, new ResourceStoreRequest( "/" ) );
-                rubyGateway.createGemStubFromArtifact( mart, basedir );
+                // result is the actual target file
+                target = rubyGateway.createGemStubFromArtifact( mart, target );
             }
             else
             {
-                // switch temp file to temp directory
-                target.delete();
-                target.mkdir();
                 // result is the actual target file
                 target = rubyGateway.createGemFromArtifact( mart, target );
             }
@@ -210,6 +207,11 @@ public class Maven2RubyGemShadowRepository
                     new FileContentLocator( target, "binary/octet-stream" ) );
 
             gemItem.getAttributes().put( ORIGINAL_ITEM_PATH, item.getPath() );
+            if ( isLazyGemMaterialization() )
+            {
+                gemItem.getAttributes().put( ContentGenerator.CONTENT_GENERATOR_ID,
+                    Maven2RubyGemShadowContentGenerator.ID );
+            }
 
             storeItem( true, gemItem );
         }

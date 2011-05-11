@@ -66,19 +66,16 @@ public class DefaultRubyGateway
         FileUtils.fileWrite( target.getAbsolutePath(), "UTF-8", gemspecString );
     }
 
-    public void createGemStubFromArtifact(MavenArtifact mart, File basedir)
+    public File createGemStubFromArtifact(MavenArtifact mart, File basedir)
         throws IOException
     {
-        String name = getMavenArtifactConverter().getGemFileName( mart );
-        String spec = getGemSpecificationIO().write( getMavenArtifactConverter().createSpecification( mart ) );
-
-        store.add( basedir, name, spec );
+        return getMavenArtifactConverter().createGemStubFromArtifact( mart, basedir ).getGemFile();
     }
 
-    public File createGemFromArtifact( MavenArtifact mart, File targetDir )
+    public File createGemFromArtifact( MavenArtifact mart, File basedir )
         throws IOException
     {
-        return getMavenArtifactConverter().createGemFromArtifact( mart, targetDir ).getGemFile();
+        return getMavenArtifactConverter().createGemFromArtifact( mart, basedir ).getGemFile();
     }
 
     public void gemGenerateIndexes( File basedir, boolean update )
