@@ -17,8 +17,6 @@ public class JRubyRubyGateway
 
     private EmbedEvalUnit generateIndexes;
 
-    private EmbedEvalUnit generateLazyIndexes;
-
     public JRubyRubyGateway()
     {
         scriptingContainer = new ScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
@@ -33,17 +31,13 @@ public class JRubyRubyGateway
             scriptingContainer.parse(
                     JRubyRubyGateway.class.getClassLoader().getResourceAsStream( "ruby-snippets/generate_indexes.rb" ),
                 "generate_index.rb" );
-
-        generateLazyIndexes =
-            scriptingContainer.parse(
-                    JRubyRubyGateway.class.getClassLoader().getResourceAsStream(
-                    "ruby-snippets/generate_lazy_indexes.rb" ), "generate_lazy_indexes.rb" );
     }
 
     @Override
     public synchronized void gemGenerateIndexes( File basedir, boolean update )
     {
-        // work around on ubuntu systems since jruby can not delete the directory
+        // work around on ubuntu systems since jruby can not delete the directory 
+        // TODO why ???
         basedir.delete();
 
         getLogger().info(
@@ -55,22 +49,6 @@ public class JRubyRubyGateway
         scriptingContainer.getVarMap().clear();
         getLogger().info(
             "Invoking Gem::Indexer for " + ( update ? "update" : "generate" ) + " on basedir \""
-                + basedir.getAbsolutePath() + "\"... DONE" );
-    }
-
-    @Override
-    public synchronized void gemGenerateLazyIndexes( File basedir, boolean update )
-    {
-        getLogger().info(
-            "Invoking Gem::NexusIndexer for " + ( update ? "update" : "generate" ) + " on basedir \""
-                + basedir.getAbsolutePath() + "\"..." );
-        scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
-        scriptingContainer.put( "@update", update );
-        generateLazyIndexes.run();
-        scriptingContainer.getVarMap().clear();
-
-        getLogger().info(
-            "Invoking Gem::NexusIndexer for " + ( update ? "update" : "generate" ) + " on basedir \""
                 + basedir.getAbsolutePath() + "\"... DONE" );
     }
 }
