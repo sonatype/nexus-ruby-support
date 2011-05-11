@@ -44,7 +44,7 @@ public class Maven2RubyGemShadowContentGenerator
 
     @Requirement
     private RubyGateway rubyGateway;
-    
+
     public String getGeneratorId()
     {
         return ID;
@@ -75,8 +75,12 @@ public class Maven2RubyGemShadowContentGenerator
             // processing)
             File target = File.createTempFile( "nexus-gem", ".gem.tmp" );
 
+            // switch temp file to temp directory
+            target.delete();
+            target.mkdir();
+
             // do conversion
-            rubyGateway.createGemFromArtifact( mart, target );
+            target = rubyGateway.createGemFromArtifact( mart, target );
 
             // swap in the content locator
             FileContentLocator gemFileContentLocator = new FileContentLocator( target, "binary/octet-stream" );

@@ -7,7 +7,7 @@ public class Maven2RubyGemShadowRepositoryConfiguration
     extends AbstractShadowRepositoryConfiguration
 {
     private static final String LAZY_GEM_MATERIALIZATION = "lazyGemMaterialization";
-    
+
     public Maven2RubyGemShadowRepositoryConfiguration( Xpp3Dom configuration )
     {
         super( configuration );
