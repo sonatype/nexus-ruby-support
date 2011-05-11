@@ -134,7 +134,7 @@ public class Maven2RubyGemShadowRepository
 
     public boolean isLazyGemMaterialization()
     {
-        return true;//getExternalConfiguration( false ).isLazyGemMaterialization();
+        return getExternalConfiguration( false ).isLazyGemMaterialization();
     }
 
     public void setLazyGemMaterialization( boolean val )
