@@ -77,7 +77,10 @@ public class DefaultRubyIndexer
 
     public void reindexRepositorySync( RubyRepository repository, boolean update )
     {
-        reindexRepositorySync( true, repository, update );
+        // kill the thread
+        getIndexerThread( repository ).shutdown();
+
+        reindexRepositorySync( false, repository, update );
     }
 
     public void onEvent( Event<?> evt )
@@ -122,8 +125,6 @@ public class DefaultRubyIndexer
         {
             indexerThread = newGuy;
 
-            getLogger().debug("Starting new indexer thread");
-
             indexerThread.start();
         }
 
@@ -132,10 +133,15 @@ public class DefaultRubyIndexer
 
     protected synchronized void reindexRepositorySync( boolean fromUser, RubyRepository repository, boolean update )
     {
-        if ( !fromUser && !getIndexerThread( repository ).isSilentPeriodOver() )
-        {
-            return;
-        }
+//        if ( !fromUser && getIndexerThread( repository ).isDisabled() )
+//        {
+////            IndexerThread indexer = getIndexerThread( repository );
+////            if( //indexer.active && 
+////                    !indexer.isSilentPeriodOver() )
+////            {
+//                return;
+////            }
+//        }
 
         if ( fromUser )
         {
@@ -144,8 +150,17 @@ public class DefaultRubyIndexer
 
         try
         {
-            rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
+            // shadow repo needs "lazy" indexing, others "real" indexing
+            if ( !repository.getRepositoryKind().isFacetAvailable( RubyShadowRepository.class ) )
+            {
+                rubyGateway.gemGenerateLazyIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
                     .getBaseDir( repository, new ResourceStoreRequest( "/" ) ), update );
+            }
+            else
+            {
+                rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
+                    .getBaseDir( repository, new ResourceStoreRequest( "/" ) ), update );
+            }
 
             repository.getNotFoundCache().purge();
         }
@@ -175,7 +190,7 @@ public class DefaultRubyIndexer
         private volatile boolean done = true;
 
         private volatile boolean disabled = false;
-
+        
         private volatile boolean update = true;
 
         public IndexerThread( RubyRepository repository )
@@ -188,11 +203,16 @@ public class DefaultRubyIndexer
             this.lastReindexRequested = System.currentTimeMillis();
 
             this.done = false;
-
+            
             this.update = update;
+            getLogger().error(">>>>>>>>>>>>>>>>>>>>>" + this.active + " " + isDisabled());
+            if( !this.active && !isDisabled())
+            {
+                reindexNow();
+            }
         }
 
-        public void reindexNow()
+        private void reindexNow()
         {
             DefaultRubyIndexer.this.reindexRepositorySync( false, this.repository, this.update );
 
@@ -201,6 +221,8 @@ public class DefaultRubyIndexer
 
         public void shutdown()
         {
+            getLogger().error("************************** ", new Exception());
+
             this.active = false;
         }
 
@@ -228,6 +250,7 @@ public class DefaultRubyIndexer
         @Override
         public void run()
         {
+
             while ( active && !isInterrupted() )
             {
                 try
@@ -241,11 +264,14 @@ public class DefaultRubyIndexer
 
                     this.active = false;
                 }
-
+getLogger().error("++++++++++++++++++++++" + getSilentPeriod() + " <> " + 
+        (System.currentTimeMillis() - lastReindexRequested));
                 if ( active && !done && isSilentPeriodOver() )
                 {
                     reindexNow();
-                }
+                }            
+                getLogger().error("++++++++++++++++++++++" + active + " " + done + " " + disabled); 
+
             }
         }
     }
