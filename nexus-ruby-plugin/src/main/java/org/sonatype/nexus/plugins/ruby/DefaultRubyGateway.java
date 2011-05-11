@@ -82,9 +82,4 @@ public class DefaultRubyGateway
     {
         // not possible without JRuby
     }
-
-    public void gemGenerateLazyIndexes( File basedir, boolean update )
-    {
-        // not possible without JRuby
-    }
 }
