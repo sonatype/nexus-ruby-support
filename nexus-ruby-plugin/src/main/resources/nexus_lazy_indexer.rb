@@ -54,31 +54,35 @@ class Gem::NexusLazyIndexer < Gem::Indexer
 
   def initialize(directory, options = {})
     # do not understand why this is needed but does not work otherwise with jruby
-    Dir.tmpdir(File.join(directory, "tmp"))
+    # Dir.tmpdir(File.join(directory, "tmp"))
     super(directory, options)
     @build_legacy = false
   end
 
-  def collect_specs(yamls = gemspec_file_list)
+  def collect_specs(gems_and_specs = gemspec_file_list)
     index = Gem::SourceIndex.new
-    store = Gem::GemspecStore.new(File.join(@dest_directory, "gemspec.store"))
-    progress = ui.progress_reporter yamls.size, "Loading yamls from #{store.file}", "loaded all yamls"
+    progress = ui.progress_reporter gems_and_specs.size, "Loading gems and specs from #{@dest_directory}", "loaded all gems and specs"
     Gem.time 'loaded' do
-      entry = store.next
-      while(entry) do
-        if entry[0].string.size == 0 then
-          alert_warning "Skipping zero-length yaml: #{entry[1]}"
-       next
+      gems_and_specs.each do |file|
+        if File.size(file.to_s) == 0 then
+          alert_warning "Skipping zero-length gem/spec: #{file}"
+          next
         end
 
-     begin
-       file = entry[0].string
-          spec = if yaml_file =~ /.spec$/
-             Gem::Specification.from_yaml(file)
-              spec.loaded_from = entry[1]
-           else
-             raise "TODO"
-           end
+        begin
+          spec = begin
+              Gem::Specification.from_yaml(File.read(file))
+            rescue
+              Gem::Format.from_file_by_path(file).spec
+
+#              unless gemfile =~ /\/#{Regexp.escape spec.original_name}.*\.gem\z/i then
+#                expected_name = spec.full_name
+#                expected_name << " (#{spec.original_name})" if spec.original_name != spec.full_name
+#                alert_warning "Skipping misnamed gem: #{gemfile} should be named #{expected_name}"
+#                next
+#              end
+            end
+          spec.loaded_from = file
 
           abbreviate spec
           sanitize spec
@@ -89,14 +93,15 @@ class Gem::NexusLazyIndexer < Gem::Indexer
 
         rescue SignalException => e
           alert_error "Received signal, existing"
-       raise
+          raise
         rescue Exception => e
-          alert_error "Unable to process #{entry[1]}\n#{e.message} (#{e.class})\n\t#{e.backtrace.join "\n\t"}"
-     end
-        entry = store.next
+          alert_error "Unable to process #{file}\n#{e.message} (#{e.class})\n\t#{e.backtrace.join "\n\t"}"
+        end
       end
+
       progress.done
     end
+
     index
   end
 
