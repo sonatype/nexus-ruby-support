@@ -15,7 +15,7 @@ public class JRubyRubyGateway
 {
     private ScriptingContainer scriptingContainer;
 
-    private EmbedEvalUnit generateIndexes;
+    private final EmbedEvalUnit generateIndexes;
 
     public JRubyRubyGateway()
     {
@@ -30,7 +30,7 @@ public class JRubyRubyGateway
         generateIndexes =
             scriptingContainer.parse(
                     JRubyRubyGateway.class.getClassLoader().getResourceAsStream( "ruby-snippets/generate_indexes.rb" ),
-                "generate_index.rb" );
+                "generate_indexes.rb" );
     }
 
     @Override
