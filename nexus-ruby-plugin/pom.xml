@@ -18,6 +18,8 @@
   <description>Nexus Ruby Plugin</description>
 
   <properties>
+    <jruby-plugins-version>0.26.0</jruby-plugins-version>
+    <gem.includeOpenSSL>false</gem.includeOpenSSL>
     <!-- Set the Nexus version here, against which you build the plugin -->
     <nexus-version>1.9.2-SNAPSHOT</nexus-version>
   </properties>
@@ -88,7 +90,6 @@
       <artifactId>builder</artifactId>
       <version>2.1.2</version>
       <type>gem</type>
-      <scope>test</scope>
     </dependency>
 
     <!-- #ITSet BEGINS -->
@@ -120,7 +121,19 @@
   </dependencyManagement>
   <!-- #ITSet ENDS -->
 
-  <build>
+  <build>	
+    <resources>
+      <resource>
+	<directory>${project.basedir}/src/main/resources</directory>
+      </resource>
+      <resource>
+	<directory>${project.build.directory}/rubygems</directory>
+	<includes>
+	  <include>gems/builder*/**</include>
+	  <include>specifications/builder*</include>
+	</includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.codehaus.plexus</groupId>
@@ -179,7 +192,6 @@
         <groupId>de.saumya.mojo</groupId>
         <artifactId>rspec-maven-plugin</artifactId>
         <version>0.26.0</version>
-        <extensions>true</extensions>
         <configuration>
           <specSourceDirectory>src/test/spec</specSourceDirectory>
         </configuration>
@@ -190,7 +202,21 @@
             </goals>
           </execution>
         </executions>
+      </plugin>		
+      <plugin>
+	<groupId>de.saumya.mojo</groupId>
+	<artifactId>gem-maven-plugin</artifactId>
+	<version>0.26.0</version>
+	<extensions>true</extensions>
+	<executions>
+	  <execution>
+	    <goals>
+	      <goal>initialize</goal>
+	    </goals>
+	  </execution>
+	</executions>
       </plugin>
+
 
       <!-- #ITSet BEGINS -->
       <!-- Nexus IT setup (dependencies below are needed if you have extensive ITs and you want to use Nexus Environment) -->
