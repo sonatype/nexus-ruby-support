@@ -3,7 +3,8 @@
 require 'rubygems'
 require 'rubygems/indexer'
 
-# do not understand why this is needed but does not work otherwise with jruby
+# hack to allow to set a tmpdir in spec or so - jruby has problems to move
+# away files from a system tmp dir (at least on ubuntu)
 class Dir
   class <<self
     alias_method :tmpdir_old, :tmpdir
@@ -25,8 +26,6 @@ end
 class Gem::NexusIndexer < Gem::Indexer
 
   def initialize(directory, options = {})
-    # do not understand why this is needed but does not work otherwise with jruby
-    #Dir.tmpdir(File.join(directory, "tmp"))
     super(directory, options)
     @build_legacy = false
   end
