@@ -207,7 +207,6 @@
 	<groupId>de.saumya.mojo</groupId>
 	<artifactId>gem-maven-plugin</artifactId>
 	<version>0.26.0</version>
-	<extensions>true</extensions>
 	<executions>
 	  <execution>
 	    <goals>

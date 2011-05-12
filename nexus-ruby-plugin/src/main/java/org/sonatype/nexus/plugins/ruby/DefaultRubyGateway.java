@@ -29,8 +29,6 @@ public class DefaultRubyGateway
     @Requirement(hint="yaml")
     private GemSpecificationIO gemSpecificationIO;
 
-    private GemspecStore store = new GemspecStore();
-
     protected Logger getLogger()
     {
         return logger;
