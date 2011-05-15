@@ -18,10 +18,10 @@
   <description>Nexus Ruby Plugin</description>
 
   <properties>
-    <jruby-plugins-version>0.26.0</jruby-plugins-version>
+    <jruby-plugins-version>0.27.0-SNAPSHOT</jruby-plugins-version>
     <gem.includeOpenSSL>false</gem.includeOpenSSL>
     <!-- Set the Nexus version here, against which you build the plugin -->
-    <nexus-version>1.9.2-SNAPSHOT</nexus-version>
+    <nexus-version>1.9.2-ff-SNAPSHOT</nexus-version>
   </properties>
 
   <repositories>
@@ -36,7 +36,7 @@
     <dependency>
       <groupId>de.saumya.mojo</groupId>
       <artifactId>ruby-tools</artifactId>
-      <version>0.26.0</version>
+      <version>${jruby-plugins-version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.codehaus.plexus</groupId>
@@ -62,6 +62,12 @@
       <artifactId>nexus-plugin-api</artifactId>
       <version>${nexus-version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sonatype.nexus.plugins</groupId>
+      <artifactId>nexus-maven-bridge-plugin</artifactId>
+      <version>${nexus-version}</version>
     </dependency>
 
     <!-- Basic testing -->
