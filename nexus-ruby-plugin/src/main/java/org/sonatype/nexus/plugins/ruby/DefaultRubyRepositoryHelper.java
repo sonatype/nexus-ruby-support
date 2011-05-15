@@ -1,17 +1,18 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 
 import org.apache.maven.index.artifact.Gav;
 import org.apache.maven.index.artifact.IllegalArtifactCoordinateException;
 import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.apache.maven.model.building.DefaultModelBuildingRequest;
+import org.apache.maven.model.building.ModelBuilder;
+import org.apache.maven.model.building.ModelBuildingException;
+import org.apache.maven.model.building.ModelBuildingRequest;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.sonatype.nexus.plugins.maven.bridge.MavenBridge;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
@@ -29,6 +30,12 @@ public class DefaultRubyRepositoryHelper
     @Requirement
     private MetadataLocator metadataLocator;
 
+    @Requirement
+    private ModelBuilder modelBuilder;
+
+//    @Requirement
+//    private MavenBridge bridge;
+//
     public MetadataLocator getMetadataLocator()
     {
         return metadataLocator;
@@ -92,23 +99,27 @@ public class DefaultRubyRepositoryHelper
 
             Model model = null;
 
-            FileReader is = null;
-
             try
             {
-                is = new FileReader( pomFile );
 
-                MavenXpp3Reader rd = new MavenXpp3Reader();
+                org.apache.maven.model.Repository repo = new org.apache.maven.model.Repository();
 
-                model = rd.read( is );
+//                // TODO remove the "maven central only" only approach
+//                repo.setId("maven-central");
+//                repo.setUrl(getMavenRepositoryBasedir(masterRepository).toURI().toString());
+//
+//                model = bridge.buildModel( pomFile, repo );
+
+                ModelBuildingRequest request = new DefaultModelBuildingRequest();
+                request.setPomFile( pomFile );
+
+                model = modelBuilder.build(request).getEffectiveModel();
+
             }
-            catch ( XmlPullParserException e )
+            catch (ModelBuildingException e)
             {
+                // skip gem generation of this artifact
                 return null;
-            }
-            finally
-            {
-                IOUtil.close( is );
             }
 
             ArtifactCoordinates coords =
