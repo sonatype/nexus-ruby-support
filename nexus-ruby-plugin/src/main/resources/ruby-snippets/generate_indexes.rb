@@ -4,7 +4,7 @@ indexer = Gem::NexusIndexer.new @basedir
 
 # do not understand why this is needed but does not work otherwise with jruby
 # jruby can not move away files from the tmp directory
-tmpdir = File.join(@basedir, "tmp")
+tmpdir = File.join(@tempdir, "gemify")
 begin
   Dir.tmpdir(tmpdir)
 
