@@ -68,6 +68,8 @@
       <groupId>org.sonatype.nexus.plugins</groupId>
       <artifactId>nexus-maven-bridge-plugin</artifactId>
       <version>${nexus-version}</version>
+      <scope>provided</scope>
+      <type>nexus-plugin</type>
     </dependency>
 -->
     <!-- Basic testing -->

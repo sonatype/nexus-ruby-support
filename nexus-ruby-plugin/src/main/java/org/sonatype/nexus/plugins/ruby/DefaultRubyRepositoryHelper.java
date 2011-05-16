@@ -6,12 +6,13 @@ import java.io.IOException;
 import org.apache.maven.index.artifact.Gav;
 import org.apache.maven.index.artifact.IllegalArtifactCoordinateException;
 import org.apache.maven.model.Model;
-import org.apache.maven.model.building.DefaultModelBuildingRequest;
+import org.apache.maven.model.building.FileModelSource;
 import org.apache.maven.model.building.ModelBuilder;
 import org.apache.maven.model.building.ModelBuildingException;
-import org.apache.maven.model.building.ModelBuildingRequest;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
+import org.sonatype.nexus.plugins.maven.bridge.BuildModelRequest;
+import org.sonatype.nexus.plugins.maven.bridge.MavenBridge;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
@@ -32,9 +33,9 @@ public class DefaultRubyRepositoryHelper
     @Requirement
     private ModelBuilder modelBuilder;
 
-//    @Requirement
-//    private MavenBridge bridge;
-//
+    @Requirement
+    private MavenBridge bridge;
+
     public MetadataLocator getMetadataLocator()
     {
         return metadataLocator;
@@ -79,7 +80,7 @@ public class DefaultRubyRepositoryHelper
             // get both possible files: jar-file as well pom-files
             File pomFile =
                 ( (DefaultFSLocalRepositoryStorage) masterRepository.getLocalStorage() ).getFileFromBase(
-                    masterRepository, new ResourceStoreRequest( item.getPath().replace( ".jar", ".pom" )  ) );
+                    masterRepository, new ResourceStoreRequest( item.getPath().replace( ".jar", ".pom" ) ) );
 
             File jarFile =
                 ( (DefaultFSLocalRepositoryStorage) masterRepository.getLocalStorage() ).getFileFromBase(
@@ -100,22 +101,11 @@ public class DefaultRubyRepositoryHelper
 
             try
             {
+                BuildModelRequest request = new BuildModelRequest( new FileModelSource( pomFile ) );
 
-                org.apache.maven.model.Repository repo = new org.apache.maven.model.Repository();
-
-//                // TODO remove the "maven central only" only approach
-//                repo.setId("maven-central");
-//                repo.setUrl(getMavenRepositoryBasedir(masterRepository).toURI().toString());
-//
-//                model = bridge.buildModel( pomFile, repo );
-
-                ModelBuildingRequest request = new DefaultModelBuildingRequest();
-                request.setPomFile( pomFile );
-
-                model = modelBuilder.build(request).getEffectiveModel();
-
+                model = bridge.buildModel( request );
             }
-            catch (ModelBuildingException e)
+            catch ( ModelBuildingException e )
             {
                 // skip gem generation of this artifact
                 return null;
@@ -125,7 +115,8 @@ public class DefaultRubyRepositoryHelper
                 new ArtifactCoordinates( gav.getGroupId(), gav.getArtifactId(), gav.getVersion(), gav.getExtension() );
 
             // we have a jar artifact but no jarfile, so skip this one
-            if( "jar".equals(model.getPackaging()) && jarFile == null ){
+            if ( "jar".equals( model.getPackaging() ) && jarFile == null )
+            {
                 return null;
             }
             return new MavenArtifact( model, coords, jarFile );
