@@ -4,17 +4,15 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.maven.index.artifact.Gav;
-import org.apache.maven.index.artifact.IllegalArtifactCoordinateException;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.building.FileModelSource;
-import org.apache.maven.model.building.ModelBuilder;
 import org.apache.maven.model.building.ModelBuildingException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.sonatype.nexus.plugins.maven.bridge.BuildModelRequest;
 import org.sonatype.nexus.plugins.maven.bridge.MavenBridge;
+import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.maven.MetadataLocator;
@@ -31,9 +29,6 @@ public class DefaultRubyRepositoryHelper
     private MetadataLocator metadataLocator;
 
     @Requirement
-    private ModelBuilder modelBuilder;
-
-    @Requirement
     private MavenBridge bridge;
 
     public MetadataLocator getMetadataLocator()
@@ -42,7 +37,7 @@ public class DefaultRubyRepositoryHelper
     }
 
     public MavenArtifact getMavenArtifactForItem( MavenRepository masterRepository, StorageFileItem item )
-        throws StorageException
+        throws LocalStorageException
     {
         // TODO: this is here for simplicity only, jar's only for now
         if ( !item.getName().endsWith( ".pom" ) && !item.getName().endsWith( ".jar" ) )
@@ -60,14 +55,7 @@ public class DefaultRubyRepositoryHelper
 
         // item.getPath is either the pom or the jar
         // use the pom filename for GAV
-        try
-        {
-            gav = masterRepository.getGavCalculator().pathToGav( item.getPath().replace( ".jar", ".pom" ) );
-        }
-        catch ( IllegalArtifactCoordinateException e )
-        {
-            return null;
-        }
+        gav = masterRepository.getGavCalculator().pathToGav( item.getPath().replace( ".jar", ".pom" ) );
 
         // if the path does not represent a valid layouted artifact, skip it
         if ( gav == null )
@@ -101,7 +89,7 @@ public class DefaultRubyRepositoryHelper
 
             try
             {
-                BuildModelRequest request = new BuildModelRequest( new FileModelSource( pomFile ) );
+                BuildModelRequest request = new BuildModelRequest( new FileModelSource( pomFile ), masterRepository );
 
                 model = bridge.buildModel( request );
             }
@@ -119,17 +107,18 @@ public class DefaultRubyRepositoryHelper
             {
                 return null;
             }
+
             return new MavenArtifact( model, coords, jarFile );
         }
         catch ( IOException e )
         {
-            throw new StorageException( "We got IOException while retrieving POM file for \""
+            throw new LocalStorageException( "We got IOException while retrieving POM file for \""
                 + item.getRepositoryItemUid() + "\"!", e );
         }
     }
 
     public File getMavenRepositoryBasedir( MavenRepository mavenRepository )
-        throws StorageException
+        throws LocalStorageException
     {
         if ( mavenRepository.getLocalStorage() instanceof DefaultFSLocalRepositoryStorage )
         {

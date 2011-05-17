@@ -9,8 +9,8 @@ import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Startable;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.StartingException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.StoppingException;
+import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.events.RepositoryRegistryEventRemove;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.plexus.appevents.ApplicationEventMulticaster;
@@ -149,7 +149,7 @@ public class DefaultRubyIndexer
 
             repository.getNotFoundCache().purge();
         }
-        catch ( StorageException e )
+        catch ( LocalStorageException e )
         {
             DefaultRubyIndexer.this.getLogger().warn(
                 "Could not generate RubyGems index! Index may be stale, and change is not reflected!", e );
