@@ -2,6 +2,7 @@ package org.sonatype.nexus.plugins.ruby;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.maven.index.artifact.Gav;
 import org.apache.maven.model.Model;
@@ -9,8 +10,7 @@ import org.apache.maven.model.building.FileModelSource;
 import org.apache.maven.model.building.ModelBuildingException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
-import org.sonatype.nexus.plugins.maven.bridge.BuildModelRequest;
-import org.sonatype.nexus.plugins.maven.bridge.MavenBridge;
+import org.sonatype.nexus.plugins.mavenbridge.NexusMavenBridge;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
@@ -29,7 +29,7 @@ public class DefaultRubyRepositoryHelper
     private MetadataLocator metadataLocator;
 
     @Requirement
-    private MavenBridge bridge;
+    private NexusMavenBridge bridge;
 
     public MetadataLocator getMetadataLocator()
     {
@@ -89,9 +89,7 @@ public class DefaultRubyRepositoryHelper
 
             try
             {
-                BuildModelRequest request = new BuildModelRequest( new FileModelSource( pomFile ), masterRepository );
-
-                model = bridge.buildModel( request );
+                model = bridge.buildModel( new FileModelSource( pomFile ), Arrays.asList( masterRepository ) );
             }
             catch ( ModelBuildingException e )
             {
