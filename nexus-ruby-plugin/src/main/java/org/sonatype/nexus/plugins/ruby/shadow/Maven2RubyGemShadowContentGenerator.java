@@ -17,6 +17,7 @@ import org.sonatype.nexus.proxy.access.Action;
 import org.sonatype.nexus.proxy.item.ContentGenerator;
 import org.sonatype.nexus.proxy.item.ContentLocator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
+import org.sonatype.nexus.proxy.item.RepositoryItemUidLock;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
@@ -94,7 +95,9 @@ public class Maven2RubyGemShadowContentGenerator
             gemItem.getAttributes().remove( ContentGenerator.CONTENT_GENERATOR_ID );
 
             // replace it but with locking!
-            item.getRepositoryItemUid().lock( Action.create );
+            RepositoryItemUidLock uidLock = item.getRepositoryItemUid().getLock();
+            
+            uidLock.lock( Action.create );
             try
             {
                 repository.deleteItem( true, item.getResourceStoreRequest() );
@@ -102,7 +105,7 @@ public class Maven2RubyGemShadowContentGenerator
             }
             finally
             {
-                item.getRepositoryItemUid().unlock();
+                uidLock.unlock();
                 // cleanup
                 target.delete();
             }
