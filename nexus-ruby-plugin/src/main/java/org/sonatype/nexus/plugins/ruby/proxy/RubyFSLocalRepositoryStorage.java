@@ -25,16 +25,11 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     public File getFileFromBase( Repository repository,
             ResourceStoreRequest request, File repoBase )
             throws LocalStorageException {
-    //    getLogger().error("---------------" + repository.getClass());
-      //  getLogger().error(request.toString());
-        //getLogger().error(repoBase.toString());
-        File result = super.getFileFromBase(repository, request, repoBase);
+        File result = super.getFileFromBase( repository, request, repoBase );
         
         if ( repository instanceof Maven2RubyGemShadowRepository && result.getName().contains( "mvn:" ) ) {
             result = new File( result.getParentFile(), result.getName().replaceFirst( "mvn:", "" ).replaceFirst( ":.*", "/" ) + result.getName() );
         }
-//        getLogger().error(result.toString());
-  //      getLogger().error("---------------");
         return result;
     }
     
@@ -43,9 +38,9 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         private File gemsBasedir;
         private Repository repository;
 
-        public RubygemsStorageCollectionItem(Repository repository,
-                ResourceStoreRequest request, File gemsBasedir) {
-            super(repository, request, true, false);
+        public RubygemsStorageCollectionItem( Repository repository,
+                ResourceStoreRequest request, File gemsBasedir ) {
+            super( repository, request, true, false );
             this.gemsBasedir = gemsBasedir; 
             this.repository = repository;
         }
@@ -69,31 +64,25 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             else if( path.getName().endsWith( ".gem" ) ){
                 String gemPath = "/gems/" + path.getName();
                 DefaultStorageFileItem item = new DefaultStorageFileItem( repository, new ResourceStoreRequest( gemPath, true, false ), 
-                        true, false, new FileContentLocator( path, "binary/octet-stream" ));
+                        true, false, new FileContentLocator( path, "binary/octet-stream" ) );
                 item.setLength( path.length() );
                 item.setModified( path.lastModified() );
                 list.add( item );
             }
-        }
-        
+        }        
     }
 
     @Override
     protected AbstractStorageItem retrieveItemFromFile(Repository repository,
             ResourceStoreRequest request, File target)
             throws ItemNotFoundException, LocalStorageException {
-        //getLogger().warn("---------------");
-   //     getLogger().warn(request.toString());
-     //   getLogger().warn(target.toString());
         AbstractStorageItem item;
         if ( repository instanceof Maven2RubyGemShadowRepository && request.getRequestPath().equals( "/gems/" ) ) {
-            item = new RubygemsStorageCollectionItem(repository, request, target);
+            item = new RubygemsStorageCollectionItem( repository, request, target );
         }
         else {
-            item =  super.retrieveItemFromFile(repository, request, target);
+            item =  super.retrieveItemFromFile( repository, request, target );
         }
-       // getLogger().warn(item.getResourceStoreRequest().toString());
-        //getLogger().warn("---------------");
         
         return item;
     }
