@@ -4,7 +4,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.inject.Inject;
+
 import org.codehaus.plexus.component.annotations.Component;
+import org.sonatype.nexus.mime.MimeSupport;
 import org.sonatype.nexus.plugins.ruby.shadow.Maven2RubyGemShadowRepository;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
@@ -12,14 +15,23 @@ import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageCollectionItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
+import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
+import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
 import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
+import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
 
 @Component( role = LocalRepositoryStorage.class, hint = DefaultFSLocalRepositoryStorage.PROVIDER_STRING )
 public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorage implements LocalRepositoryStorage{
+
+    @Inject
+    public RubyFSLocalRepositoryStorage(Wastebasket wastebasket,
+            LinkPersister linkPersister, MimeSupport mimeSupport, FSPeer fsPeer) {
+        super(wastebasket, linkPersister, mimeSupport, fsPeer);
+    }
 
     @Override
     public File getFileFromBase( Repository repository,

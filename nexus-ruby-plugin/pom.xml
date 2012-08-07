@@ -21,7 +21,8 @@
     <jruby-plugins-version>0.26.0</jruby-plugins-version>
     <gem.includeOpenSSL>false</gem.includeOpenSSL>
     <!-- Set the Nexus version here, against which you build the plugin -->
-    <nexus-version>1.9.2</nexus-version>
+    <nexus-version>2.1.1</nexus-version>   
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <repositories>
