@@ -8,6 +8,7 @@ import javax.inject.Inject;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.sonatype.nexus.mime.MimeSupport;
+import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.shadow.Maven2RubyGemShadowRepository;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
@@ -89,7 +90,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             ResourceStoreRequest request, File target)
             throws ItemNotFoundException, LocalStorageException {
         AbstractStorageItem item;
-        if ( repository instanceof Maven2RubyGemShadowRepository && request.getRequestPath().equals( "/gems/" ) ) {
+        if ( repository instanceof RubyRepository && request.getRequestPath().equals( "/gems/" ) ) {
             item = new RubygemsStorageCollectionItem( repository, request, target );
         }
         else {
