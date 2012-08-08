@@ -7,6 +7,7 @@ import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHo
 import org.sonatype.nexus.configuration.model.DefaultCRepository;
 import org.sonatype.nexus.plugins.ruby.AbstractRubyGemRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
+import org.sonatype.nexus.plugins.ruby.RubyHostedRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepositoryTemplateProvider;
 import org.sonatype.nexus.plugins.ruby.RubyShadowRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
@@ -17,7 +18,7 @@ public class DefaultRubyHostedRepositoryTemplate
 {
     public DefaultRubyHostedRepositoryTemplate( RubyRepositoryTemplateProvider provider, String id, String description )
     {
-        super( provider, id, description, new RubyContentClass(), RubyShadowRepository.class );
+        super( provider, id, description, new RubyContentClass(), RubyHostedRepository.class );
     }
 
     public DefaultRubyHostedRepositoryConfiguration getExternalConfiguration( boolean forWrite )
