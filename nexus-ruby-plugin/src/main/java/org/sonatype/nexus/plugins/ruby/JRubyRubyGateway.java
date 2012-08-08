@@ -44,14 +44,15 @@ public class JRubyRubyGateway
     {
         // work around on ubuntu systems since jruby can not delete the directory
         // TODO why ???
-        basedir.delete();
+        //basedir.delete();
 
         getLogger().info(
             "Invoking Gem::Indexer for " + ( update ? "update" : "generate" ) + " on basedir \""
                 + basedir.getAbsolutePath() + "\"..." );
         scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
         scriptingContainer.put( "@tempdir", configuration.getTemporaryDirectory().getAbsolutePath() );
-        scriptingContainer.put( "@update", update );
+        //TODO make update work - currently t just index all again
+        scriptingContainer.put( "@update", false );//update );
         generateIndexes.run();
         scriptingContainer.getVarMap().clear();
         getLogger().info(
