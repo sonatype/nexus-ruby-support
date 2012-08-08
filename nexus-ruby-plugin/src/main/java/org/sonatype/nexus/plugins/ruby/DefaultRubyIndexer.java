@@ -168,7 +168,7 @@ public class DefaultRubyIndexer
     {
         private RubyRepository repository;
 
-        private volatile long lastReindexRequested;
+        private volatile long lastReindex = 0;
 
         private volatile boolean active = true;
 
@@ -185,8 +185,6 @@ public class DefaultRubyIndexer
 
         public void reindex( boolean update )
         {
-            this.lastReindexRequested = System.currentTimeMillis();
-
             this.done = false;
 
             this.update = update;
@@ -222,7 +220,7 @@ public class DefaultRubyIndexer
         public boolean isSilentPeriodOver()
         {
             return !isDisabled()
-                && System.currentTimeMillis() - lastReindexRequested > DefaultRubyIndexer.this.getSilentPeriod();
+                && System.currentTimeMillis() - lastReindex > DefaultRubyIndexer.this.getSilentPeriod();
         }
 
         @Override
@@ -245,6 +243,7 @@ public class DefaultRubyIndexer
                 if ( active && !done && isSilentPeriodOver() )
                 {
                     reindexNow();
+                    this.lastReindex = System.currentTimeMillis();
                 }
             }
         }
