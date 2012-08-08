@@ -19,8 +19,8 @@ public abstract class AbstractRubyGemRepositoryTemplate
     public RubyRepository create()
         throws ConfigurationException, IOException
     {
-        RubyRepository mavenRepository = (RubyRepository) super.create();
+        RubyRepository rubyRepository = (RubyRepository) super.create();
 
-        return mavenRepository;
+        return rubyRepository;
     }
 }
