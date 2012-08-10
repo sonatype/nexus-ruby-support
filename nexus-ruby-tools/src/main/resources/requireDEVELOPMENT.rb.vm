@@ -1,5 +1,0 @@
-require File.dirname(__FILE__) + '/$filename'
-
-#foreach( $dep in $dependencies )
-require 'maven/$dep'
-#end
