@@ -21,6 +21,7 @@
 
   <modules>
     <module>nexus-ruby-plugin</module>
+    <module>nexus-gem</module>
   </modules>
 
 </project>

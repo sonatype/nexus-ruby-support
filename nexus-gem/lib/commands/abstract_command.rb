@@ -1,0 +1,123 @@
+require 'rubygems/local_remote_options'
+begin
+  require 'always_verify_ssl_certificates'
+rescue LoadError
+  warn 'skip "always_verify_ssl_certificates"'
+end
+require 'base64'
+
+class Gem::AbstractCommand < Gem::Command
+  include Gem::LocalRemoteOptions
+
+  def nexus_url
+    (config[:nexus_url] || configure_nexus_url).sub(/\/$/,'')
+  end
+
+  def configure_nexus_url
+    say "Enter the URL of the rubygems repository on a Nexus server"
+
+    url = ask("URL or Repository: ")
+
+    store_config(:nexus_url, url)
+
+    say "the URL has been stored in ~/.gem/nexus"
+    url
+  end
+
+  def setup
+    use_proxy! if http_proxy
+    sign_in unless authorization
+  end
+
+  def sign_in
+    say "Enter your Nexus credentials"
+
+    username = ask("Username: ")
+    password = ask_for_password("Password: ")
+
+    store_config(:authorization, 
+                 "Basic #{Base64.b64encode(username + ':' + password)}")
+
+    say "Your Nexus credentials has been stored in ~/.gem/nexus"
+  end
+
+  def config_path
+    File.join(Gem.user_home, '.gem', 'nexus')
+  end
+
+  def config
+    @config ||= Gem.configuration.load_file(config_path)
+  end
+
+  def authorization
+    config[:authorization]
+  end
+
+  def store_config(key, value)
+    config.merge!(key => value)
+
+    dirname = File.dirname(config_path)
+    Dir.mkdir(dirname) unless File.exists?(dirname)
+
+    File.open(config_path, 'w') do |f|
+      f.write config.to_yaml
+    end
+  end
+
+  def make_request(method, path)
+    require 'net/http'
+    require 'net/https'
+
+    url = URI.parse("#{nexus_url}/#{path}")
+
+    http = proxy_class.new(url.host, url.port)
+
+    if url.scheme == 'https'
+      http.use_ssl = true
+    end
+
+    request_method =
+      case method
+      when :get
+        proxy_class::Get
+      when :post
+        proxy_class::Post
+      when :put
+        proxy_class::Put
+      when :delete
+        proxy_class::Delete
+      else
+        raise ArgumentError
+      end
+
+    request = request_method.new(url.path)
+    request.add_field "User-Agent", "Nexus Gem Command"
+
+    yield request if block_given?
+    http.request(request)
+  end
+
+  def use_proxy!
+    proxy_uri = http_proxy
+    @proxy_class = Net::HTTP::Proxy(proxy_uri.host, proxy_uri.port, proxy_uri.user, proxy_uri.password)
+  end
+
+  def proxy_class
+    @proxy_class || Net::HTTP
+  end
+
+  # @return [URI, nil] the HTTP-proxy as a URI if set; +nil+ otherwise
+  def http_proxy
+    proxy = Gem.configuration[:http_proxy] || ENV['http_proxy'] || ENV['HTTP_PROXY']
+    return nil if proxy.nil? || proxy == :no_proxy
+    URI.parse(proxy)
+  end
+
+  def ask_for_password(message)
+    system "stty -echo"
+    password = ask(message)
+    system "stty echo"
+    ui.say("\n")
+    password
+  end
+end
