@@ -42,17 +42,12 @@ public class JRubyRubyGateway
     @Override
     public synchronized void gemGenerateIndexes( File basedir, boolean update )
     {
-        // work around on ubuntu systems since jruby can not delete the directory
-        // TODO why ???
-        //basedir.delete();
-
         getLogger().info(
             "Invoking Gem::Indexer for " + ( update ? "update" : "generate" ) + " on basedir \""
                 + basedir.getAbsolutePath() + "\"..." );
         scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
         scriptingContainer.put( "@tempdir", configuration.getTemporaryDirectory().getAbsolutePath() );
-        //TODO make update work - currently t just index all again
-        scriptingContainer.put( "@update", false );//update );
+        scriptingContainer.put( "@update", update );
         generateIndexes.run();
         scriptingContainer.getVarMap().clear();
         getLogger().info(

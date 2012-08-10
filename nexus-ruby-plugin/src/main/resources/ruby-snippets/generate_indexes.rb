@@ -6,14 +6,13 @@ indexer = Gem::NexusIndexer.new @basedir
 # jruby can not move away files from the tmp directory
 tmpdir = File.join(@tempdir, "gemify")
 begin
-  Dir.tmpdir(tmpdir)
-
+  #Dir.tmpdir(tmpdir)
   if @update then
     indexer.update_index
   else
     indexer.generate_index
   end
 ensure
-  FileUtils.rm_rf(tmpdir) if tmpdir
+  #FileUtils.rm_rf(tmpdir) if tmpdir
 end
 
