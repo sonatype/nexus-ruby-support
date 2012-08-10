@@ -7,6 +7,7 @@ import java.util.Map;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
@@ -42,7 +43,14 @@ public class DefaultRubyHostedRepository
 
     @Requirement
     private RubyIndexer rubyIndexer;
-
+    
+    @Override
+    public void doConfigure() throws ConfigurationException
+    {
+        super.doConfigure();
+        // recreate rubygems metadata on startup
+        rubyIndexer.reindexRepository( this, false );
+    }
     /**
      * Repository kind.
      */
