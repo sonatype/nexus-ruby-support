@@ -6,42 +6,41 @@ This repository contains components and Nexus plugins to enhance Nexus with Ruby
 This plugin is powered with JRuby.
 
 
-What we currently convert to Gem
---------------------------------
+Build
+-----
 
- * Maven2 artifacts with packaging "jar" -- plain libraries
- * Maven2 artifacts with packaging "pom" -- usually needed as metadata source (like dependency-grouping, or parent POMs)
+    mvn install -Dmaven.test.skip
+	 
+after that you will find the nexus plugin in **nexus-ruby-plugin/target/nexus-ruby-plugin-*-bundle.zip** and the gem with the nexus rubygems command in **nexus-gem/target/nexus-*.gem**.
 
-Other artifacts (WARs, EARs, etc) are currently left out completely, since we still don't know how to make them usable in Ruby-world.
+install the nexus gem for you local ruby environment with
 
-Problems to solve:
+    gem install -l nexus-gem/target/nexus-*.gem
 
- * Maven Version to Ruby Gems Version convert (hard)
- * Currently, we do Gems from Java. Maybe reuse Ruby Gems to do that?
- * Indexing should be enhanced. Ruby Gems indexer does publish proper indexes downstream, but no Nexus integration is added yet (Gems are not searchable).
- * Enhance the embedded Ruby class in Gems created out of Jar, resolve: conflicts, better naming, etc.
+install the nexus plugin nto your nexus server with
 
-Biggest challenges (unsolved)
------------------------------
+    unzip -d $NEXUS_HOME/nexus/WEB-INF/plugin-repository/ -o nexus-ruby-plugin/target/nexus-ruby-plugin-*-SNAPSHOT-bundle.zip
 
-* Enhance embedded ruby stub script.
+nexus command
+-------------
 
-* Using effective POMs in MavenArtifact to Gem conversion. This is currently unclear, since this would need embedding Maven into Nexus, but that is completely different story.
+when pushing a gem to the nexus rubygems repo the first time the url of the repo and the credentials are prompted. these data will be stored in $HOME/.gemrc/nexus.
 
-* Improve indexing (gem indexing). Currently, I see some problems since indexing is unable to deduce is "update" enough or full indexing is needed (right now, on our "lab server" indexing fails, since it would need full reindex, but update is tried).
+    gem nexus my-1.0.gem
 
-* Integrate Gem indexing with Nexus Indexing.
+using nexus ruby repo
+---------------------
 
-Biggest challenges (solved)
------------------------------
+with this you can list the latest versions of the gems from the nexus rubygems repo (mind the trailing slash !!)
 
-* The Versioning scheme, it is currently the blocker. My initial "scratch" idea is following:
+    gem list --remote --clear-sources --source http://localhost:8081/nexus/content/rubygems/my-repo/
 
- * will soon extract all the "unique versions" from Maven central (and will put it here as file)
- * we should come up with some good heuristics to process them at least up to 95%
- * the rest would be a "human input", the version converter component should have some input file, where to find "exceptions" (or something alike this)
+using nexus rubygem repo with rubygems add it as source with (mind the trailing slash !!)
 
-DONE. (mkristian)
+    gem sources --add http://localhost:8081/nexus/content/rubygems/my-repo/
+	
+now you can install the gems from that repo
 
-Have fun!  
-~t~
+    gem install my
+	
+enjoy !
