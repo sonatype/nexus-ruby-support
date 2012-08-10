@@ -1,4 +1,4 @@
-package org.sonatype.nexus.plugins.ruby.proxy;
+package org.sonatype.nexus.plugins.ruby;
 
 import java.io.File;
 import java.util.ArrayList;
