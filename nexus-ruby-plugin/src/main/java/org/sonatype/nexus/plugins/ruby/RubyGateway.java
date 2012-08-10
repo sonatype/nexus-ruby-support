@@ -64,7 +64,7 @@ public interface RubyGateway
         throws IOException;
 
     /**
-     * Invokes "gem generate_index --directory=${basedir}". Should do the same as the CLI command written above.
+     * Invokes "gem generate_index --directory=${basedir}". Should do essentially the same as the CLI command written above but descend into subdirectories as well.
      *
      * @param basedir
      * @param if true, update happens, otherwise full reindex
