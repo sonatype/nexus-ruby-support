@@ -47,7 +47,7 @@ public class JRubyRubyGateway
                 + basedir.getAbsolutePath() + "\"..." );
         scriptingContainer.put( "@basedir", basedir.getAbsolutePath() );
         scriptingContainer.put( "@tempdir", configuration.getTemporaryDirectory().getAbsolutePath() );
-        scriptingContainer.put( "@update", update );
+        scriptingContainer.put( "@update", false );// udpate); TODO update does not copy the quick files into place.
         generateIndexes.run();
         scriptingContainer.getVarMap().clear();
         getLogger().info(
