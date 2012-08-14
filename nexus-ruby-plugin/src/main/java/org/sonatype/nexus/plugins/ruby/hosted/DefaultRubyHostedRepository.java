@@ -1,8 +1,6 @@
 package org.sonatype.nexus.plugins.ruby.hosted;
 
-import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Map;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -15,7 +13,6 @@ import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyHostedRepository;
 import org.sonatype.nexus.plugins.ruby.RubyIndexer;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
-import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -51,6 +48,7 @@ public class DefaultRubyHostedRepository
         // recreate rubygems metadata on startup
         rubyIndexer.reindexRepository( this, false );
     }
+    
     /**
      * Repository kind.
      */
@@ -94,20 +92,6 @@ public class DefaultRubyHostedRepository
     }
 
     // ==
-    
-    public void storeItem( ResourceStoreRequest request, InputStream is, Map<String, String> userAttributes )
-            throws UnsupportedStorageOperationException, IllegalOperationException, StorageException, AccessDeniedException
-    {
-        // put the gems into subdirectory with first-letter of the gems name
-        if ( request.getRequestPath().startsWith("/gems/"))
-        {
-            request.setRequestPath("/gems/" + 
-                    request.getRequestPath().charAt(6) + 
-                    "/" + 
-                    request.getRequestPath().substring(6));
-        }
-        super.storeItem(request, is, userAttributes);
-    }
     
     @Override
     public void storeItem( boolean fromTask, StorageItem item )

@@ -11,6 +11,12 @@ import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHo
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyProxyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
+import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.RemoteAccessException;
+import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
+import org.sonatype.nexus.proxy.item.AbstractStorageItem;
+import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
@@ -22,6 +28,7 @@ public class DefaultRubyProxyRepository
     extends AbstractProxyRepository
     implements RubyProxyRepository, Repository
 {
+
     public static final String ID = "ruby-gem-proxy";
 
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
@@ -72,4 +79,40 @@ public class DefaultRubyProxyRepository
         return (DefaultRubyProxyRepositoryConfiguration) super.getExternalConfiguration( forWrite );
     }
 
+    @Override
+    protected boolean isOld( StorageItem item )
+    {
+        if ( item.getName().contains( "specs" ) )
+        {
+            // time in minutes
+            // TODO get the MaxAge for metadate from config
+            return isOld( 50, item );
+        }
+        return super.isOld( item );
+    }
+
+    @Override
+    protected AbstractStorageItem doRetrieveRemoteItem(
+            ResourceStoreRequest request ) throws ItemNotFoundException,
+            RemoteAccessException, StorageException {
+        if ( request.getRequestPath().startsWith( "/api/v1/" ) )
+        {
+            throw new ItemNotFoundException( request );
+        }
+        else
+        {
+            ResourceStoreRequest req = new ResourceStoreRequest( request );
+            req.setRequestPath( request.getRequestPath().replaceFirst( "^/gems/[^/]/", "/gems/" ) );
+            AbstractStorageItem item = super.doRetrieveRemoteItem( req );
+            item.setResourceStoreRequest(request);
+            item.setPath(request.getRequestPath());
+            return item;
+        }
+    }
+
+    @Override
+    public void synchronizeWithRemoteRepository()
+    {
+        throw new RuntimeException("TODO");
+    }
 }
