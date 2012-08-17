@@ -1,9 +1,9 @@
 require 'command_helper'
 
-class PushCommandTest < CommandTest
+class NexusCommandTest < CommandTest
   context "pushing" do
     setup do
-      @command = Gem::Commands::PushCommand.new
+      @command = Gem::Commands::NexusCommand.new
       stub(@command).say
     end
 
@@ -23,22 +23,25 @@ class PushCommandTest < CommandTest
 
     context "pushing a gem" do
       setup do
-        @url = "https://gemcutter.org/api/v1/gems"
+
         @gem_path = "path/to/foo-0.0.0.gem"
+        baseurl = 'http://localhost:8081/nexus/content/repositories/localgems'
+        @url = baseurl + @gem_path.sub(/.*\//, '/gems/')
         @gem_binary = StringIO.new("gem")
 
         stub(@command).say
         stub(@command).options { {:args => [@gem_path]} }
         stub(Gem).read_binary(@gem_path) { @gem_binary }
-        stub_config({ :rubygems_api_key => "key" })
-        stub_request(:post, @url).to_return(:body => "Success!")
-
+        stub(@command).config { { :authorization => "key", :url => baseurl } }
+        stub_request(:post, @url).to_return(:status => 201)
+        
         @command.send_gem
       end
 
       should "say push was successful" do
-        assert_received(@command) { |command| command.say("Pushing gem to Gemcutter...") }
-        assert_received(@command) { |command| command.say("Success!") }
+        assert_received(@command) { |command| command.say("Pushing gem to Nexus...") }
+        # due to webmock there is no status message
+        assert_received(@command) { |command| command.say("") }
       end
 
       should "post to api" do
@@ -46,11 +49,13 @@ class PushCommandTest < CommandTest
         assert_requested(:post, @url,
                          :times => 1)
         assert_requested(:post, @url,
-                         :headers => {'Authorization' => 'key' })
-        assert_requested(:post, @url,
-                         :headers => {'Content-Length' => @gem_binary.size})
-        assert_requested(:post, @url,
-                         :headers => {'Content-Type' => 'application/octet-stream'})
+                         :headers => {
+                           'Authorization' => 'key', 
+                           'Content-Type' => 'application/octet-stream', 
+                           'User-Agent'=>'Nexus Gem Command'
+                         })
+        #assert_requested(:post, @url,
+        #                 :headers => {'Content-Length' => @gem_binary.size.to_s})
       end
     end
   end

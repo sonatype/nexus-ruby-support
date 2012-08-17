@@ -9,34 +9,36 @@ require 'base64'
 class Gem::AbstractCommand < Gem::Command
   include Gem::LocalRemoteOptions
 
-  def nexus_url
-    (config[:nexus_url] || configure_nexus_url).sub(/\/$/,'')
+  def url
+    url = config[:url]
+    # no leadng slash
+    url.sub!(/\/$/,'') if url
+    url
   end
 
-  def configure_nexus_url
+  def configure_url
     say "Enter the URL of the rubygems repository on a Nexus server"
 
-    url = ask("URL or Repository: ")
+    url = ask("URL: ")
 
-    store_config(:nexus_url, url)
+    store_config(:url, url)
 
-    say "the URL has been stored in ~/.gem/nexus"
-    url
+    say "The Nexus URL has been stored in ~/.gem/nexus"
   end
 
   def setup
     use_proxy! if http_proxy
+    configure_url unless url
     sign_in unless authorization
   end
 
   def sign_in
     say "Enter your Nexus credentials"
-
     username = ask("Username: ")
     password = ask_for_password("Password: ")
 
     store_config(:authorization, 
-                 "Basic #{Base64.b64encode(username + ':' + password)}")
+                 "Basic #{Base64.encode64(username + ':' + password).strip}")
 
     say "Your Nexus credentials has been stored in ~/.gem/nexus"
   end
@@ -55,7 +57,6 @@ class Gem::AbstractCommand < Gem::Command
 
   def store_config(key, value)
     config.merge!(key => value)
-
     dirname = File.dirname(config_path)
     Dir.mkdir(dirname) unless File.exists?(dirname)
 
@@ -68,7 +69,7 @@ class Gem::AbstractCommand < Gem::Command
     require 'net/http'
     require 'net/https'
 
-    url = URI.parse("#{nexus_url}/#{path}")
+    url = URI.parse("#{self.url}/#{path}")
 
     http = proxy_class.new(url.host, url.port)
 

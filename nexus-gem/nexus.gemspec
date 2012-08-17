@@ -12,17 +12,25 @@ Gem::Specification.new do |s|
 
   s.description = 'Adds a command to RubyGems for uploading gems to a nexus server.'
 
+  s.executables = ['nbundle']
   s.files = ["MIT-LICENSE", "Rakefile"]
   s.files += Dir['lib/**/*.rb']
   s.files += Dir['test/**/*.rb']
 
-  s.homepage = 'http://sonatype.org/nexus'
+  s.homepage = 'https://github.com/sonatype/nexus-ruby-support/tree/master/nexus-gem'
   s.post_install_message = %q{
 ========================================================================
 
            Thanks for installing Nexus gem! You can now run:
 
     gem nexus          publish your gems onto Nexus server
+
+    nbundle            a bundler fork with mirror support. 
+                       just add a mirror with:
+
+    bundle config mirror.http://rubygems.org http://localhost:8081/nexus/content/repositories/rubygems.org
+
+                       and use 'nbundle' instead of 'bundle'
 
 ========================================================================
 
@@ -32,11 +40,11 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency('always_verify_ssl_certificates', '~> 0.3.0')
   s.add_development_dependency('rake', '0.9.2.2')
+  s.add_development_dependency('shoulda', "~> 3.1.1")
+  s.add_development_dependency('webmock', "~> 1.8.8")
+  s.add_development_dependency('rr', ">= 0")
 
   #s.add_runtime_dependency(%q<json_pure>, [">= 0"])
-  #s.add_development_dependency(%q<shoulda>, [">= 0"])
   #s.add_development_dependency(%q<activesupport>, [">= 0"])
-  #s.add_development_dependency(%q<webmock>, [">= 0"])
-  #s.add_development_dependency(%q<rr>, [">= 0"])
 end
 

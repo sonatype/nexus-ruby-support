@@ -48,17 +48,23 @@ class AbstractCommandTest < CommandTest
       end
     end
 
-    should "sign in if no api key" do
-      stub(@command).api_key { nil }
+    should "sign in if authorization and no nexus url" do
+      stub(@command).authorization { nil }
+      stub(@command).url { nil }
       stub(@command).sign_in
+      stub(@command).configure_url
       @command.setup
+      assert_received(@command) { |command| command.configure_url }
       assert_received(@command) { |command| command.sign_in }
     end
 
-    should "not sign in if api key exists" do
-      stub(@command).api_key { "1234567890" }
+    should "not sign in nor configure if authorizaton and url exists" do
+      stub(@command).authorization { "1234567890" }
+      stub(@command).url { "abc" }
       stub(@command).sign_in
+      stub(@command).configure_url
       @command.setup
+      assert_received(@command) { |command| command.configure_url.never }
       assert_received(@command) { |command| command.sign_in.never }
     end
 
@@ -77,58 +83,51 @@ class AbstractCommandTest < CommandTest
 
     context "signing in" do
       setup do
-        @email = "email"
+        @username = "username"
         @password = "password"
         @key = "key"
 
         stub(@command).say
-        stub(@command).ask { @email }
+        stub(@command).ask { @username }
         stub(@command).ask_for_password { @password }
-        stub_config(:rubygems_api_key => @key)
+        stub(@command).store_config { {:authorization => @key} }
       end
 
-      context "on a good request" do
-        setup do
-          WebMock.stub_request(:get, "https://#{@email}:#{@password}@gemcutter.org/api/v1/api_key").to_return(:body => @key)
-        end
-
-        should "ask for email and password" do
-          @command.sign_in
-          assert_received(@command) { |command| command.ask("Email: ") }
-          assert_received(@command) { |command| command.ask_for_password("Password: ") }
-        end
-
-        should "say that we signed in" do
-          @command.sign_in
-          assert_received(@command) { |command| command.say("Signed in. Your api key has been stored in ~/.gem/credentials") }
-          assert_received(@command) { |command| command.say("Enter your Gemcutter credentials. Don't have an account yet? Create one at http://gemcutter.org/sign_up") }
-        end
+      should "ask for username and password" do
+        @command.sign_in
+        assert_received(@command) { |command| command.ask("Username: ") }
+        assert_received(@command) { |command| command.ask_for_password("Password: ") }
+        assert_received(@command) { |command| command.store_config(:authorization, "Basic dXNlcm5hbWU6cGFzc3dvcmQ=") }
       end
 
-      context "on a bad request" do
-        setup do
-          @problem = "Access Denied"
-          stub(@command).terminate_interaction
-          stub(@command).send(:api_key=)
-          WebMock.stub_request(:get, "https://#{@email}:#{@password}@gemcutter.org/api/v1/api_key").to_return(
-            :body   => @problem,
-            :status => 401)
-        end
+      should "say that we signed in" do
+        @command.sign_in
+        assert_received(@command) { |command| command.say("Enter your Nexus credentials") }
+        assert_received(@command) { |command| command.say("Your Nexus credentials has been stored in ~/.gem/nexus") }
+        assert_received(@command) { |command| command.store_config(:authorization, "Basic dXNlcm5hbWU6cGFzc3dvcmQ=") }
+      end
+    end
 
-        should "let the user know there was a problem" do
-          @command.sign_in
-          assert_received(@command) { |command| command.say(@problem) }
-        end
+    context "configure nexus url" do
+      setup do
+        @url = "url"
 
-        should "kill the command" do
-          @command.sign_in
-          assert_received(@command) { |command| command.terminate_interaction }
-        end
+        stub(@command).say
+        stub(@command).ask { @url }
+        stub(@command).store_config { {:url => @url} }
+      end
 
-        should "not write anything to the credentials file" do
-          @command.sign_in
-          assert_received(@command) { |command| command.send(:api_key=).never }
-        end
+      should "ask for nexus url" do
+        @command.configure_url
+        assert_received(@command) { |command| command.ask("URL: ") }
+        assert_received(@command) { |command| command.store_config(:url, "url") }
+      end
+
+      should "say that we configured the url" do
+        @command.configure_url
+        assert_received(@command) { |command| command.say("Enter the URL of the rubygems repository on a Nexus server") }
+        assert_received(@command) { |command| command.say("The Nexus URL has been stored in ~/.gem/nexus") }
+        assert_received(@command) { |command| command.store_config(:url, "url") }
       end
     end
   end
