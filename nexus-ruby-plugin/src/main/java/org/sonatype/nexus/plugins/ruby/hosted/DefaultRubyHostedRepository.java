@@ -46,7 +46,7 @@ public class DefaultRubyHostedRepository
     {
         super.doConfigure();
         // recreate rubygems metadata on startup
-        rubyIndexer.reindexRepository( this, false );
+        rubyIndexer.reindexRepositorySync( this, false );
     }
     
     /**
