@@ -64,14 +64,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <dependency>
-      <groupId>org.sonatype.nexus.plugins</groupId>
-      <artifactId>nexus-maven-bridge-plugin</artifactId>
-      <version>2.0.6</version>
-      <scope>provided</scope>
-      <type>nexus-plugin</type>
-    </dependency>
-
     <!-- Basic testing -->
     <dependency>
       <groupId>org.sonatype.nexus</groupId>

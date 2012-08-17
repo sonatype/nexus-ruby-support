@@ -9,7 +9,6 @@ import org.sonatype.nexus.plugins.ruby.AbstractRubyGemRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyHostedRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepositoryTemplateProvider;
-import org.sonatype.nexus.plugins.ruby.RubyShadowRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryWritePolicy;
 
