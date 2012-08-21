@@ -1,13 +1,17 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.jruby.embed.EmbedEvalUnit;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
-import org.jruby.embed.ScriptingContainer;
+import org.jruby.runtime.builtin.IRubyObject;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
 
 @Component( role = RubyGateway.class )
@@ -19,24 +23,27 @@ public class JRubyRubyGateway
     @Requirement
     ApplicationConfiguration configuration;
 
-    private ScriptingContainer scriptingContainer;
+    private NexusScriptingContainer scriptingContainer;
 
     private final EmbedEvalUnit generateIndexes;
 
+    private final IRubyObject nexusRubygemsClass;
+
     public JRubyRubyGateway()
     {
-        scriptingContainer = new ScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
-        scriptingContainer.setClassLoader(JRubyRubyGateway.class.getClassLoader());
+        scriptingContainer = new NexusScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
 
-        // The JRuby and all the scripts is in this plugin's CL!
-        scriptingContainer.getProvider().getRubyInstanceConfig().setJRubyHome(
-            JRubyRubyGateway.class.getClassLoader().getResource( "META-INF/jruby.home" ).toString().replaceFirst(
-                "^jar:", "" ) );
+        try
+        {
+            generateIndexes = scriptingContainer.parseFile( "ruby-snippets/generate_indexes.rb" );
+        
+        nexusRubygemsClass = scriptingContainer.parseFile( "nexus/rubygems.rb" ).run();
 
-        generateIndexes =
-            scriptingContainer.parse(
-                    JRubyRubyGateway.class.getClassLoader().getResourceAsStream( "ruby-snippets/generate_indexes.rb" ),
-                "generate_indexes.rb" );
+        }
+        catch ( FileNotFoundException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 
     @Override
@@ -53,5 +60,51 @@ public class JRubyRubyGateway
         getLogger().info(
             "Invoking Gem::Indexer for " + ( update ? "update" : "generate" ) + " on basedir \""
                 + basedir.getAbsolutePath() + "\"... DONE" );
+    }
+    
+    static class ByteArrayInputStream extends InputStream {
+
+        private List<Long> bytes;
+        private int cursor = 0;
+        public ByteArrayInputStream(List<Long> bytes)
+        {
+            this.bytes = bytes;
+        }
+        
+        @Override
+        public int available() throws IOException {
+            return bytes.size() - cursor;
+        }
+        
+        @Override
+        public void reset() throws IOException {
+            cursor = 0;
+        }
+
+        @Override
+        public int read() throws IOException {
+            System.out.print('.');
+            if (cursor < bytes.size()) 
+            {
+                return bytes.get( cursor ++ ).intValue();
+            }
+            else 
+            {
+                System.out.println();
+                return -1;
+            }
+        }
+    }
+    
+    public InputStream createGemspecRz(String pathToGem) throws IOException
+    {
+        Object rubygems = scriptingContainer.callMethod(nexusRubygemsClass, "new", ".", Object.class);
+
+        @SuppressWarnings("unchecked")
+        List<Long> array = (List<Long>)scriptingContainer.callMethod(rubygems, 
+                "create_quick", 
+                pathToGem, 
+                List.class);
+        return new ByteArrayInputStream(array);
     }
 }
