@@ -14,68 +14,55 @@ package org.sonatype.nexus.plugins.ruby;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
-import org.codehaus.plexus.util.FileUtils;
+import org.jruby.embed.LocalContextScope;
+import org.jruby.embed.LocalVariableBehavior;
+import org.jruby.runtime.builtin.IRubyObject;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.sonatype.nexus.mime.MimeRulesSource;
 import org.sonatype.nexus.mime.MimeSupport;
-import org.sonatype.nexus.proxy.ItemNotFoundException;
-import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.attributes.AttributesHandler;
-import org.sonatype.nexus.proxy.item.AbstractStorageItem;
-import org.sonatype.nexus.proxy.item.ContentLocator;
+import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.LinkPersister;
-import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.HostedRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
-import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
 import org.sonatype.nexus.test.PlexusTestCaseSupport;
 
 /**
- * Tests {@link DefaultFSLocalRepositoryStorage}
- * @since 2.0
  */
 public class RubyFSLocalRepositoryStorageTest extends PlexusTestCaseSupport
 {
+    private NexusScriptingContainer scriptingContainer;
+
+
+    @Before
+    public void setUp()
+    {
+        scriptingContainer = new NexusScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
+    }
+
 
     /**
      * Tests listing a directory, when a contained file does NOT exists.
      * @throws Exception
      */
     @Test
-    public void testListFilesThrowsItemNotFoundException() throws Exception
+    public void testQuickMarshal48GemspecRz() throws Exception
     {
 
-        File repoLocation  = new File( getBasedir(), "target/" + getClass().getSimpleName() + "/repo/" );
-
-        // the contents of the "valid" directory, only contains a "valid.txt" file
-        File validDir = new File( repoLocation, "valid/" );
-        validDir.mkdirs();
-        FileUtils.fileWrite( new File( validDir, "valid.txt" ), "UTF-8", "something valid" );
-        Collection<File> validFileCollection = Arrays.asList( validDir.listFiles() );
-
-        // the contents of the "invalid" directory, this dir contains a missing file
-        File invalidDir = new File( repoLocation, "invalid/" );
-        invalidDir.mkdirs();
-        FileUtils.fileWrite( new File( invalidDir, "invalid.txt" ), "UTF-8", "something valid" );
-        List<File> invalidFileCollection = new ArrayList<File>( Arrays.asList( invalidDir.listFiles() ) );
-        invalidFileCollection.add( new File( invalidDir, "missing.txt") );
+        File repoLocation  = new File( getBasedir(), "src/test/repo/" );
 
         // Mocks
         Wastebasket wastebasket = mock( Wastebasket.class );
@@ -84,13 +71,10 @@ public class RubyFSLocalRepositoryStorageTest extends PlexusTestCaseSupport
         when( mimeUtil.guessMimeTypeFromPath( Mockito.any( MimeRulesSource.class ), Mockito.anyString() ) ).thenReturn(
             "text/plain" );
 
-        // Mock FSPeer to return the results created above
         FSPeer fsPeer = mock( FSPeer.class );
-        when( fsPeer.listItems( Mockito.any( Repository.class ), Mockito.any( ResourceStoreRequest.class ), eq( validDir ) ) ).thenReturn( validFileCollection );
-        when( fsPeer.listItems( Mockito.any( Repository.class ), Mockito.any( ResourceStoreRequest.class ), eq( new File( repoLocation, "invalid/" ) ) ) ).thenReturn( invalidFileCollection );
 
         // create Repository Mock
-        Repository repository = mock( Repository.class );
+        Repository repository = mock( RubyRepository.class );
         when(repository.getId()).thenReturn( "mock" );
         when( repository.getRepositoryKind() ).thenReturn( new DefaultRepositoryKind( HostedRepository.class, null) );
         when( repository.getLocalUrl() ).thenReturn( repoLocation.toURI().toURL().toString() );
@@ -100,62 +84,32 @@ public class RubyFSLocalRepositoryStorageTest extends PlexusTestCaseSupport
 
         RubyFSLocalRepositoryStorage localRepositoryStorageUnderTest = new RubyFSLocalRepositoryStorage( wastebasket, linkPersister, mimeUtil, fsPeer );
 
-        ResourceStoreRequest validRequest = new ResourceStoreRequest( "valid" );
-
-        // positive test, valid.txt should be found
-        Collection<StorageItem> items = localRepositoryStorageUnderTest.listItems( repository, validRequest );
-        assertThat( items.iterator().next().getName(), equalTo( "valid.txt" ) );
-        assertThat( items, hasSize( 1 ) );
-
-
-        // missing.txt was listed in this directory, but it does NOT exist, only invalid.txt should be found
-        ResourceStoreRequest invalidRequest = new ResourceStoreRequest( "invalid" );
-        items = localRepositoryStorageUnderTest.listItems( repository, invalidRequest );
-        assertThat( items.iterator().next().getName(), equalTo( "invalid.txt" ) );
-        assertThat( items, hasSize( 1 ) );
-    }
-
-    /**
-     * Expects an already deleted file to thrown an ItemNotFoundException. More specifically if a file was deleted
-     * after the call to file.exists() was called.
-     *
-     * @throws Exception
-     */
-    @Test( expected = ItemNotFoundException.class )
-    public void testRetrieveItemFromFileThrowsItemNotFoundExceptionForDeletedFile()
-        throws Exception
-    {
-        // Mocks
-        Wastebasket wastebasket = mock( Wastebasket.class );
-        Repository repository = mock( Repository.class );
-        FSPeer fsPeer = mock( FSPeer.class );
-        MimeSupport mimeSupport = mock( MimeSupport.class );
-
-        // mock file
-        File mockFile = mock( File.class );
-        when( mockFile.isDirectory() ).thenReturn( false );
-        when( mockFile.isFile() ).thenReturn( true );
-        when( mockFile.exists() ).thenReturn( true );
-
-
-        // needs to throw a FileNotFound when _opening_ the file
-        LinkPersister linkPersister = mock( LinkPersister.class );
-        when( linkPersister.isLinkContent( Mockito.any( ContentLocator.class ) ) ).thenThrow( new FileNotFoundException( "Expected to be thrown from mock." ) );
-
-        // object to test
-        RubyFSLocalRepositoryStorage localRepositoryStorageUnderTest = new RubyFSLocalRepositoryStorage( wastebasket, linkPersister, mimeSupport, fsPeer )
+        ResourceStoreRequest request = new ResourceStoreRequest( "/quick/Marshal.4.8/nexus-0.1.0.gemspec.rz" );
+        
+        DefaultStorageFileItem item = (DefaultStorageFileItem) localRepositoryStorageUnderTest.retrieveItem(repository, request);
+        InputStream is = item.getInputStream();
+        
+        String gemPath = "src/test/repo/gems/n/nexus-0.1.0.gem";
+        String gemspec = "nexus-0.1.0.gemspec.rz";
+        String gemspecPath = "target/fs-test-" + gemspec;
+        
+        int c = is.read();
+        FileOutputStream out = new FileOutputStream( gemspecPath );
+        while( c != -1 )
         {
-            // expose protected method
-            @Override
-            public AbstractStorageItem retrieveItemFromFile( Repository repository, ResourceStoreRequest request,
-                                                                File target )
-                throws ItemNotFoundException, LocalStorageException
-            {
-                return super.retrieveItemFromFile( repository, request, target );
-            }
-        };
+            out.write(c);
+            c = is.read();
+        }
+        out.close();
+        is.close();
 
-        // expected to throw a ItemNotFoundException
-        localRepositoryStorageUnderTest.retrieveItemFromFile( repository, new ResourceStoreRequest( "not-used" ), mockFile );
+        IRubyObject check = scriptingContainer.parseFile( "nexus/check_gemspec_rz.rb" ).run();
+        boolean equalSpecs = scriptingContainer.callMethod( check, "check",
+                    new Object[] { gemPath, gemspecPath }, 
+                    Boolean.class );
+        assertThat( "spec from stream equal spec from gem", equalSpecs );
+
+        assertThat( item.getPath(), equalTo( "/quick/Marshal.4.8/" + gemspec ) );
     }
+
 }

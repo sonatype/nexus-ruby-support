@@ -1,20 +1,29 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.inject.Inject;
 
 import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.util.FileUtils;
 import org.sonatype.nexus.mime.MimeSupport;
+import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
+import org.sonatype.nexus.proxy.item.ContentGenerator;
+import org.sonatype.nexus.proxy.item.ContentLocator;
 import org.sonatype.nexus.proxy.item.DefaultStorageCollectionItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.LinkPersister;
+import org.sonatype.nexus.proxy.item.PreparedContentLocator;
+import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
@@ -27,7 +36,7 @@ import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
 @Component( role = LocalRepositoryStorage.class, hint = DefaultFSLocalRepositoryStorage.PROVIDER_STRING )
 public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorage implements LocalRepositoryStorage
 {
-
+    
     @Inject
     public RubyFSLocalRepositoryStorage(Wastebasket wastebasket,
             LinkPersister linkPersister, MimeSupport mimeSupport, FSPeer fsPeer)
@@ -91,13 +100,52 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         return request;
     }
 
+    @Component( role = ContentGenerator.class, hint = GemspecRzContentGenerator.ID )
+    public static class GemspecRzContentGenerator implements ContentGenerator {
+        
+        public static final String ID = "GemspecRzContentGenerator";
+
+        private final JRubyRubyGateway gateway = new JRubyRubyGateway();
+
+        @Override
+        public String getGeneratorId()
+        {
+            return ID;
+        }
+
+        @Override
+        public ContentLocator generateContent( Repository repository, String path, StorageFileItem item )
+            throws IllegalOperationException, ItemNotFoundException, StorageException
+        {
+            try
+            {
+                File baseDir = ((DefaultFSLocalRepositoryStorage) repository.getLocalStorage()).getBaseDir( repository, 
+                        item.getResourceStoreRequest() );
+                File gemsDir = new File( baseDir, item.getPath().replaceFirst( "quick/Marshal.4.8/.*$", "gems" ) );
+                String name = FileUtils.filename( item.getPath() ).replace( "spec.rz", "" );
+                File gemPath = new File( gemsDir, name.charAt( 0 ) + "/" + name );
+
+                final InputStream is = gateway.createGemspecRz( gemPath.getAbsolutePath() );
+                ((DefaultStorageFileItem)item).setModified( gemPath.lastModified() );
+                ((DefaultStorageFileItem)item).setCreated( gemPath.lastModified() );
+                item.setLength( is.available() );
+                return new PreparedContentLocator( is, "application/x-ruby-marshal" );
+            } 
+            catch (IOException e)
+            {
+                throw new ItemNotFoundException(item.getResourceStoreRequest(), e);
+            }
+        }
+    }
+
     @Override
     protected AbstractStorageItem retrieveItemFromFile(Repository repository,
             ResourceStoreRequest request, File target)
             throws ItemNotFoundException, LocalStorageException
     {
+//        System.out.println(request.getRequestPath() + " - " + target);
         if ( repository instanceof RubyRepository ) 
-            {
+        {
             if ( request.getRequestPath().equals( "/gems/" ) ) 
             {
                 return new RubygemsStorageCollectionItem( repository, request, target );
@@ -105,8 +153,17 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             if ( request.getRequestPath().matches("/gems/[^/]+\\.gem$") )
             {
                 fixPath(request);
+                // each gems lives in sub-directory with starts with the first letter of the gem-name
                 target = new File(new File(target.getParentFile(), target.getName().substring(0, 1)), target.getName());
-            }  
+            }
+            else if ( request.getRequestPath().matches("^/quick/.+\\.gemspec.rz$") )
+            {
+                DefaultStorageFileItem file = new DefaultStorageFileItem( repository, request, true, true,
+                        new FileContentLocator( target, "application/x-ruby-marshal" ) );
+                //repository.getAttributesHandler().fetchAttributes( file );
+                file.setContentGeneratorId( GemspecRzContentGenerator.ID );
+                return file;                    
+            }
         }
         return super.retrieveItemFromFile( repository, request, target );
     }
@@ -130,11 +187,14 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     public void storeItem(Repository repository, StorageItem item)
             throws UnsupportedStorageOperationException, LocalStorageException
     {
-        if ( item.getPath().matches( "^.*/gems/[^/]+\\.gem$" ) )
+        if ( repository instanceof RubyRepository )
         {
-            ((AbstractStorageItem) item).setPath( item.getPath().replaceFirst( "/gems/([^/])([^/]+)\\.gem$", 
-                    "/gems/$1/$1$2.gem" ) );
-            item.getResourceStoreRequest().setRequestPath( item.getPath() );
+            if ( item.getPath().matches( "^.*/gems/[^/]+\\.gem$" ) )
+            {
+                ((AbstractStorageItem) item).setPath( item.getPath().replaceFirst( "/gems/([^/])([^/]+)\\.gem$", 
+                        "/gems/$1/$1$2.gem" ) );
+                item.getResourceStoreRequest().setRequestPath( item.getPath() );
+            }
         }
 
         super.storeItem( repository, item );
