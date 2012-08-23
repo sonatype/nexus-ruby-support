@@ -10,7 +10,7 @@ import org.jruby.embed.ScriptingContainer;
 
 public class NexusScriptingContainer extends ScriptingContainer {
     
-    NexusScriptingContainer(LocalContextScope scope, LocalVariableBehavior behavior){
+    public NexusScriptingContainer(LocalContextScope scope, LocalVariableBehavior behavior){
         super( scope, behavior );
         setClassLoader( thisClassLoader() );
         setCompatVersion( CompatVersion.RUBY1_8 );

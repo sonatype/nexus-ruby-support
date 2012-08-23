@@ -13,6 +13,7 @@ import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.sonatype.nexus.configuration.application.ApplicationConfiguration;
+import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 
 @Component( role = RubyGateway.class )
 public class JRubyRubyGateway
@@ -37,7 +38,7 @@ public class JRubyRubyGateway
         {
             generateIndexes = scriptingContainer.parseFile( "ruby-snippets/generate_indexes.rb" );
         
-        nexusRubygemsClass = scriptingContainer.parseFile( "nexus/rubygems.rb" ).run();
+            nexusRubygemsClass = scriptingContainer.parseFile( "nexus/rubygems.rb" ).run();
 
         }
         catch ( FileNotFoundException e )
@@ -96,15 +97,64 @@ public class JRubyRubyGateway
         }
     }
     
-    public InputStream createGemspecRz(String pathToGem) throws IOException
+    private Object rubygems()
     {
-        Object rubygems = scriptingContainer.callMethod(nexusRubygemsClass, "new", ".", Object.class);
-
-        @SuppressWarnings("unchecked")
-        List<Long> array = (List<Long>)scriptingContainer.callMethod(rubygems, 
+        return scriptingContainer.callMethod(nexusRubygemsClass, "new", ".", Object.class);
+    }
+    
+    public InputStream createGemspecRz( String pathToGem ) throws IOException
+    {
+        @SuppressWarnings( "unchecked" )
+        List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(), 
                 "create_quick", 
                 pathToGem, 
-                List.class);
-        return new ByteArrayInputStream(array);
+                List.class );
+        
+        return new ByteArrayInputStream( array );
     }
+
+    public InputStream emptyIndex()
+    {
+        @SuppressWarnings( "unchecked" )
+        List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
+                "empty_specs", 
+                List.class );
+        
+        return new ByteArrayInputStream( array );
+    }
+    
+    public Object spec( File gem ) {
+        return scriptingContainer.callMethod( rubygems(), 
+                "spec_get",
+                gem.getAbsolutePath(),
+                Object.class );
+    }
+
+    public InputStream addSpec( Object spec, File specsDump, SpecsIndexType type ) {
+        @SuppressWarnings( "unchecked" )
+        List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
+                "add_spec", 
+                new Object[] {
+                    spec,
+                    specsDump.getAbsolutePath(),
+                    type.name().toLowerCase()
+                },
+                List.class );
+        
+        return array == null ? null : new ByteArrayInputStream( array );
+    }
+    
+    public InputStream deleteSpec( Object spec, File specsDump ) {
+        @SuppressWarnings( "unchecked" )
+        List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
+                "delete_spec", 
+                new Object[] {
+                    spec,
+                    specsDump.getAbsolutePath(),
+                },
+                List.class );
+        
+        return new ByteArrayInputStream( array );
+    }
+    
 }
