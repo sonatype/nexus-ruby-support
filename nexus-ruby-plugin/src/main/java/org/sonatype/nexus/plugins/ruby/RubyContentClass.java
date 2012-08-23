@@ -8,7 +8,7 @@ import org.sonatype.nexus.proxy.registry.ContentClass;
 public class RubyContentClass
     extends AbstractIdContentClass
 {
-    public static final String ID = "ruby-gem";
+    public static final String ID = "rubygems";
 
     public String getId()
     {

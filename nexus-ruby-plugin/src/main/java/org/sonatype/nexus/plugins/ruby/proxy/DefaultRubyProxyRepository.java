@@ -29,7 +29,7 @@ public class DefaultRubyProxyRepository
     implements RubyProxyRepository, Repository
 {
 
-    public static final String ID = "ruby-gem-proxy";
+    public static final String ID = "rubygems-proxy";
 
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
     private ContentClass contentClass;

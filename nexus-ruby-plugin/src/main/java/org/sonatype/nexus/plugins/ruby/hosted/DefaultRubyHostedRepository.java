@@ -30,7 +30,7 @@ public class DefaultRubyHostedRepository
     extends AbstractRepository
     implements RubyHostedRepository, Repository
 {
-    public static final String ID = "ruby-gem-hosted";
+    public static final String ID = "rubygems-hosted";
 
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
     private ContentClass contentClass;

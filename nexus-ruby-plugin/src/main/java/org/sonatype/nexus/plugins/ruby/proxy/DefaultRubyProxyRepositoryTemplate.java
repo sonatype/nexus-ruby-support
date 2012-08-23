@@ -1,6 +1,7 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.sonatype.nexus.configuration.model.CRemoteStorage;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
@@ -37,13 +38,23 @@ public class DefaultRubyProxyRepositoryTemplate
         repo.setProviderRole( Repository.class.getName() );
         repo.setProviderHint( DefaultRubyProxyRepository.ID );
 
+        repo.setRemoteStorage( new CRemoteStorage() );
+        repo.getRemoteStorage().setProvider(
+            getTemplateProvider().getRemoteProviderHintFactory().getDefaultHttpRoleHint() );
+        repo.getRemoteStorage().setUrl( "http://some-remote-repository/repo-root" );
+
         Xpp3Dom ex = new Xpp3Dom( DefaultCRepository.EXTERNAL_CONFIGURATION_NODE_NAME );
         repo.setExternalConfiguration( ex );
 
         DefaultRubyProxyRepositoryConfiguration exConf = new DefaultRubyProxyRepositoryConfiguration( ex );
         repo.externalConfigurationImple = exConf;
 
-        repo.setWritePolicy( RepositoryWritePolicy.ALLOW_WRITE_ONCE.name() );
+        repo.setWritePolicy( RepositoryWritePolicy.READ_ONLY.name() );
+        repo.setNotFoundCacheActive( true );
+        repo.setNotFoundCacheTTL( 1440 );
+
+        repo.setIndexable( true );
+        repo.setSearchable( true );
 
         CRepositoryCoreConfiguration result =
             new CRepositoryCoreConfiguration( getTemplateProvider().getApplicationConfiguration(), repo,
