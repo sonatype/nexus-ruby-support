@@ -1,6 +1,8 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import org.codehaus.plexus.component.annotations.Component;
+import org.sonatype.nexus.plugins.ruby.group.DefaultRubyGroupRepository;
+import org.sonatype.nexus.plugins.ruby.group.DefaultRubyGroupRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.hosted.DefaultRubyHostedRepository;
 import org.sonatype.nexus.plugins.ruby.hosted.DefaultRubyHostedRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.proxy.DefaultRubyProxyRepository;
@@ -21,14 +23,14 @@ public class RubyRepositoryTemplateProvider
 
         try
         {
-            // disabled for now and maybe for ever 
-//            templates.add( new Maven2RubyGemShadowRepositoryTemplate( this, Maven2RubyGemShadowRepository.ID,
-//                "Maven2-to-RubyGem" ) );
 
             templates.add( new DefaultRubyHostedRepositoryTemplate( this, DefaultRubyHostedRepository.ID,
-                    "RubyGem" ) );
+                    "Rubygems (hosted)" ) );
             templates.add( new DefaultRubyProxyRepositoryTemplate( this, DefaultRubyProxyRepository.ID,
-                    "RubyGem" ) );
+                    "Rubygems (proxy)" ) );
+            templates.add( new DefaultRubyGroupRepositoryTemplate( this, DefaultRubyGroupRepository.ID,
+                    "Rubygems (group)" ) );
+
         }
         catch ( Exception e )
         {
@@ -37,5 +39,4 @@ public class RubyRepositoryTemplateProvider
 
         return templates;
     }
-
 }
