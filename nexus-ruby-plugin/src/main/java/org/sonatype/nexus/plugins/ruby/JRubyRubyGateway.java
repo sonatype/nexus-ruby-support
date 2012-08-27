@@ -154,7 +154,7 @@ public class JRubyRubyGateway
                 },
                 List.class );
         
-        return new ByteArrayInputStream( array );
+        return array == null ? null : new ByteArrayInputStream( array );
     }
     
 }

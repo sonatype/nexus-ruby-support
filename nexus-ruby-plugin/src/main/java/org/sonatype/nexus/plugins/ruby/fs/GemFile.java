@@ -20,7 +20,7 @@ public class GemFile extends File
     }
     
     public static boolean isGem( String path ){
-        return path.matches( "^.*/gems/[^/]+\\.gem$" );
+        return path.matches( "^/gems/([a-z]?/)?[^/]+\\.gem$" );
     }
     
     public GemFile(File target)

@@ -46,7 +46,7 @@ public class DefaultRubyHostedRepository
     {
         super.doConfigure();
         // recreate rubygems metadata on startup
-        rubyIndexer.reindexRepositorySync( this, false );
+        //rubyIndexer.reindexRepositorySync( this, false );
     }
     
     /**
@@ -100,7 +100,7 @@ public class DefaultRubyHostedRepository
         super.storeItem( fromTask, item );
 
         // to reflect modification
-        rubyIndexer.reindexRepository( this, true );
+        //rubyIndexer.reindexRepository( this, true );
     }
 
     @Override
@@ -110,6 +110,6 @@ public class DefaultRubyHostedRepository
         super.deleteItem( fromTask, request );
 
         // to reflect modification
-        rubyIndexer.reindexRepository( this, true );
+        //rubyIndexer.reindexRepository( this, true );
     }
 }

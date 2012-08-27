@@ -40,12 +40,7 @@ public class GemspecRzContentGenerator implements ContentGenerator {
     {
         try
         {
-//            File baseDir = ((DefaultFSLocalRepositoryStorage) repository.getLocalStorage()).getBaseDir( repository, 
-  //                  item.getResourceStoreRequest() );
-    //        File gemsDir = new File( baseDir, item.getPath().replaceFirst( "quick/Marshal.4.8/.*$", "gems" ) );
             String name = FileUtils.filename( item.getPath() ).replace( "spec.rz", "" );
-      //      File gemPath = new File( gemsDir, name.charAt( 0 ) + "/" + name );
-
             StorageFileItem gemItem = (StorageFileItem) repository.retrieveItem( new ResourceStoreRequest( "/gems/" + name ) );
             File gemPath = ((FileContentLocator) gemItem.getContentLocator()).getFile();
 

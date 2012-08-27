@@ -24,7 +24,6 @@ module Nexus
     end
 
     def add_spec( spec, source, type )
-p type
       case type.downcase.to_sym
       when :latest
         do_add_spec( spec, source )
@@ -37,16 +36,24 @@ p type
 
     def delete_spec( spec, source )
       specs = load_specs( source )
-      specs.delete [ spec.name, spec.version, spec.platform ]
-      dump_specs( specs )
+      old_entry = [ spec.name, spec.version, spec.platform ]
+p source
+p specs
+      if specs.member? old_entry
+        specs.delete old_entry
+        dump_specs( specs )
+      end
     end 
 
     private
 
     def do_add_spec( spec, source )
       specs = load_specs( source )
-      specs << [ spec.name, spec.version, spec.platform ]
-      dump_specs( specs )
+      new_entry = [ spec.name, spec.version, spec.platform ]
+      unless specs.member? new_entry
+        specs << new_entry
+        dump_specs( specs )
+      end
     end 
 
     def load_specs( source )
