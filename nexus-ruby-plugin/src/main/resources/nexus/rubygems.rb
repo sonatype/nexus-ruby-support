@@ -16,11 +16,28 @@ module Nexus
     end
 
     def spec_get( gemfile )
-      Gem::Format.from_file_by_path( gemfile ).spec
+      case gemfile
+      when String
+        Gem::Format.from_file_by_path( gemfile ).spec
+      else
+        Gem::Format.from_io( StringIO.new( read_binary( gemfile ) ) ).spec
+      end
     end
 
     def empty_specs
       dump_specs( [] )
+    end
+
+    def merge_specs( source, sources )
+      result = if source
+                 load_specs( source )
+               else
+                 []
+               end
+      sources.each do |s|
+        result += load_specs( s )
+      end
+      dump_specs( result )
     end
 
     def add_spec( spec, source, type )
@@ -37,8 +54,6 @@ module Nexus
     def delete_spec( spec, source )
       specs = load_specs( source )
       old_entry = [ spec.name, spec.version, spec.platform ]
-p source
-p specs
       if specs.member? old_entry
         specs.delete old_entry
         dump_specs( specs )
@@ -56,14 +71,28 @@ p specs
       end
     end 
 
+    def read_binary( io )
+      case io
+      when String
+        Gem.read_binary( io )
+      else
+        result = []
+        while ( ( b = io.read ) != -1 ) do
+          result << b
+        end
+        result.pack 'C*'
+      end
+    ensure
+      io.close unless io.is_a? String
+    end
+
     def load_specs( source )
-      specs = Marshal.load Gem.read_binary( source )
-      specs.uniq!
-      specs.sort!
-      specs
+      Marshal.load read_binary( source )
     end
 
     def dump_specs( specs )
+      specs.uniq!
+      specs.sort!
       Marshal.dump( compact_specs( specs ) ).bytes.to_a
     end
 

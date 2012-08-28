@@ -1,6 +1,7 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +21,7 @@ public class JRubyRubyGatewayTest
 {
     
     private NexusScriptingContainer scriptingContainer;
-    private JRubyRubyGateway gateway;
+    private RubyGateway gateway;
     private IRubyObject check;
     
     @Before
@@ -37,7 +38,7 @@ public class JRubyRubyGatewayTest
     {
         String gemPath = "src/test/repo/gems/n/nexus-0.1.0.gem";
         
-        InputStream is = gateway.createGemspecRz( gemPath );
+        InputStream is = gateway.createGemspecRz( new FileInputStream( gemPath ) );
         int c = is.read();
         String gemspecPath = "target/nexus-0.1.0.gemspec.rz";
         FileOutputStream out = new FileOutputStream( gemspecPath );
@@ -77,10 +78,10 @@ public class JRubyRubyGatewayTest
         File target = new File( "target/test_specs" );
         File gem = new File( "src/test/repo/gems/n/nexus-0.1.0.gem" );
         
-        Object spec = gateway.spec( gem );
+        Object spec = gateway.spec( new FileInputStream( gem ) );
         
         // add released gem
-        InputStream is = gateway.addSpec( spec, empty, SpecsIndexType.RELEASE );
+        InputStream is = gateway.addSpec( spec, new FileInputStream( empty ), SpecsIndexType.RELEASE );
         
         dumpStream(is, target);
         
@@ -91,7 +92,7 @@ public class JRubyRubyGatewayTest
         assertEquals( "specsfile size", 1, size );
     
         // delete gem
-        is = gateway.deleteSpec( spec, target );
+        is = gateway.deleteSpec( spec, new FileInputStream( target ) );
     
         dumpStream(is, target);
     
@@ -103,12 +104,12 @@ public class JRubyRubyGatewayTest
         assertEquals( "specsfile size", 0, size );
         
         // try adding released gem as prereleased
-        is = gateway.addSpec( spec, empty, SpecsIndexType.PRERELEASE );
+        is = gateway.addSpec( spec, new FileInputStream( empty ), SpecsIndexType.PRERELEASE );
 
         assertNull( "no change", is );
 
         // adding to latest
-        is = gateway.addSpec( spec, empty, SpecsIndexType.LATEST );
+        is = gateway.addSpec( spec, new FileInputStream( empty ), SpecsIndexType.LATEST );
         
         dumpStream(is, target);
         
@@ -126,10 +127,10 @@ public class JRubyRubyGatewayTest
         File target = new File( "target/test_specs" );
         File gem = new File( "src/test/repo/gems/n/nexus-0.1.0.pre.gem" );
         
-        Object spec = gateway.spec( gem );
+        Object spec = gateway.spec( new FileInputStream( gem ) );
         
         // add prereleased gem
-        InputStream is = gateway.addSpec( spec, empty, SpecsIndexType.PRERELEASE );
+        InputStream is = gateway.addSpec( spec, new FileInputStream( empty ), SpecsIndexType.PRERELEASE );
         
         dumpStream(is, target);
         
@@ -140,7 +141,7 @@ public class JRubyRubyGatewayTest
         assertEquals( "specsfile size", 1, size );
     
         // delete gem
-        is = gateway.deleteSpec( spec, target );
+        is = gateway.deleteSpec( spec, new FileInputStream( target ) );
     
         dumpStream(is, target);
     
@@ -152,12 +153,12 @@ public class JRubyRubyGatewayTest
         assertEquals( "specsfile size", 0, size );
         
         // try adding prereleased gem as released
-        is = gateway.addSpec( spec, empty, SpecsIndexType.RELEASE );
+        is = gateway.addSpec( spec, new FileInputStream( empty ), SpecsIndexType.RELEASE );
 
         assertNull( "no change", is );
 
         // adding to latest
-        is = gateway.addSpec( spec, empty, SpecsIndexType.LATEST );
+        is = gateway.addSpec( spec, new FileInputStream( empty ), SpecsIndexType.LATEST );
         
         dumpStream(is, target);
         

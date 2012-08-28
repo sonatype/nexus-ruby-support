@@ -1,22 +1,23 @@
 package org.sonatype.nexus.plugins.ruby;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
-/**
- * This component is the central "ruby interaction" point, and is meant to focus all "ruby related" calls to make it
- * easy to swap out and use proper stuff instead. What we have now is POC nexus-ruby-tools, and gemGenerateIndexes is
- * not implemented. The "proper" stuff should use JRuby and invoke the proper Gem:: classes doing the actual work.
- *
- * @author cstamas
- */
-public interface RubyGateway
-{
+import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 
-    /**
-     * Invokes "gem generate_index --directory=${basedir}". Should do essentially the same as the CLI command written above but descend into subdirectories as well.
-     *
-     * @param basedir
-     * @param if true, update happens, otherwise full reindex
-     */
-    void gemGenerateIndexes( File basedir, boolean update );
+public interface RubyGateway {
+
+    InputStream createGemspecRz( InputStream pathToGem ) throws IOException;
+
+    InputStream emptyIndex();
+
+    Object spec( InputStream gem );
+
+    InputStream addSpec( Object spec, InputStream specsDump, SpecsIndexType type );
+
+    InputStream deleteSpec( Object spec, InputStream specsDump );
+
+    InputStream mergeSpecs( InputStream specs, List<InputStream> streams );
+
 }
