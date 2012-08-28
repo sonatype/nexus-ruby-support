@@ -144,16 +144,16 @@ public class DefaultRubyIndexer
 
         try
         {
-            rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
-                    .getBaseDir( repository, new ResourceStoreRequest( "/" ) ), update );
+     //       rubyGateway.gemGenerateIndexes( ( (DefaultFSLocalRepositoryStorage) repository.getLocalStorage() )
+       //             .getBaseDir( repository, new ResourceStoreRequest( "/" ) ), update );
 
             repository.getNotFoundCache().purge();
         }
-        catch ( LocalStorageException e )
-        {
-            DefaultRubyIndexer.this.getLogger().warn(
-                "Could not generate RubyGems index! Index may be stale, and change is not reflected!", e );
-        }
+//        catch ( LocalStorageException e )
+//        {
+//            DefaultRubyIndexer.this.getLogger().warn(
+//                "Could not generate RubyGems index! Index may be stale, and change is not reflected!", e );
+//        }
         finally
         {
             if ( fromUser )
