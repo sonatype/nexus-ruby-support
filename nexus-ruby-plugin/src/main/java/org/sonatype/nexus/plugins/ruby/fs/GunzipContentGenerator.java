@@ -3,8 +3,8 @@ package org.sonatype.nexus.plugins.ruby.fs;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.zip.GZIPOutputStream;
+import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.util.IOUtil;
@@ -15,10 +15,10 @@ import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 
-@Component( role = ContentGenerator.class, hint = GzipContentGenerator.ID )
-public class GzipContentGenerator implements ContentGenerator {
+@Component( role = ContentGenerator.class, hint = GunzipContentGenerator.ID )
+public class GunzipContentGenerator implements ContentGenerator {
 
-    public static final String ID = "GzipContentGenerator";
+    public static final String ID = "GunzipContentGenerator";
     
     @Override
     public String getGeneratorId() {
@@ -30,15 +30,15 @@ public class GzipContentGenerator implements ContentGenerator {
             StorageFileItem item) throws ItemNotFoundException {
         System.out.println( "gzipper" + item);
         try {
-            ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
-            OutputStream out = new GZIPOutputStream( gzipped );
-            IOUtil.copy( item.getInputStream(), out );
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            InputStream in = new GZIPInputStream( item.getInputStream() );
+            IOUtil.copy( in, out );
             out.close();
 //            ((DefaultStorageFileItem) item).setModified( item.getModified() );
 //            ((DefaultStorageFileItem) item).setCreated( item.getCreated() );
-            item.setLength( gzipped.toByteArray().length );
+            item.setLength( out.toByteArray().length );
 
-            return new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ), "application/x-gzip" );
+            return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), "application/x-gzip" );
         } catch (IOException e) {
             throw new ItemNotFoundException(item.getResourceStoreRequest(), e);
         }

@@ -1,12 +1,16 @@
 package org.sonatype.nexus.plugins.ruby.fs;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.sonatype.nexus.mime.MimeSupport;
+import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
@@ -17,9 +21,6 @@ import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
-import org.sonatype.nexus.proxy.repository.GroupRepository;
-import org.sonatype.nexus.proxy.repository.HostedRepository;
-import org.sonatype.nexus.proxy.repository.ProxyRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
@@ -31,9 +32,6 @@ import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
 @Component( role = LocalRepositoryStorage.class, hint = DefaultFSLocalRepositoryStorage.PROVIDER_STRING )
 public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorage implements RubyLocalRepositoryStorage
 {
-    
-    private final RubygemsFacade groupingFacade = new GroupingRubygemsFacade();
-    private final RubygemsFacade hostedFacade = new HostedRubygemsFacade();
 
     @Inject
     public RubyFSLocalRepositoryStorage(Wastebasket wastebasket,
@@ -41,24 +39,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     {
         super( wastebasket, linkPersister, mimeSupport, fsPeer );
     }
-    
-    private RubygemsFacade facade(RubyRepository repository)
-    {
-        if (repository instanceof GroupRepository )
-        {
-            return groupingFacade;
-        }
-        if ( repository instanceof ProxyRepository )
-        {
-            return null;
-        }
-        if ( repository instanceof HostedRepository )
-        {
-            return hostedFacade;
-        }
-        return null;
-    }
-    
+        
     private ResourceStoreRequest fixPath(ResourceStoreRequest request)
     {
         // put the gems into subdirectory with first-letter of the gems name
@@ -109,13 +90,15 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             ResourceStoreRequest request) throws ItemNotFoundException,
             LocalStorageException 
     {
+        System.out.println( repository );
+        System.out.println( request );
         RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
         if ( rubyRepository != null ) 
         {
             SpecsIndexType type = SpecsIndexType.fromFilename( request.getRequestPath() );
             if ( type != null )
             {
-                return (AbstractStorageItem) facade( rubyRepository ).retrieveSpecsIndex( rubyRepository, this, type, 
+                return (AbstractStorageItem) rubyRepository.getRubygemsFacade().retrieveSpecsIndex( this, type, 
                     request.getRequestPath().endsWith( ".gz" ) );
             }
         }
@@ -123,7 +106,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     }
 
     @Override
-    public void storeItem(Repository repository, StorageItem item)
+    public void storeItem( Repository repository, StorageItem item )
             throws UnsupportedStorageOperationException, LocalStorageException
     {
         RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
@@ -137,9 +120,11 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 super.storeItem( repository, item );
 
                 // add it to the index files
-                File gem = getFileFromBase(rubyRepository, item.getResourceStoreRequest());
-                ((StorageFileItem) item).setContentLocator(new FileContentLocator(gem, "application/x-rubygems"));
-                facade( rubyRepository ).addGem( rubyRepository, this, gem );
+                File gem = getFileFromBase( rubyRepository, item.getResourceStoreRequest() );
+                FileContentLocator locator = new FileContentLocator( gem, "application/x-rubygems" );
+                ((StorageFileItem) item).setContentLocator( locator );
+                
+                rubyRepository.getRubygemsFacade().addGem( this, (StorageFileItem) item );
                 
                 return;
             }
@@ -159,9 +144,16 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             {
             
                 // first remove the gem from the index files
-                StorageItem item = retrieveItem( rubyRepository, fixPath( request ) );
-                File gem = getFileFromBase(rubyRepository, item.getResourceStoreRequest());
-                facade( rubyRepository ).removeGem( rubyRepository, this, gem );
+                StorageFileItem item = (StorageFileItem) retrieveItem( rubyRepository, fixPath( request ) );
+                try
+                {
+                
+                    rubyRepository.getRubygemsFacade().removeGem( this, item );
+                
+                }
+                catch (IOException e) {
+                    throw new LocalStorageException( "gem-file can not be found.", e );
+                }
   
             }
             else
@@ -203,5 +195,39 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 true, true,
                 new PreparedContentLocator( content , "application/x-marshal-ruby" ) );
         storeItem( repository,  item );
+    }
+
+    public void storeSpecsIndeces( RubyGroupRepository rubyRepository, SpecsIndexType type, List<StorageItem> specsItems)
+            throws UnsupportedStorageOperationException, LocalStorageException  {
+        StorageFileItem localSpecsItem = null;
+        System.err.println("store " + specsItems);
+        try
+        {
+            localSpecsItem = retrieveSpecsIndex( rubyRepository, type, false );
+        }
+        catch ( ItemNotFoundException e )
+        {
+            // Ignored. there are situations like after creating such a repo
+        }
+        if ( localSpecsItem != null )
+        {
+            for ( Iterator<StorageItem> iter = specsItems.iterator(); iter.hasNext(); )
+            {                
+                if ( iter.next().getModified() > localSpecsItem.getModified() )
+                {
+                   // iter.remove();
+                }
+            }
+        }
+        if ( !specsItems.isEmpty() )
+        {
+            try
+            {
+                rubyRepository.getRubygemsFacade().mergeSpecsIndex( this, type, localSpecsItem, specsItems );
+            }
+            catch ( IOException e ) {
+                throw new LocalStorageException( e );
+            }
+        }
     }
 }

@@ -32,17 +32,14 @@ import org.mockito.Mockito;
 import org.sonatype.nexus.mime.MimeRulesSource;
 import org.sonatype.nexus.mime.MimeSupport;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
-import org.sonatype.nexus.proxy.AccessDeniedException;
-import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.attributes.AttributesHandler;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
+import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
-import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
 import org.sonatype.nexus.test.PlexusTestCaseSupport;
 
@@ -50,7 +47,6 @@ import org.sonatype.nexus.test.PlexusTestCaseSupport;
  */
 public class RubyFSLocalRepositoryStorageTest extends PlexusTestCaseSupport
 {
-  //  private NexusScriptingContainer scriptingContainer;
     private File repoLocation;
     private Wastebasket wastebasket;
     private LinkPersister linkPersister;
@@ -62,7 +58,6 @@ public class RubyFSLocalRepositoryStorageTest extends PlexusTestCaseSupport
     @Before
     public void setUp()
     {
-    //    scriptingContainer = new NexusScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
         repoLocation  = new File( getBasedir(), "src/test/repo/" );
 
         // Mocks
@@ -326,8 +321,7 @@ public class RubyFSLocalRepositoryStorageTest extends PlexusTestCaseSupport
     }
 
     private void useSpecsIndex(String name, SpecsIndexType type)
-            throws ItemNotFoundException, IllegalOperationException,
-            StorageException, AccessDeniedException {
+            throws Exception {
         FileContentLocator locator = new FileContentLocator( new File( repoLocation, name ), "text/specs" );
         StorageFileItem i = createStorageItem(locator, type.filepath() );
         when( repository.retrieveItem( refEq( new ResourceStoreRequest( type.filepath() ), new String[]{} ) ) )

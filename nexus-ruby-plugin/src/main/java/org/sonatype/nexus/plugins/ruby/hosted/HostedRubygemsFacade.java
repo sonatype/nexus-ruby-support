@@ -1,47 +1,37 @@
-package org.sonatype.nexus.plugins.ruby.fs;
+package org.sonatype.nexus.plugins.ruby.hosted;
 
-import java.io.File;
 import java.io.InputStream;
 
-import org.sonatype.nexus.plugins.ruby.JRubyRubyGateway;
+import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
+import org.sonatype.nexus.plugins.ruby.fs.AbstractRubygemsFacade;
+import org.sonatype.nexus.plugins.ruby.fs.GzipContentGenerator;
+import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
+import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
-import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 
-public class HostedRubygemsFacade implements RubygemsFacade {
-    
-    private final JRubyRubyGateway gateway = new JRubyRubyGateway();
-        
-    private File getFile( StorageFileItem file )
+public class HostedRubygemsFacade extends AbstractRubygemsFacade
+{
+
+    public HostedRubygemsFacade( RubyGateway gateway, RubyRepository repository )
     {
-        if ( file.getContentLocator() instanceof FileContentLocator )
-        {
-            return ((FileContentLocator) file.getContentLocator()).getFile();
-        }
-        else
-        {
-            System.err.println(file.getContentLocator().getClass());
-            return null;
-        }
+        super( gateway, repository );
     }
-    
-    /* (non-Javadoc)
-     * @see org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade#addGem(org.sonatype.nexus.plugins.ruby.RubyRepository, org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage, java.io.File)
-     */
+
     @Override
-    public void addGem( RubyRepository repository, RubyLocalRepositoryStorage storage, File gem ) 
+    public void addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem ) 
             throws UnsupportedStorageOperationException, LocalStorageException
     {
         try
         {
-            Object spec = gateway.spec( gem );
+            Object spec = gateway.spec( toInputStream( gem ) );
             for ( SpecsIndexType type : SpecsIndexType.values() )
             {
                 StorageFileItem specsIndex = retrieveSpecsIndex( repository, storage, type );
-                InputStream newSpecsIndex = gateway.addSpec( spec, getFile( specsIndex ), type );
+                InputStream newSpecsIndex = gateway.addSpec( spec, toInputStream( specsIndex ), type );
                 if ( newSpecsIndex != null )
                 {
                     storage.storeSpecsIndex(repository, type, newSpecsIndex);
@@ -54,24 +44,22 @@ public class HostedRubygemsFacade implements RubygemsFacade {
         }
     }
     
-    /* (non-Javadoc)
-     * @see org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade#removeGem(org.sonatype.nexus.plugins.ruby.RubyRepository, org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage, java.io.File)
-     */
     @Override
-    public void removeGem( RubyRepository repository, RubyLocalRepositoryStorage storage, File gem )
+    public void removeGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )
             throws UnsupportedStorageOperationException, LocalStorageException
     {
         try
         {
-            Object spec = gateway.spec( gem );
+            Object spec = gateway.spec( toInputStream( gem ) );
             for ( SpecsIndexType type : SpecsIndexType.values() )
             {
                 // assume specs-index exists since gem-file does
                 StorageFileItem specsIndex = storage.retrieveSpecsIndex( repository, type, false );
-                InputStream newSpecsIndex = gateway.deleteSpec( spec, getFile( specsIndex ) );
+                InputStream newSpecsIndex = gateway.deleteSpec( spec, toInputStream( specsIndex ) );
+                
                 if ( newSpecsIndex != null )
                 {
-                    storage.storeSpecsIndex(repository, type, newSpecsIndex);
+                    storage.storeSpecsIndex( repository, type, newSpecsIndex );
                 }
             }
         }
@@ -81,7 +69,7 @@ public class HostedRubygemsFacade implements RubygemsFacade {
         }
     }
 
-    private void createEmptySpecs( RubyRepository repository, RubyLocalRepositoryStorage storage, SpecsIndexType type ) 
+    private void createEmptySpecs( RubyLocalRepositoryStorage storage, SpecsIndexType type ) 
             throws LocalStorageException
     {
         try
@@ -97,11 +85,8 @@ public class HostedRubygemsFacade implements RubygemsFacade {
         }
     }
     
-    /* (non-Javadoc)
-     * @see org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade#retrieveSpecsIndex(org.sonatype.nexus.plugins.ruby.RubyRepository, org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage, org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType, boolean)
-     */
     @Override
-    public StorageFileItem retrieveSpecsIndex( RubyRepository repository, RubyLocalRepositoryStorage storage, 
+    public StorageFileItem retrieveSpecsIndex( RubyLocalRepositoryStorage storage, 
             SpecsIndexType type, boolean gzipped ) 
             throws ItemNotFoundException, LocalStorageException
     {
@@ -127,10 +112,10 @@ public class HostedRubygemsFacade implements RubygemsFacade {
         catch ( ItemNotFoundException e )
         {
             // create an empty index
-            createEmptySpecs( repository, storage, type );
+            createEmptySpecs( storage, type );
                 
             // now return the new empty index
             return storage.retrieveSpecsIndex( repository, type, false );
         }
-    }   
+    }
 }

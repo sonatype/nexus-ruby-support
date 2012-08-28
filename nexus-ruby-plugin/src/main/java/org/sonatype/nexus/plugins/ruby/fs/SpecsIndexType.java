@@ -20,7 +20,7 @@ public enum SpecsIndexType {
         return "/" + filename();
     }
     
-    static SpecsIndexType fromFilename( String name )
+    public static SpecsIndexType fromFilename( String name )
     {
         try
         {
