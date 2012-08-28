@@ -18,40 +18,11 @@
   <description>Nexus Ruby Plugin</description>
 
   <properties>
-    <jruby.plugins.version>0.29.0</jruby.plugins.version>
-    <gem.includeOpenSSL>false</gem.includeOpenSSL>
     <!-- Set the Nexus version here, against which you build the plugin -->
     <nexus-version>2.1.1</nexus-version>   
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>rubygems-releases</id>
-      <url>http://rubygems-proxy.torquebox.org/releases/</url>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>rubygems-releases</id>
-      <url>http://rubygems-proxy.torquebox.org/releases/</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <dependencies>
-
-    <dependency>
-      <groupId>de.saumya.mojo</groupId>
-      <artifactId>ruby-tools</artifactId>
-      <version>${jruby.plugins.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.codehaus.plexus</groupId>
-          <artifactId>plexus-container-default</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
 
     <dependency>
       <groupId>org.jruby</groupId>
@@ -84,14 +55,6 @@
       <version>4.4</version>
       <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>rubygems</groupId>
-      <artifactId>builder</artifactId>
-      <version>2.1.2</version>
-      <type>gem</type>
-    </dependency>
-
     <!-- #ITSet BEGINS -->
     <!-- Nexus IT setup (dependencies below are needed if you have extensive ITs and you want to use Nexus Environment) -->
     <!-- There are plugins connected to this dependency, see below! -->
@@ -125,13 +88,6 @@
     <resources>
       <resource>
 	<directory>${project.basedir}/src/main/resources</directory>
-      </resource>
-      <resource>
-	<directory>${project.build.directory}/rubygems</directory>
-	<includes>
-	  <include>gems/builder*/**</include>
-	  <include>specifications/builder*</include>
-	</includes>
       </resource>
     </resources>
     <plugins>
@@ -188,45 +144,6 @@
           <argLine>-Xmx512m</argLine>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>de.saumya.mojo</groupId>
-        <artifactId>rspec-maven-plugin</artifactId>
-        <version>${jruby.plugins.version}</version>
-        <configuration>
-          <specSourceDirectory>src/test/spec</specSourceDirectory>
-          <jrubySwitches>--1.8</jrubySwitches>
-          <use19and18>false</use19and18>
-          <skip>true</skip>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>rubygems</groupId>
-            <artifactId>rspec</artifactId>
-            <version>2.11.0</version>
-            <type>gem</type>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>		
-      <plugin>
-	<groupId>de.saumya.mojo</groupId>
-	<artifactId>gem-maven-plugin</artifactId>
-	<version>${jruby.plugins.version}</version>
-	<executions>
-	  <execution>
-	    <goals>
-	      <goal>initialize</goal>
-	    </goals>
-	  </execution>
-	</executions>
-      </plugin>
-
 
       <!-- #ITSet BEGINS -->
       <!-- Nexus IT setup (dependencies below are needed if you have extensive ITs and you want to use Nexus Environment) -->
@@ -298,23 +215,6 @@
                       <goal>
                         generate-test-metadata
                       </goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>de.saumya.mojo</groupId>
-                    <artifactId>
-                      gem-maven-plugin
-                    </artifactId>
-                    <versionRange>
-                      [0.26.0,)
-                    </versionRange>
-                    <goals>
-                      <goal>initialize</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>
