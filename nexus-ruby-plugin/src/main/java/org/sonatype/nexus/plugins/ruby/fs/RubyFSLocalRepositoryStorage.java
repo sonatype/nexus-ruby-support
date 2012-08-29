@@ -3,6 +3,9 @@ package org.sonatype.nexus.plugins.ruby.fs;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,6 +19,7 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
+import org.sonatype.nexus.proxy.item.DefaultStorageCollectionItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
@@ -47,31 +51,105 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         return request;
     }
 
+    
+    @Override
+    public Collection<StorageItem> listItems(Repository repository,
+            ResourceStoreRequest request) throws ItemNotFoundException,
+            LocalStorageException {
+        final RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
+        if ( rubyRepository != null ) 
+        {
+            if ( request.getRequestPath().equals( "/" ) ) 
+            {
+        
+                Collection<StorageItem> result = new ArrayList<StorageItem>( 8 );
+                          
+                result.add( newCollection( repository, "/gems" ) );
+                result.add( newCollection( repository, "/quick" ) );
+                result.add( newItem( repository, "/latest_specs.4.8" ) );
+                result.add( newItem( repository, "/latest_specs.4.8.gz" ) );
+                result.add( newItem( repository, "/prerelease_specs.4.8" ) );
+                result.add( newItem( repository, "/prerelease_specs.4.8.gz" ) );
+                result.add( newItem( repository, "/specs.4.8" ) );
+                result.add( newItem( repository, "/specs.4.8.gz" ) );
+                        
+                return result;
+                
+            }
+            if ( request.getRequestPath().equals( "/quick/" ) ) 
+            {
+                
+                return Arrays.asList( newCollection( repository, "/Marshal.4.8" ) );
+                
+            }
+        }
+        return super.listItems(repository, request);
+    }
+
+    private StorageItem newItem( Repository repository, String name )
+    {
+        return new DefaultStorageFileItem( repository, new ResourceStoreRequest( name ), true, false, null );
+    }
+
+    private StorageItem newCollection( Repository repository, String name )
+    {
+        return new DefaultStorageCollectionItem( repository, new ResourceStoreRequest( name ), true, false );
+    }
+
     @Override
     protected AbstractStorageItem retrieveItemFromFile(Repository repository,
             ResourceStoreRequest request, File target)
             throws ItemNotFoundException, LocalStorageException
     {
-        RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
+        final RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
         if ( rubyRepository != null ) 
         {
-            if ( request.getRequestPath().equals( "/gems/" ) ) 
+            if ( request.getRequestPath().matches( "^\\/quick\\/?$" ) ) 
             {
-                return new RubygemsStorageCollectionItem( repository, request, target );
+        
+                return new QuickMarshalStorageCollectionItem( rubyRepository, 
+                        request, 
+                        Arrays.asList(newCollection( repository, "/Marshal.4.8" ) ) );
+
+            }
+
+            if ( request.getRequestPath().matches( "^\\/quick\\/Marshal.4.8\\/?$" ) ) 
+            {
+                
+                File gems = new File( target.getAbsolutePath().replaceFirst( "\\/quick\\/Marshal.4.8\\/?$", "/gems/" ) );
+                System.out.println( gems + " " + target );
+                final Collection<StorageItem> result = new ArrayList<StorageItem>();
+                for( File entry: gems.listFiles() )
+                {
+                    if ( entry.isDirectory() )
+                    {
+                        result.add( newCollection( repository, entry.getName() ) );
+                    }
+                    else if ( entry.isFile() )
+                    {
+                        result.add( newItem( repository, entry.getName() + "spec.rz" ) );
+                    }
+                }
+
+                return new QuickMarshalStorageCollectionItem( rubyRepository, request, result );
             }
             if ( request.getRequestPath().matches("/gems/[^/]+\\.gem$") )
             {
+                
                 fixPath(request);
                 // each gems lives in sub-directory with starts with the first letter of the gem-name
                 target = new GemFile(target);
+                
             }
             else if ( request.getRequestPath().matches("^/quick/.+\\.gemspec.rz$") )
             {
+                
                 DefaultStorageFileItem file = new DefaultStorageFileItem( repository, request, true, true,
                         new FileContentLocator( target, "application/x-ruby-marshal" ) );
                 //repository.getAttributesHandler().fetchAttributes( file );
                 file.setContentGeneratorId( GemspecRzContentGenerator.ID );
-                return file;                    
+                return file;
+                
             }
         }
 
@@ -86,20 +164,26 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     }
 
     @Override
-    public AbstractStorageItem retrieveItem(Repository repository,
-            ResourceStoreRequest request) throws ItemNotFoundException,
+    public AbstractStorageItem retrieveItem( Repository repository,
+            ResourceStoreRequest request ) throws ItemNotFoundException,
             LocalStorageException 
     {
-        System.out.println( repository );
-        System.out.println( request );
         RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
         if ( rubyRepository != null ) 
         {
             SpecsIndexType type = SpecsIndexType.fromFilename( request.getRequestPath() );
             if ( type != null )
             {
-                return (AbstractStorageItem) rubyRepository.getRubygemsFacade().retrieveSpecsIndex( this, type, 
-                    request.getRequestPath().endsWith( ".gz" ) );
+                if ( request.getRequestPath().startsWith( "/.nexus/" ) )
+                {      
+                    return super.retrieveItem( repository, request );
+                }
+                else
+                {
+                    return (AbstractStorageItem) rubyRepository.getRubygemsFacade().retrieveSpecsIndex( this, type, 
+                            request.getRequestPath().endsWith( ".gz" ) );
+                    
+                }
             }
         }
         return super.retrieveItem( repository, fixPath( request ) );
@@ -200,7 +284,6 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     public void storeSpecsIndeces( RubyGroupRepository rubyRepository, SpecsIndexType type, List<StorageItem> specsItems)
             throws UnsupportedStorageOperationException, LocalStorageException  {
         StorageFileItem localSpecsItem = null;
-        System.err.println("store " + specsItems);
         try
         {
             localSpecsItem = retrieveSpecsIndex( rubyRepository, type, false );
