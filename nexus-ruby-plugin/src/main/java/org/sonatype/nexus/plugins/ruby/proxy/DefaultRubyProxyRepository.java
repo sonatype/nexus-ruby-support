@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.mockito.internal.matchers.EndsWith;
 import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
@@ -15,6 +16,9 @@ import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyProxyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
+import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
+import org.sonatype.nexus.proxy.AccessDeniedException;
+import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -130,6 +134,23 @@ public class DefaultRubyProxyRepository
         }
     }
 
+    @Override
+    public StorageItem retrieveItem(
+            ResourceStoreRequest request ) throws AccessDeniedException, IllegalOperationException, 
+            ItemNotFoundException, RemoteAccessException , StorageException {
+        SpecsIndexType type = SpecsIndexType.fromFilename( request.getRequestPath() );
+
+        if ( type != null && !request.getRequestPath().endsWith( ".gz" ) )
+        {
+            // make sure the gzipped version of the file is downloaded and cached
+            ResourceStoreRequest req = new ResourceStoreRequest( request );
+            req.setRequestPath( request.getRequestPath() + ".gz" );
+            super.retrieveItem( new ResourceStoreRequest( request.getRequestPath() + ".gz" ) );
+        }   
+
+        return super.retrieveItem( request );
+    }
+    
     @Override
     public void synchronizeWithRemoteRepository()
     {
