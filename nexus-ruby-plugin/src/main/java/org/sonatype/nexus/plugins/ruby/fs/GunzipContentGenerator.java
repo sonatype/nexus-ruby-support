@@ -38,10 +38,9 @@ public class GunzipContentGenerator implements ContentGenerator {
 //            ((DefaultStorageFileItem) item).setCreated( item.getCreated() );
             item.setLength( out.toByteArray().length );
 
-            return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), "application/x-gzip" );
+            return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), "application/x-marshal-ruby" );
         } catch (IOException e) {
             throw new ItemNotFoundException(item.getResourceStoreRequest(), e);
         }
     }
-
 }
