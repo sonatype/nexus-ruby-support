@@ -29,14 +29,14 @@ public enum SpecsIndexType {
             //    prerelease_specs.4.8  prerelease_specs.4.8.gz
             //    specs.4.8  specs.4.8.gz
             name = name.replace( ".gz", "" )
-                    .replace( "specs.4.8", "" )
-                    .replace( "_", "" )
                     .replace( "/", "" ) // no leading slash
                     .toUpperCase();
-            if ( "".equals( name ) ) // 'specs' case
+            if ( "SPECS.4.8".equals( name ) ) // 'specs' case
             {
                 return RELEASE;
             }
+            name = name.replace( "SPECS.4.8", "" )
+                    .replace( "_", "" );
             return valueOf( name );
         }
         catch( IllegalArgumentException e )
