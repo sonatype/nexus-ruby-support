@@ -126,7 +126,7 @@ public class DefaultRubyProxyRepository
         else
         {
             ResourceStoreRequest req = new ResourceStoreRequest( request );
-            req.setRequestPath( request.getRequestPath().replaceFirst( "^/gems/[^/]/", "/gems/" ) );
+            req.setRequestPath( request.getRequestPath().replaceFirst( "/gems/[^/]/", "/gems/" ) );
             AbstractStorageItem item = super.doRetrieveRemoteItem( req );
             item.setResourceStoreRequest(request);
             item.setPath(request.getRequestPath());
@@ -143,9 +143,13 @@ public class DefaultRubyProxyRepository
         if ( type != null && !request.getRequestPath().endsWith( ".gz" ) )
         {
             // make sure the gzipped version of the file is downloaded and cached
-            ResourceStoreRequest req = new ResourceStoreRequest( request );
-            req.setRequestPath( request.getRequestPath() + ".gz" );
             super.retrieveItem( new ResourceStoreRequest( request.getRequestPath() + ".gz" ) );
+        }   
+        if ( request.getRequestPath().matches( "^/quick/Marshal\\.4\\.8/.+\\.gemspec\\.rz$" ) )
+        {
+            // make sure the gzipped version of the file is downloaded and cached
+            String path = request.getRequestPath().replace( "spec.rz", "" ).replace( "/quick/Marshal.4.8/", "/gems/");
+            super.retrieveItem( new ResourceStoreRequest( path ) );
         }   
 
         return super.retrieveItem( request );
