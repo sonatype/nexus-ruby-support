@@ -5,12 +5,6 @@ end
 module Nexus
   class Rubygems
 
-    def initialize( basedir )
-      @quick = File.join( basedir, 
-                          'quick',  
-                          "Marshal.#{Gem.marshal_version}" )
-    end
-
     def create_quick( gemfile )
       Gem.deflate( Marshal.dump( spec_get( gemfile ) ) ).bytes.to_a
     end

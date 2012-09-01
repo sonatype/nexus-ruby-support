@@ -51,7 +51,7 @@ public class JRubyRubyGateway
     
     private Object rubygems()
     {
-        return scriptingContainer.callMethod(nexusRubygemsClass, "new", ".", Object.class);
+        return scriptingContainer.callMethod(nexusRubygemsClass, "new", Object.class);
     }
     
     @Override
