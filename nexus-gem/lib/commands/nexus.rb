@@ -1,11 +1,11 @@
 class Gem::Commands::NexusCommand < Gem::AbstractCommand
 
   def description
-    'Push a gem up to Nexus server'
+    'Upload a gem up to Nexus server'
   end
 
   def arguments
-    "GEM       built gem to push up"
+    "GEM       built gem to upload"
   end
 
   def usage
@@ -13,7 +13,7 @@ class Gem::Commands::NexusCommand < Gem::AbstractCommand
   end
 
   def initialize
-    super 'push', description
+    super 'nexus', description
     add_proxy_option
   end
 
@@ -23,7 +23,7 @@ class Gem::Commands::NexusCommand < Gem::AbstractCommand
   end
 
   def send_gem
-    say "Pushing gem to Nexus..."
+    say "Uploading gem to Nexus..."
 
     path = get_one_gem_name
 

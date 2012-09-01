@@ -34,7 +34,7 @@ class AbstractCommandTest < CommandTest
       end
 
       should "return a proxy as a URI if set" do
-        stub_config(:http_proxy => 'http://proxy.example.org:9192')
+        stub_config( :http_proxy => 'http://proxy.example.org:9192' )
         assert_equal 'proxy.example.org', @command.http_proxy.host
         assert_equal 9192, @command.http_proxy.port
       end
@@ -58,6 +58,15 @@ class AbstractCommandTest < CommandTest
       assert_received(@command) { |command| command.sign_in }
     end
 
+    should "sign in if --clear-config is set" do
+      stub(@command).sign_in
+      stub(@command).configure_url
+      stub(@command).options { {:nexus_clear => true} }
+      @command.setup
+      assert_received(@command) { |command| command.sign_in }
+      assert_received(@command) { |command| command.configure_url }
+    end
+
     should "not sign in nor configure if authorizaton and url exists" do
       stub(@command).authorization { "1234567890" }
       stub(@command).url { "abc" }
@@ -70,7 +79,7 @@ class AbstractCommandTest < CommandTest
 
     context "using the proxy" do
       setup do
-        stub_config(:http_proxy => "http://gilbert:sekret@proxy.example.org:8081")
+        stub_config( :http_proxy => "http://gilbert:sekret@proxy.example.org:8081" )
         @proxy_class = Object.new
         mock(Net::HTTP).Proxy('proxy.example.org', 8081, 'gilbert', 'sekret') { @proxy_class }
         @command.use_proxy!

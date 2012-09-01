@@ -9,11 +9,22 @@ require 'base64'
 class Gem::AbstractCommand < Gem::Command
   include Gem::LocalRemoteOptions
 
+  def initialize( name, summary )
+    super
+   
+    add_option('-c', '--clear-config',
+               'Clears the nexus config') do |value, options|
+      options[:nexus_clear] = value
+    end
+  end
+
   def url
-    url = config[:url]
-    # no leadng slash
-    url.sub!(/\/$/,'') if url
-    url
+    unless options[:nexus_clear]
+      url = config[:url]
+      # no leadng slash
+      url.sub!(/\/$/,'') if url
+      url
+    end
   end
 
   def configure_url
@@ -52,7 +63,7 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def authorization
-    config[:authorization]
+    config[:authorization] unless options[:nexus_clear]
   end
 
   def store_config(key, value)
@@ -69,9 +80,9 @@ class Gem::AbstractCommand < Gem::Command
     require 'net/http'
     require 'net/https'
 
-    url = URI.parse("#{self.url}/#{path}")
+    url = URI.parse( "#{self.url}/#{path}" )
 
-    http = proxy_class.new(url.host, url.port)
+    http = proxy_class.new( url.host, url.port )
 
     if url.scheme == 'https'
       http.use_ssl = true
@@ -91,7 +102,7 @@ class Gem::AbstractCommand < Gem::Command
         raise ArgumentError
       end
 
-    request = request_method.new(url.path)
+    request = request_method.new( url.path )
     request.add_field "User-Agent", "Nexus Gem Command"
 
     yield request if block_given?

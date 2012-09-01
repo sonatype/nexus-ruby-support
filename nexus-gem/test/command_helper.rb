@@ -28,9 +28,9 @@ class CommandTest < ActiveSupport::TestCase
 end
 
 def stub_config(config)
-#  file = Gem::ConfigFile.new({})
-#xs  config.each { |key, value| file[key] = value }
-#  stub(:config).configuration { config }
+  file = Gem::ConfigFile.new({})
+  config.each { |key, value| file[key] = value }
+  stub(Gem).configuration { config }
 end
 
 def assert_said(command, what)

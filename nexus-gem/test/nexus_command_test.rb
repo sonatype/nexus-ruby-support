@@ -39,7 +39,7 @@ class NexusCommandTest < CommandTest
       end
 
       should "say push was successful" do
-        assert_received(@command) { |command| command.say("Pushing gem to Nexus...") }
+        assert_received(@command) { |command| command.say("Uploading gem to Nexus...") }
         # due to webmock there is no status message
         assert_received(@command) { |command| command.say("") }
       end
