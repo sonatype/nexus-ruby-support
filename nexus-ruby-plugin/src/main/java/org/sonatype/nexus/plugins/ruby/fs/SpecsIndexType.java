@@ -3,7 +3,7 @@ package org.sonatype.nexus.plugins.ruby.fs;
 public enum SpecsIndexType { 
     RELEASE, PRERELEASE, LATEST;
     
-    String filename()
+    public String filename()
     {
         StringBuffer name = new StringBuffer();
         if ( this != RELEASE )

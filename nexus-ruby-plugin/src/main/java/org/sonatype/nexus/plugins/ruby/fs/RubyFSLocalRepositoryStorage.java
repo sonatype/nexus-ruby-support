@@ -203,12 +203,15 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
 
                 super.storeItem( repository, item );
 
-                // add it to the index files
-                File gem = getFileFromBase( rubyRepository, item.getResourceStoreRequest() );
-                FileContentLocator locator = new FileContentLocator( gem, "application/x-rubygems" );
-                ((StorageFileItem) item).setContentLocator( locator );
+                if ( !item.getPath().startsWith("/.nexus" ) )
+                {
+                    // add it to the index files
+                    File gem = getFileFromBase( rubyRepository, item.getResourceStoreRequest() );
+                    FileContentLocator locator = new FileContentLocator( gem, "application/x-rubygems" );
+                    ((StorageFileItem) item).setContentLocator( locator );
                 
-                rubyRepository.getRubygemsFacade().addGem( this, (StorageFileItem) item );
+                    rubyRepository.getRubygemsFacade().addGem( this, (StorageFileItem) item );
+                }
                 
                 return;
             }
