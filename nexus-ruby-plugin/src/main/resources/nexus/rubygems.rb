@@ -1,7 +1,6 @@
-if RUBY_VERSION =~ /^1.8/
-  require 'rubygems'
-  require 'rubygems/format'
-end
+require 'rubygems'
+require 'rubygems/format'
+
 module Nexus
   class Rubygems
 

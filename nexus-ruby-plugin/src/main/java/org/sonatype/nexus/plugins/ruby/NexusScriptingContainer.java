@@ -2,7 +2,6 @@ package org.sonatype.nexus.plugins.ruby;
 
 import java.io.FileNotFoundException;
 
-import org.jruby.CompatVersion;
 import org.jruby.embed.EmbedEvalUnit;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
@@ -13,7 +12,6 @@ public class NexusScriptingContainer extends ScriptingContainer {
     public NexusScriptingContainer(LocalContextScope scope, LocalVariableBehavior behavior){
         super( scope, behavior );
         setClassLoader( thisClassLoader() );
-        setCompatVersion( CompatVersion.RUBY1_8 );
         // The JRuby and all the scripts is in this plugin's CL!
         getProvider().getRubyInstanceConfig().setJRubyHome(
             thisClassLoader().getResource( "META-INF/jruby.home" ).toString().replaceFirst(
