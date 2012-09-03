@@ -3,7 +3,7 @@ Nexus Ruby Support
 
 This repository contains components and Nexus plugins to enhance Nexus with Ruby support. Stay tuned!
 
-This plugin is powered with JRuby.
+This plugin is powered by JRuby.
 
 
 Build
@@ -17,7 +17,7 @@ install the nexus gem for you local ruby environment with
 
     gem install -l nexus-gem/target/nexus-*.gem
 
-install the nexus plugin nto your nexus server with
+install the nexus plugin into your nexus server with
 
     unzip -d $NEXUS_HOME/nexus/WEB-INF/plugin-repository/ -o nexus-ruby-plugin/target/nexus-ruby-plugin-*-SNAPSHOT-bundle.zip
 
