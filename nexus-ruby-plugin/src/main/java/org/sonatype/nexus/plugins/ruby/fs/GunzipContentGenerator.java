@@ -28,7 +28,6 @@ public class GunzipContentGenerator implements ContentGenerator {
     @Override
     public ContentLocator generateContent(Repository repository, String path,
             StorageFileItem item) throws ItemNotFoundException {
-        System.out.println( "gzipper" + item);
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             InputStream in = new GZIPInputStream( item.getInputStream() );
