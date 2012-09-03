@@ -10,7 +10,7 @@ import org.sonatype.nexus.integrationtests.AbstractNexusIntegrationTest;
 import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 import org.testng.annotations.Test;
 
-public class Nexus123DownloadITSkipped extends AbstractNexusIntegrationTest{
+public class Nexus123DownloadIT extends AbstractNexusIntegrationTest{
 
     protected File downloadSpecsIndex(String repoId, SpecsIndexType type, boolean gzipped, String targetDirectory ) throws IOException{
         String baseUrl = AbstractNexusIntegrationTest.nexusBaseUrl + REPOSITORY_RELATIVE_URL + repoId
