@@ -17,6 +17,18 @@ public class ProxyRubygemsFacade extends AbstractRubygemsFacade {
     }
 
     @Override
+    public void addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem ) 
+    {
+        //nothing to do
+    }
+    
+    @Override
+    public void removeGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )
+    {
+        //nothing to do
+    }
+    
+    @Override
     public StorageFileItem retrieveSpecsIndex( RubyLocalRepositoryStorage storage, 
             SpecsIndexType type, boolean gzipped ) 
             throws ItemNotFoundException, LocalStorageException
