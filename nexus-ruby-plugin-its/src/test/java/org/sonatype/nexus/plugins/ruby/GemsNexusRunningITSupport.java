@@ -26,7 +26,10 @@ public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
     @Parameters
     public static Collection<String[]> data() {
       String[][] data = new String[][] { { "gemsproxy" },
-             { "gemshost" }, { "gemshostgroup" }, { "gemsproxygroup" }, { "gemsgroup" } };
+             { "gemshost" }, 
+             { "gemshostgroup" }, 
+             { "gemsproxygroup" }, 
+             { "gemsgroup" } };
       return Arrays.asList(data);
     }
     
