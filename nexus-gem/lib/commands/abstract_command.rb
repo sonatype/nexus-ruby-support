@@ -12,9 +12,13 @@ class Gem::AbstractCommand < Gem::Command
   def initialize( name, summary )
     super
    
-    add_option('-c', '--clear-config',
+    add_option('-c', '--nexus-clear',
                'Clears the nexus config') do |value, options|
       options[:nexus_clear] = value
+    end
+    add_option('--nexus-config FILE',
+               'File location of nexus config') do |value, options|
+      options[:nexus_config] = File.expand_path( value )
     end
   end
 
@@ -55,7 +59,7 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def config_path
-    File.join(Gem.user_home, '.gem', 'nexus')
+    options[:nexus_config] || File.join( Gem.user_home, '.gem', 'nexus' )
   end
 
   def config
