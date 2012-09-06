@@ -19,9 +19,17 @@
     <url>http://github.com/cstamas/nexus-ruby-support</url>
   </scm>
 
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <!-- Set the Nexus version here, against which you build the plugin -->
+    <nexus.version>2.1.1</nexus.version>
+  </properties>
+
   <modules>
     <module>nexus-ruby-plugin</module>
     <module>nexus-gem</module>
+    <module>nexus-ruby-plugin-its</module>
   </modules>
 
 </project>
