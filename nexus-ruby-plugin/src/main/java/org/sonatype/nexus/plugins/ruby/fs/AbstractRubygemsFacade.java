@@ -54,4 +54,13 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
             throw new LocalStorageException( "error getting stream to: " + item, e );
         }
     }
+
+    protected void storeSpecsIndex(RubyRepository repository, RubyLocalRepositoryStorage storage, SpecsIndexType type,
+            InputStream newSpecsIndex) throws LocalStorageException,
+            UnsupportedStorageOperationException {
+                if ( newSpecsIndex != null )
+                {
+                    storage.storeSpecsIndex( repository, type, newSpecsIndex );
+                }
+            }
 }

@@ -29,7 +29,7 @@ public class NexusScriptingContainer extends ScriptingContainer {
     }
 
     private ClassLoader thisClassLoader() {
-        return JRubyRubyGateway.class.getClassLoader();
+        return NexusScriptingContainer.class.getClassLoader();
     }
     
 }

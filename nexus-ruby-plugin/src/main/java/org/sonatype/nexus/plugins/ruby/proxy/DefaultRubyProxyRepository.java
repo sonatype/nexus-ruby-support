@@ -143,13 +143,18 @@ public class DefaultRubyProxyRepository
         {
             // make sure the gzipped version of the file is downloaded and cached
             super.retrieveItem( new ResourceStoreRequest( request.getRequestPath() + ".gz" ) );
-        }   
+        }             
+        getLogger().warn("--------------" + request);
+
         if ( request.getRequestPath().matches( "^/quick/Marshal\\.4\\.8/.+\\.gemspec\\.rz$" ) )
         {
             // make sure the gzipped version of the file is downloaded and cached
             String path = request.getRequestPath().replace( "spec.rz", "" ).replace( "/quick/Marshal.4.8/", "/gems/");
+            getLogger().warn("--------------" + path);
             super.retrieveItem( new ResourceStoreRequest( path ) );
-        }   
+            request.setRequestLocalOnly( true );
+            getLogger().warn("--------------" + request);
+       }   
 
         return super.retrieveItem( request );
     }

@@ -117,20 +117,22 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             {
                 
                 File gems = new File( target.getAbsolutePath().replaceFirst( "\\/quick\\/Marshal.4.8\\/?$", "/gems/" ) );
-                System.out.println( gems + " " + target );
                 final Collection<StorageItem> result = new ArrayList<StorageItem>();
-                for( File entry: gems.listFiles() )
+                if (gems.exists() )
                 {
-                    if ( entry.isDirectory() )
+                    for( File entry: gems.listFiles() )
                     {
-                        result.add( newCollection( repository, entry.getName() ) );
-                    }
-                    else if ( entry.isFile() )
-                    {
-                        result.add( newItem( repository, entry.getName() + "spec.rz" ) );
+                        if ( entry.isDirectory() )
+                        {
+                            result.add( newCollection( repository, entry.getName() ) );
+                        }
+                        else if ( entry.isFile() )
+                        {
+                            result.add( newItem( repository, entry.getName() + "spec.rz" ) );
+                        }
                     }
                 }
-
+                
                 return new QuickMarshalStorageCollectionItem( rubyRepository, request, result );
             }
             if ( request.getRequestPath().matches("/gems/[^/]+\\.gem$") )
@@ -230,11 +232,11 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             if ( GemFile.isGem( request.getRequestPath() ) )
             {
             
-                // first remove the gem from the index files
                 StorageFileItem item = (StorageFileItem) retrieveItem( rubyRepository, fixPath( request ) );
                 try
                 {
                 
+                    // remove the gem from the index files
                     rubyRepository.getRubygemsFacade().removeGem( this, item );
                 
                 }

@@ -32,10 +32,7 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
             {
                 StorageFileItem specsIndex = retrieveSpecsIndex( repository, storage, type );
                 InputStream newSpecsIndex = gateway.addSpec( spec, toInputStream( specsIndex ), type );
-                if ( newSpecsIndex != null )
-                {
-                    storage.storeSpecsIndex(repository, type, newSpecsIndex);
-                }
+                storeSpecsIndex( repository, storage, type, newSpecsIndex );
             }
         }
         catch (ItemNotFoundException e)
@@ -56,11 +53,7 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
                 // assume specs-index exists since gem-file does
                 StorageFileItem specsIndex = storage.retrieveSpecsIndex( repository, type, false );
                 InputStream newSpecsIndex = gateway.deleteSpec( spec, toInputStream( specsIndex ) );
-                
-                if ( newSpecsIndex != null )
-                {
-                    storage.storeSpecsIndex( repository, type, newSpecsIndex );
-                }
+                storeSpecsIndex( repository, storage, type, newSpecsIndex );
             }
         }
         catch (ItemNotFoundException e)
