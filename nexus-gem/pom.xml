@@ -18,6 +18,7 @@
   <packaging>gem</packaging>
   <description><![CDATA[Adds a command to RubyGems for uploading gems to a nexus server. Adds a 'nbundle' command which allows to configure mirror urls for rubygems.org and/or other rubygems repositories.]]></description>
   <url>http://sonatype.org/nexus</url>
+
   <developers>
     <developer>
       <id>nick_at_quaran_dot_to</id>
@@ -30,6 +31,7 @@
       <email>m.kristian@web.de</email>
     </developer>
   </developers>
+
   <licenses>
     <license>
       <name>MIT-LICENSE</name>
@@ -37,6 +39,7 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
   <repositories>
     <repository>
       <id>rubygems-releases</id>
@@ -49,28 +52,69 @@
       <url>http://rubygems-proxy.torquebox.org/releases</url>
     </pluginRepository>
   </pluginRepositories>
+
   <dependencies>
+
     <dependency>
       <groupId>rubygems</groupId>
       <artifactId>always_verify_ssl_certificates</artifactId>
-      <version>[0.3.0,0.3.99999]</version>
+      <version>0.3.0</version>
       <type>gem</type>
       <scope>compile</scope>
     </dependency>
+
     <dependency>
       <groupId>rubygems</groupId>
       <artifactId>rake</artifactId>
-      <version>[0.9.2.2,0.9.2.2.0.0.0.0.1)</version>
+      <version>0.9.2.2</version>
       <type>gem</type>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
+
   <properties>
     <jruby.plugins.version>0.29.0</jruby.plugins.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
   <build>
+
     <plugins>
+
+      <plugin>
+        <groupId>de.saumya.mojo</groupId>
+        <artifactId>rake-maven-plugin</artifactId>
+        <version>${jruby.plugins.version}</version>
+	<executions>
+	  <execution>
+	    <phase>test</phase>
+	    <goals>
+	      <goal>rake</goal>
+	    </goals>
+	  </execution>
+	</executions>
+        <dependencies>
+          <dependency>
+            <groupId>rubygems</groupId>
+            <artifactId>shoulda</artifactId>
+            <version>3.1.1</version>
+            <type>gem</type>
+          </dependency>
+          <dependency>
+            <groupId>rubygems</groupId>
+            <artifactId>webmock</artifactId>
+            <version>1.8.9</version>
+            <type>gem</type>
+          </dependency>
+          <dependency>
+            <groupId>rubygems</groupId>
+            <artifactId>rr</artifactId>
+            <version>1.0.4</version>
+            <type>gem</type>
+          </dependency>
+	</dependencies>   
+      </plugin>
+
       <plugin>
         <groupId>de.saumya.mojo</groupId>
         <artifactId>gem-maven-plugin</artifactId>
@@ -89,6 +133,7 @@
         </dependencies>
       </plugin>
     </plugins>
+
     <pluginManagement>
       <plugins>
         <plugin>
@@ -130,54 +175,7 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
   </build>
-  <profiles>
-    <profile>
-      <id>executable</id>
-      <dependencies>
-        <dependency>
-          <groupId>de.saumya.mojo</groupId>
-          <artifactId>gem-assembly-descriptors</artifactId>
-          <version>${jruby.plugins.version}</version>
-          <type>jar</type>
-          <scope>runtime</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>2.2-beta-5</version>
-            <configuration>
-              <archive>
-                <manifest>
-                  <mainClass>de.saumya.mojo.assembly.Main</mainClass>
-                </manifest>
-              </archive>
-              <descriptorRefs>
-                <descriptorRef>jar-with-dependencies-and-gems</descriptorRef>
-              </descriptorRefs>
-            </configuration>
-            <executions>
-              <execution>
-                <id>in_phase_package</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>assembly</goal>
-                </goals>
-              </execution>
-            </executions>
-            <dependencies>
-              <dependency>
-                <groupId>de.saumya.mojo</groupId>
-                <artifactId>gem-assembly-descriptors</artifactId>
-                <version>${jruby.plugins.version}</version>
-                <type>jar</type>
-              </dependency>
-            </dependencies>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+
 </project>
