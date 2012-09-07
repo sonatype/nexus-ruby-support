@@ -26,7 +26,6 @@ import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
-import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -43,8 +42,9 @@ public class DefaultRubyProxyRepository
 
     @Requirement( role = DefaultRubyProxyRepositoryConfigurator.class )
     private DefaultRubyProxyRepositoryConfigurator defaultRubyProxyRepositoryConfigurator;
-
-    private final RubygemsGateway gateway = new DefaultRubygemsGateway();
+    
+    @Requirement
+    private RubygemsGateway gateway;
 
     private RubygemsFacade facade;
     

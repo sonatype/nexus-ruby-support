@@ -5,13 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.inject.Singleton;
-
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.runtime.builtin.IRubyObject;
 
-@Singleton
 public class DefaultRubygemsGateway
     implements RubygemsGateway
 {

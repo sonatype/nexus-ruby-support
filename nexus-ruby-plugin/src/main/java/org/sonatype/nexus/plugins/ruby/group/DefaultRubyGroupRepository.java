@@ -28,7 +28,6 @@ import org.sonatype.nexus.proxy.repository.GroupItemNotFoundException;
 import org.sonatype.nexus.proxy.repository.GroupRepository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
-import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -44,8 +43,9 @@ public class DefaultRubyGroupRepository
 
     @Requirement
     private DefaultRubyGroupRepositoryConfigurator defaultRubyGroupRepositoryConfigurator;
-
-    private final RubygemsGateway gateway = new DefaultRubygemsGateway();
+    
+    @Requirement
+    private RubygemsGateway gateway;
         
     private RubygemsFacade facade;
     

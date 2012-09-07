@@ -2,6 +2,8 @@ package org.sonatype.nexus.plugins.ruby.hosted;
 
 import java.util.Arrays;
 
+import javax.inject.Inject;
+
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
@@ -18,7 +20,6 @@ import org.sonatype.nexus.proxy.repository.AbstractRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
-import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 
 @Component( role = Repository.class, hint = DefaultRubyHostedRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Hosted" )
@@ -34,7 +35,8 @@ public class DefaultRubyHostedRepository
     @Requirement
     private DefaultRubyHostedRepositoryConfigurator defaultRubyHostedRepositoryConfigurator;
 
-    private final RubygemsGateway gateway = new DefaultRubygemsGateway();
+    @Inject
+    private RubygemsGateway gateway;
         
     private RubygemsFacade facade;
     
