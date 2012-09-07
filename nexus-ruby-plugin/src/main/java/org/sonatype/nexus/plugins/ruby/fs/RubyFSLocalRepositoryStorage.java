@@ -32,14 +32,15 @@ import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
 import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 
 @Component( role = LocalRepositoryStorage.class, hint = DefaultFSLocalRepositoryStorage.PROVIDER_STRING )
 public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorage implements RubyLocalRepositoryStorage
 {
 
     @Inject
-    public RubyFSLocalRepositoryStorage(Wastebasket wastebasket,
-            LinkPersister linkPersister, MimeSupport mimeSupport, FSPeer fsPeer)
+    public RubyFSLocalRepositoryStorage( Wastebasket wastebasket,
+            LinkPersister linkPersister, MimeSupport mimeSupport, FSPeer fsPeer )
     {
         super( wastebasket, linkPersister, mimeSupport, fsPeer );
     }

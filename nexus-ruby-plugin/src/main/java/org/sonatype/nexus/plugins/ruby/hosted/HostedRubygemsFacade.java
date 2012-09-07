@@ -2,21 +2,21 @@ package org.sonatype.nexus.plugins.ruby.hosted;
 
 import java.io.InputStream;
 
-import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.AbstractRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.fs.GzipContentGenerator;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
-import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 
 public class HostedRubygemsFacade extends AbstractRubygemsFacade
 {
 
-    public HostedRubygemsFacade( RubyGateway gateway, RubyRepository repository )
+    public HostedRubygemsFacade( RubygemsGateway gateway, RubyRepository repository )
     {
         super( gateway, repository );
     }

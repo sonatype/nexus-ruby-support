@@ -1,4 +1,4 @@
-package org.sonatype.nexus.plugins.ruby.fs;
+package org.sonatype.nexus.ruby;
 
 public enum SpecsIndexType { 
     RELEASE, PRERELEASE, LATEST;
@@ -15,7 +15,7 @@ public enum SpecsIndexType {
         return name.append( "specs.4.8" ).toString();
     }
 
-    String filepath()
+    public String filepath()
     {
         return "/" + filename();
     }

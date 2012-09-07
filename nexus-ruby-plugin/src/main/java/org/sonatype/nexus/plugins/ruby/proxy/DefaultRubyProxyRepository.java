@@ -9,13 +9,10 @@ import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
-import org.sonatype.nexus.plugins.ruby.JRubyRubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
-import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyProxyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
-import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
@@ -29,6 +26,9 @@ import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
+import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
+import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 
 @Component( role = Repository.class, hint = DefaultRubyProxyRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Proxy" )
 public class DefaultRubyProxyRepository
@@ -44,7 +44,7 @@ public class DefaultRubyProxyRepository
     @Requirement( role = DefaultRubyProxyRepositoryConfigurator.class )
     private DefaultRubyProxyRepositoryConfigurator defaultRubyProxyRepositoryConfigurator;
 
-    private final RubyGateway gateway = new JRubyRubyGateway();
+    private final RubygemsGateway gateway = new DefaultRubygemsGateway();
 
     private RubygemsFacade facade;
     

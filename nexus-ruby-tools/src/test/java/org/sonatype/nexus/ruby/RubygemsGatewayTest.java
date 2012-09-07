@@ -1,4 +1,4 @@
-package org.sonatype.nexus.plugins.ruby;
+package org.sonatype.nexus.ruby;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -6,29 +6,28 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.codehaus.plexus.PlexusTestCase;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.io.InputStreamFacade;
+import junit.framework.TestCase;
+
+import org.apache.commons.io.IOUtils;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 
-public class JRubyRubyGatewayTest
-    extends PlexusTestCase
+public class RubygemsGatewayTest
+    extends TestCase
 {
     
-    private NexusScriptingContainer scriptingContainer;
-    private RubyGateway gateway;
+    private JRubyScriptingContainer scriptingContainer;
+    private RubygemsGateway gateway;
     private IRubyObject check;
     
     @Before
     public void setUp() throws Exception
     {
-        gateway = new JRubyRubyGateway();
-        scriptingContainer = new NexusScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
+        gateway = new DefaultRubygemsGateway();
+        scriptingContainer = new JRubyScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
         check = scriptingContainer.parseFile( "nexus/check.rb" ).run();
     }
     
@@ -36,7 +35,7 @@ public class JRubyRubyGatewayTest
     public void testGenerateGemspecRz()
         throws Exception
     {
-        String gemPath = "src/test/repo/gems/n/nexus-0.1.0.gem";
+        String gemPath = "src/test/resources/gems/n/nexus-0.1.0.gem";
         
         InputStream is = gateway.createGemspecRz( new FileInputStream( gemPath ) );
         int c = is.read();
@@ -74,9 +73,9 @@ public class JRubyRubyGatewayTest
     @Test
     public void testAddDeleteReleasedGemToSpecs() throws Exception
     {
-        File empty = new File( "src/test/repo/empty_specs" );
+        File empty = new File( "src/test/resources/empty_specs" );
         File target = new File( "target/test_specs" );
-        File gem = new File( "src/test/repo/gems/n/nexus-0.1.0.gem" );
+        File gem = new File( "src/test/resources/gems/n/nexus-0.1.0.gem" );
         
         Object spec = gateway.spec( new FileInputStream( gem ) );
         
@@ -123,9 +122,9 @@ public class JRubyRubyGatewayTest
     @Test
     public void testAddDeletePrereleasedGemToSpecs() throws Exception
     {
-        File empty = new File( "src/test/repo/empty_specs" );
+        File empty = new File( "src/test/resources/empty_specs" );
         File target = new File( "target/test_specs" );
-        File gem = new File( "src/test/repo/gems/n/nexus-0.1.0.pre.gem" );
+        File gem = new File( "src/test/resources/gems/n/nexus-0.1.0.pre.gem" );
         
         Object spec = gateway.spec( new FileInputStream( gem ) );
         
@@ -170,13 +169,23 @@ public class JRubyRubyGatewayTest
     }
 
     private void dumpStream(final InputStream is, File target)
-            throws IOException {
-        FileUtils.copyStreamToFile(new InputStreamFacade() {
-            
-            @Override
-            public InputStream getInputStream() throws IOException {
-                return is;
+            throws IOException
+    {
+        try
+        {
+            FileOutputStream output = new FileOutputStream( target );
+            try
+            {
+                IOUtils.copy( is, output );
             }
-        }, target );
+            finally
+            {
+                IOUtils.closeQuietly( output );
+            }
+        }
+        finally
+        {
+            IOUtils.closeQuietly( is );
+        }
     }
 }

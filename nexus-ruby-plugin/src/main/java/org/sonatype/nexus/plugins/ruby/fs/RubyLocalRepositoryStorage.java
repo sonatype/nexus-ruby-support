@@ -11,6 +11,7 @@ import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 
 public interface RubyLocalRepositoryStorage extends LocalRepositoryStorage
 {

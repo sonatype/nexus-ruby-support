@@ -9,9 +9,7 @@ import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
-import org.sonatype.nexus.plugins.ruby.JRubyRubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
-import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyHostedRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
@@ -20,6 +18,8 @@ import org.sonatype.nexus.proxy.repository.AbstractRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
+import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
+import org.sonatype.nexus.ruby.RubygemsGateway;
 
 @Component( role = Repository.class, hint = DefaultRubyHostedRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Hosted" )
 public class DefaultRubyHostedRepository
@@ -34,7 +34,7 @@ public class DefaultRubyHostedRepository
     @Requirement
     private DefaultRubyHostedRepositoryConfigurator defaultRubyHostedRepositoryConfigurator;
 
-    private final RubyGateway gateway = new JRubyRubyGateway();
+    private final RubygemsGateway gateway = new DefaultRubygemsGateway();
         
     private RubygemsFacade facade;
     

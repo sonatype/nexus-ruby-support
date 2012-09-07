@@ -17,6 +17,7 @@ import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
 import org.sonatype.nexus.client.core.subsystem.content.Content;
 import org.sonatype.nexus.client.core.subsystem.content.Location;
 import org.sonatype.nexus.client.rest.BaseUrl;
+import org.sonatype.nexus.ruby.GemRunner;
 import org.sonatype.nexus.testsuite.support.NexusRunningITSupport;
 import org.sonatype.sisu.filetasks.FileTaskBuilder;
 import org.sonatype.sisu.goodies.common.Time;

@@ -5,8 +5,6 @@ import java.io.InputStream;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.util.FileUtils;
-import org.sonatype.nexus.plugins.ruby.JRubyRubyGateway;
-import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
@@ -17,13 +15,15 @@ import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.repository.Repository;
+import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
+import org.sonatype.nexus.ruby.RubygemsGateway;
 
 @Component( role = ContentGenerator.class, hint = GemspecRzContentGenerator.ID )
 public class GemspecRzContentGenerator implements ContentGenerator {
     
     public static final String ID = "GemspecRzContentGenerator";
 
-    private final RubyGateway gateway = new JRubyRubyGateway();
+    private final RubygemsGateway gateway = new DefaultRubygemsGateway();
 
     @Override
     public String getGeneratorId()

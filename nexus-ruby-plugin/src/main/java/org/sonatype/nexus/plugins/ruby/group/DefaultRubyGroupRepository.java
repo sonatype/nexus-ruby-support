@@ -10,14 +10,11 @@ import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
-import org.sonatype.nexus.plugins.ruby.JRubyRubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
-import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
-import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
@@ -31,6 +28,9 @@ import org.sonatype.nexus.proxy.repository.GroupItemNotFoundException;
 import org.sonatype.nexus.proxy.repository.GroupRepository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
+import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 
 @Component( role = GroupRepository.class, hint = DefaultRubyGroupRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Group" )
 public class DefaultRubyGroupRepository
@@ -45,7 +45,7 @@ public class DefaultRubyGroupRepository
     @Requirement
     private DefaultRubyGroupRepositoryConfigurator defaultRubyGroupRepositoryConfigurator;
 
-    private final RubyGateway gateway = new JRubyRubyGateway();
+    private final RubygemsGateway gateway = new DefaultRubygemsGateway();
         
     private RubygemsFacade facade;
     

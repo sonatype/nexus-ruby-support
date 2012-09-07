@@ -42,6 +42,7 @@ import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.test.PlexusTestCaseSupport;
 
 /**
@@ -60,7 +61,7 @@ public class RubyFSLocalRepositoryStorageTest extends PlexusTestCaseSupport
     @Before
     public void setUp()
     {
-        repoLocation  = new File( getBasedir(), "src/test/repo/" );
+        repoLocation  = new File( getBasedir(), "src/test/resources/" );
 
         // Mocks
         wastebasket = mock( Wastebasket.class );

@@ -1,41 +1,28 @@
-package org.sonatype.nexus.plugins.ruby;
+package org.sonatype.nexus.ruby;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
-import org.codehaus.plexus.logging.Logger;
+import javax.inject.Singleton;
+
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.runtime.builtin.IRubyObject;
-import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 
-@Component( role = RubyGateway.class )
-public class JRubyRubyGateway
-    implements RubyGateway
+@Singleton
+public class DefaultRubygemsGateway
+    implements RubygemsGateway
 {
 
-    @Requirement
-    private Logger logger;
-
-  //  @Requirement
-    //ApplicationConfiguration configuration;
-
-    private NexusScriptingContainer scriptingContainer;
+    private JRubyScriptingContainer scriptingContainer;
 
     private final IRubyObject nexusRubygemsClass;
-
-    protected Logger getLogger()
-    {
-        return logger;
-    }
     
-    public JRubyRubyGateway()
+    public DefaultRubygemsGateway()
     {
-        scriptingContainer = new NexusScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
+        scriptingContainer = new JRubyScriptingContainer( LocalContextScope.THREADSAFE, LocalVariableBehavior.PERSISTENT );
 
         try
         {
@@ -51,7 +38,7 @@ public class JRubyRubyGateway
     
     private Object rubygems()
     {
-        return scriptingContainer.callMethod(nexusRubygemsClass, "new", Object.class);
+        return scriptingContainer.callMethod( nexusRubygemsClass, "new", Object.class );
     }
     
     @Override

@@ -4,19 +4,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 
 public abstract class AbstractRubygemsFacade implements RubygemsFacade {
 
-    protected final RubyGateway gateway;
+    protected final RubygemsGateway gateway;
     protected final RubyRepository repository;
     
-    public AbstractRubygemsFacade( RubyGateway gateway, RubyRepository repository )
+    public AbstractRubygemsFacade( RubygemsGateway gateway, RubyRepository repository )
     {
         this.gateway = gateway;
         this.repository = repository;

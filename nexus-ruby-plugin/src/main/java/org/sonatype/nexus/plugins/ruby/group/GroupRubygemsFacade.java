@@ -5,21 +5,21 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.sonatype.nexus.plugins.ruby.RubyGateway;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.AbstractRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.fs.GzipContentGenerator;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
-import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 
 public class GroupRubygemsFacade extends AbstractRubygemsFacade {
 
-    public GroupRubygemsFacade( RubyGateway gateway, RubyRepository repository )
+    public GroupRubygemsFacade( RubygemsGateway gateway, RubyRepository repository )
     {
         super( gateway, repository );
     }

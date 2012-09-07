@@ -1,12 +1,10 @@
-package org.sonatype.nexus.plugins.ruby;
+package org.sonatype.nexus.ruby;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.sonatype.nexus.plugins.ruby.fs.SpecsIndexType;
-
-public interface RubyGateway {
+public interface RubygemsGateway {
 
     InputStream createGemspecRz( InputStream pathToGem ) throws IOException;
 

@@ -13,6 +13,7 @@ import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.events.RepositoryRegistryEventRemove;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
+import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.plexus.appevents.ApplicationEventMulticaster;
 import org.sonatype.plexus.appevents.Event;
 import org.sonatype.plexus.appevents.EventListener;
@@ -33,7 +34,7 @@ public class DefaultRubyIndexer
     private ApplicationEventMulticaster applicationEventMulticaster;
 
     @Requirement
-    private RubyGateway rubyGateway;
+    private RubygemsGateway rubyGateway;
 
     /**
      * This is the amount of millis to wait before reindexing. If no content change occured during this period, reindex

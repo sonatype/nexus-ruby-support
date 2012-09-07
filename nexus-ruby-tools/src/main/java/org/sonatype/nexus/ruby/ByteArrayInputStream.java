@@ -1,4 +1,4 @@
-package org.sonatype.nexus.plugins.ruby;
+package org.sonatype.nexus.ruby;
 
 import java.io.IOException;
 import java.io.InputStream;

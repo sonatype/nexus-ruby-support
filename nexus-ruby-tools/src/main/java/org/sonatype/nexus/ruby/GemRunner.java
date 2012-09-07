@@ -1,4 +1,4 @@
-package org.sonatype.nexus.plugins.ruby;
+package org.sonatype.nexus.ruby;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,7 +12,7 @@ import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.runtime.builtin.IRubyObject;
 
-class GemRunner
+public class GemRunner
 {
 
     private final JRubyScriptingContainer ruby = new JRubyScriptingContainer(
@@ -26,7 +26,7 @@ class GemRunner
     
     private boolean listRemoteFirstRun = true;
     
-    GemRunner( File gemHome, String baseUrl )
+    public GemRunner( File gemHome, String baseUrl )
     {
         this.baseUrl = baseUrl;
         Map<String,String> env = new HashMap<String, String>();
@@ -45,7 +45,7 @@ class GemRunner
         }
     }
     
-    String install( String repoId, String... gems )
+    public String install( String repoId, String... gems )
     {
         List<String> args = new ArrayList<String>();
         args.add( "install" );
@@ -63,7 +63,7 @@ class GemRunner
         args.add( "--update-sources" );
     }
     
-    String install( File... gems )
+    public String install( File... gems )
     {
         List<String> args = new ArrayList<String>();
         args.add( "install" );
@@ -82,12 +82,12 @@ class GemRunner
         args.add( "--no-ri" );
     }
 
-    String list()
+    public String list()
     {
         return list( null );
     }
     
-    String list( String repoId )
+    public String list( String repoId )
     {
         List<String> args = new ArrayList<String>();
         args.add( "list" );
@@ -112,7 +112,7 @@ class GemRunner
         return ruby.callMethod( runner, "exec", args.toArray(), String.class );
     }
     
-    String nexus( File config, File gem )
+    public String nexus( File config, File gem )
     {
         List<String> args = new ArrayList<String>();
         args.add( "nexus" );
