@@ -49,13 +49,12 @@ class NexusCommandTest < CommandTest
         assert_requested(:post, @url,
                          :times => 1)
         assert_requested(:post, @url,
+                         :body => @gem_binary,
                          :headers => {
                            'Authorization' => 'key', 
                            'Content-Type' => 'application/octet-stream', 
-                           'User-Agent'=>'Nexus Gem Command'
+                           'User-Agent'=>'Ruby'
                          })
-        #assert_requested(:post, @url,
-        #                 :headers => {'Content-Length' => @gem_binary.size.to_s})
       end
     end
   end

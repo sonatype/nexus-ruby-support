@@ -107,7 +107,7 @@ class Gem::AbstractCommand < Gem::Command
       end
 
     request = request_method.new( url.path )
-    request.add_field "User-Agent", "Nexus Gem Command"
+    request.add_field "User-Agent", "Ruby" unless RUBY_VERSION =~ /^1.9/
 
     yield request if block_given?
     http.request(request)
