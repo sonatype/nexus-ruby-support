@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = 'nexus'
-  s.version = "0.2.0"
+  s.version = "0.2.1"
 
   s.authors = ["Nick Quaranto"]
   s.email = ['nick@quaran.to']
@@ -38,13 +38,9 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.summary = %q{Commands to interact with nexus server}
 
-  s.add_runtime_dependency('always_verify_ssl_certificates', '~> 0.3.0')
   s.add_development_dependency('rake', '0.9.2.2')
   s.add_development_dependency('shoulda', "~> 3.1.1")
   s.add_development_dependency('webmock', "~> 1.8.8")
   s.add_development_dependency('rr', ">= 0")
-
-  #s.add_runtime_dependency(%q<json_pure>, [">= 0"])
-  #s.add_development_dependency(%q<activesupport>, [">= 0"])
 end
 

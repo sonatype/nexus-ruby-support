@@ -56,7 +56,7 @@ public class GemRunner
         return ruby.callMethod( runner, "exec", args.toArray(), String.class );
     }
 
-    private void setSource(List<String> args, String repoId) {
+    private void setSource(List<String> args, String repoId ) {
         args.add( "--clear-sources" );
         args.add( "--source" );
         args.add( baseUrl + repoId + "/" );

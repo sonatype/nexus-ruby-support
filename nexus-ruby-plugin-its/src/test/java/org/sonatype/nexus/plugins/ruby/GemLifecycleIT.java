@@ -28,17 +28,16 @@ public class GemLifecycleIT extends GemsNexusRunningITSupport
         
         //nexus gem with its dependencies
         File nexusGem = artifactResolver().resolveFromDependencyManagement( "rubygems", "nexus", "gem", null, null, null );
-        File alwaysGem = testData().resolveFile( "always_verify_ssl_certificates-0.3.0.gem" );
         
         // no local gems
         //assertThat( numberOfLines( gemRunner().list() ), is( 0 ) );
         
         // install nexus gem
-        assertThat( lastLine( gemRunner().install( alwaysGem, nexusGem ) ), equalTo( "2 gems installed" ) );
+        assertThat( lastLine( gemRunner().install( nexusGem ) ), equalTo( "1 gem installed" ) );
 
         // no we have three local gems
         // the rake gems comes from JRuby
-        assertThat( numberOfLines( gemRunner().list() ), is( 3 ) );
+        assertThat( numberOfLines( gemRunner().list() ), is( 2 ) );
 
         // make sure our gem is not on the repository
         File gem = nexusGem;
