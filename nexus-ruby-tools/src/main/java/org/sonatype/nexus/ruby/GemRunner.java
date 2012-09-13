@@ -4,21 +4,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.jruby.embed.LocalContextScope;
-import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.runtime.builtin.IRubyObject;
 
 public class GemRunner
 {
 
-    private final JRubyScriptingContainer ruby = new JRubyScriptingContainer(
-            LocalContextScope.SINGLETON, 
-            LocalVariableBehavior.GLOBAL
-    );
+    private final JRubyScriptingContainer ruby;
     
     private final IRubyObject runner;
     
@@ -26,13 +19,10 @@ public class GemRunner
     
     private boolean listRemoteFirstRun = true;
     
-    public GemRunner( File gemHome, String baseUrl )
+    public GemRunner( JRubyScriptingContainer ruby, String baseUrl )
     {
+        this.ruby = ruby;
         this.baseUrl = baseUrl;
-        Map<String,String> env = new HashMap<String, String>();
-        env.put( "GEM_HOME", gemHome.getAbsolutePath() );
-        env.put( "GEM_PATH", gemHome.getAbsolutePath() );
-        ruby.setEnvironment( env );
         
         try
         {

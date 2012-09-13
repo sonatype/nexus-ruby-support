@@ -24,11 +24,6 @@ public class BundleRunner
             throw new RuntimeException( "error", e);
         }
     }
-
-//    public String addMirror( String originUrl, String repoId)
-//    {
-//        return ruby.callMethod( runner, "add_mirror", new String[]{ originUrl, baseUrl + repoId }, String.class );
-//    }
     
     public String install()
     {
