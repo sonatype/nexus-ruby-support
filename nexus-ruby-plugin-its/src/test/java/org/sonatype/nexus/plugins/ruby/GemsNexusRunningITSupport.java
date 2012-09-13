@@ -17,7 +17,9 @@ import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
 import org.sonatype.nexus.client.core.subsystem.content.Content;
 import org.sonatype.nexus.client.core.subsystem.content.Location;
 import org.sonatype.nexus.client.rest.BaseUrl;
+import org.sonatype.nexus.ruby.BundleRunner;
 import org.sonatype.nexus.ruby.GemRunner;
+import org.sonatype.nexus.ruby.JRubyScriptingContainer;
 import org.sonatype.nexus.testsuite.support.NexusRunningITSupport;
 import org.sonatype.sisu.filetasks.FileTaskBuilder;
 import org.sonatype.sisu.goodies.common.Time;
@@ -39,11 +41,15 @@ public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
     
     protected GemRunner gemRunner;
     
+    protected final JRubyScriptingContainer ruby;
     protected final String repoId;
+
+    private BundleRunner bundleRunner;
 
     public GemsNexusRunningITSupport( String nexusBundleCoordinates, String repoId ) {
         super( nexusBundleCoordinates );
         this.repoId = repoId;
+        this.ruby = new ITestJRubyScriptingContainer();
     }
 
     public GemsNexusRunningITSupport( String repoId ) {
@@ -58,23 +64,21 @@ public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
         return gemRunner;
     }
 
+    protected BundleRunner bundleRunner() {
+        if ( bundleRunner == null )
+        {
+            bundleRunner = createBundleRunner();
+        }
+        return bundleRunner;
+    }
+
     GemRunner createGemRunner() {
-        File gemHome = new File( nexus().getConfiguration().getTargetDirectory(), "rubygems" );
         BaseUrl base = client().getConnectionInfo().getBaseUrl();
-        return new GemRunner( gemHome,  base.toString() + "content/repositories/" );
+        return new GemRunner( ruby,  base.toString() + "content/repositories/" );
     }
-
-    protected String lastLine(String text) {
-        String[] lines = lines( text );
-        return lines[ lines.length - 1 ];
-    }
-
-    String[] lines(String text) {
-        return text.split( "\\n" );
-    }
-
-    protected int numberOfLines(String text) {
-        return lines( text ).length;
+    
+    BundleRunner createBundleRunner() {
+        return new BundleRunner( ruby );
     }
 
     protected File assertFileDownload(String name, Matcher<Boolean> matcher) {
