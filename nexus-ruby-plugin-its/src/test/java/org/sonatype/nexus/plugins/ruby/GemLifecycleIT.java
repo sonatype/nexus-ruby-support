@@ -4,6 +4,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.sonatype.nexus.ruby.TestUtils.lastLine;
+import static org.sonatype.nexus.ruby.TestUtils.numberOfLines;
 
 import java.io.File;
 import java.io.IOException;
