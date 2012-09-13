@@ -9,8 +9,6 @@ import java.io.InputStream;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.IOUtils;
-import org.jruby.embed.LocalContextScope;
-import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,16 +16,15 @@ import org.junit.Test;
 public class RubygemsGatewayTest
     extends TestCase
 {
-    
     private JRubyScriptingContainer scriptingContainer;
     private RubygemsGateway gateway;
     private IRubyObject check;
     
     @Before
     public void setUp() throws Exception
-    {
+    {       
+        scriptingContainer = new TestJRubyScriptingContainer();
         gateway = new DefaultRubygemsGateway();
-        scriptingContainer = new JRubyScriptingContainer( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
         check = scriptingContainer.parseFile( "nexus/check.rb" ).run();
     }
     
@@ -35,9 +32,9 @@ public class RubygemsGatewayTest
     public void testGenerateGemspecRz()
         throws Exception
     {
-        String gemPath = "src/test/resources/gems/n/nexus-0.1.0.gem";
+        String gem = "src/test/resources/gems/n/nexus-0.1.0.gem";
         
-        InputStream is = gateway.createGemspecRz( new FileInputStream( gemPath ) );
+        InputStream is = gateway.createGemspecRz( new FileInputStream( gem ) );
         int c = is.read();
         String gemspecPath = "target/nexus-0.1.0.gemspec.rz";
         FileOutputStream out = new FileOutputStream( gemspecPath );
@@ -51,7 +48,7 @@ public class RubygemsGatewayTest
 
         boolean equalSpecs = scriptingContainer.callMethod( check, 
                 "check_gemspec_rz",
-                new Object[] { gemPath, gemspecPath }, 
+                new Object[] { gem, gemspecPath }, 
                 Boolean.class );
         assertTrue( "spec from stream equal spec from gem", equalSpecs );
     }
