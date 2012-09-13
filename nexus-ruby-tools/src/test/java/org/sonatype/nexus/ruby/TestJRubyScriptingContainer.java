@@ -13,15 +13,15 @@ public class TestJRubyScriptingContainer extends JRubyScriptingContainer
         return env;
     }
     
-    TestJRubyScriptingContainer(){
+    public TestJRubyScriptingContainer(){
         super( env( "target/test-classes/rubygems", "target/test-classes/it/Gemfile") );
     }
     
-    TestJRubyScriptingContainer( String rubygems ){
+    public TestJRubyScriptingContainer( String rubygems ){
         super( env( rubygems ) );
     }
     
-    TestJRubyScriptingContainer( String rubygems, String bundleGemfile){
+    public TestJRubyScriptingContainer( String rubygems, String bundleGemfile){
         super( env( rubygems, bundleGemfile ) );
     }
 }
