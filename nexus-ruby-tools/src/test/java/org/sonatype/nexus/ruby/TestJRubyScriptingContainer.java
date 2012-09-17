@@ -8,8 +8,16 @@ public class TestJRubyScriptingContainer extends JRubyScriptingContainer
 
     protected static Map<String, String> env( String rubygems, String bundleGemfile )
     {
-        Map<String, String> env = JRubyScriptingContainer.env( rubygems );
+        Map<String, String> env = env( rubygems );
         env.put( "BUNDLE_GEMFILE", new File( bundleGemfile ).getAbsolutePath() );
+        return env;
+    }
+    
+    protected static Map<String, String> env( String rubygems )
+    {
+        Map<String, String> env = JRubyScriptingContainer.env( rubygems );
+        env.put( "PATH", "" ); // bundler needs a PATH ;)
+        env.put( "DEBUG", "true" );
         return env;
     }
     
