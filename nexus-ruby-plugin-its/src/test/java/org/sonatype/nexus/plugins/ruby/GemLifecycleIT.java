@@ -1,9 +1,10 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.sonatype.nexus.ruby.TestUtils.lastLine;
 import static org.sonatype.nexus.ruby.TestUtils.numberOfLines;
 
@@ -31,22 +32,19 @@ public class GemLifecycleIT extends GemsNexusRunningITSupport
         //nexus gem with its dependencies
         File nexusGem = artifactResolver().resolveFromDependencyManagement( "rubygems", "nexus", "gem", null, null, null );
         
-        // no local gems
-        //assertThat( numberOfLines( gemRunner().list() ), is( 0 ) );
-        
         // install nexus gem
         assertThat( lastLine( gemRunner().install( nexusGem ) ), equalTo( "1 gem installed" ) );
 
         // no we have three local gems
         // the rake gems comes from JRuby
-        assertThat( numberOfLines( gemRunner().list() ), is( 2 ) );
+        assertThat( numberOfLines( gemRunner().list() ), allOf( greaterThanOrEqualTo( 2 ), lessThanOrEqualTo( 3 ) ) );
 
         // make sure our gem is not on the repository
         File gem = nexusGem;
         assertFileDownload( "gems/" + gem.getName(), is( false ) );
         assertFileDownload( "quick/Marshal.4.8/" + gem.getName() + "spec.rz", is( false ) );
 
-        // upload gem to gemshost - repod is hardcoded into config-file
+        // upload gem to gemshost - repoId is hardcoded into config-file
         File config = testData().resolveFile( ".gem/nexus" );
         assertThat( lastLine( gemRunner().nexus( config, gem ) ), equalTo( "Created" ) );
         assertThat( lastLine( gemRunner().nexus( config, gem ) ), endsWith( "not allowed" ) );

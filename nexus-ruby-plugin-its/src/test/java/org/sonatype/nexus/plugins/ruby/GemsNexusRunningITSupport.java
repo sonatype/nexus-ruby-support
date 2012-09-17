@@ -28,20 +28,20 @@ public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
 
     @Parameters
     public static Collection<String[]> data() {
-      String[][] data = new String[][] { { "gemsproxy" },
-             { "gemshost" }, 
-             { "gemshostgroup" }, 
-             { "gemsproxygroup" }, 
+      String[][] data = new String[][] { { "gemshost" },
+             { "gemsproxy" },
+             { "gemshostgroup" },
+             { "gemsproxygroup" },
              { "gemsgroup" } };
       return Arrays.asList(data);
     }
     
     @Inject
-    private FileTaskBuilder overlays;
+    protected FileTaskBuilder overlays;
     
     protected GemRunner gemRunner;
     
-    protected final JRubyScriptingContainer ruby;
+    protected JRubyScriptingContainer ruby;
     protected final String repoId;
 
     private BundleRunner bundleRunner;
@@ -49,12 +49,24 @@ public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
     public GemsNexusRunningITSupport( String nexusBundleCoordinates, String repoId ) {
         super( nexusBundleCoordinates );
         this.repoId = repoId;
-        this.ruby = new ITestJRubyScriptingContainer();
     }
 
     public GemsNexusRunningITSupport( String repoId ) {
         this( null, repoId );
      }
+
+    private JRubyScriptingContainer ruby(){
+        if ( this.ruby == null )
+        {
+            this.ruby = createScriptingContainer();
+        }
+        return this.ruby;
+    }
+
+    protected ITestJRubyScriptingContainer createScriptingContainer()
+    {
+        return new ITestJRubyScriptingContainer();
+    }
 
     protected GemRunner gemRunner() {
         if ( gemRunner == null )
@@ -74,11 +86,11 @@ public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
 
     GemRunner createGemRunner() {
         BaseUrl base = client().getConnectionInfo().getBaseUrl();
-        return new GemRunner( ruby,  base.toString() + "content/repositories/" );
+        return new GemRunner( ruby(),  base.toString() + "content/repositories/" );
     }
     
     BundleRunner createBundleRunner() {
-        return new BundleRunner( ruby );
+        return new BundleRunner( ruby() );
     }
 
     protected File assertFileDownload(String name, Matcher<Boolean> matcher) {
@@ -100,7 +112,7 @@ public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
     }
 
     @Override
-    protected NexusBundleConfiguration configureNexus(final NexusBundleConfiguration configuration) {
+    protected NexusBundleConfiguration configureNexus( final NexusBundleConfiguration configuration ) {
         return configuration
             .addPlugins(
                 artifactResolver().resolvePluginFromDependencyManagement(
