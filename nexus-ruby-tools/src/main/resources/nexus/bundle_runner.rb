@@ -22,6 +22,8 @@ module Nexus
 
     def exec( *args )
 
+      ENV['PATH'] ||= '' # just make bundler has a PATH variable
+
       shell = Shell.new
 
       Bundler::CLI.start( args, :shell => shell )
@@ -29,10 +31,13 @@ module Nexus
       shell.stdout.string
 
     rescue SystemExit => e
-      raise err.string if e.exit_code != 0
+      raise shell.stderr.string if e.exit_code != 0
 
       shell.stdout.string
 
+    rescue Exception => e
+      trace = e.backtrace.join("\n\t")
+      raise "#{e.message}\n\t#{trace}"
     end
 
   end
