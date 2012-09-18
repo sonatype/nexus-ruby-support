@@ -24,15 +24,16 @@ import org.sonatype.nexus.testsuite.support.NexusRunningITSupport;
 import org.sonatype.sisu.filetasks.FileTaskBuilder;
 import org.sonatype.sisu.goodies.common.Time;
 
-public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
+public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
 
     @Parameters
     public static Collection<String[]> data() {
-      String[][] data = new String[][] { { "gemshost" },
-             { "gemsproxy" },
-             { "gemshostgroup" },
-             { "gemsproxygroup" },
-             { "gemsgroup" } };
+	String[][] data = new String[][] { { "gemshost" },
+					 { "gemsproxy" },
+					 { "gemshostgroup" },
+					 { "gemsproxygroup" },
+					 { "gemsgroup" } 
+      };
       return Arrays.asList(data);
     }
     
@@ -46,12 +47,12 @@ public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
 
     private BundleRunner bundleRunner;
 
-    public GemsNexusRunningITSupport( String nexusBundleCoordinates, String repoId ) {
+    public RubyNexusRunningITSupport( String nexusBundleCoordinates, String repoId ) {
         super( nexusBundleCoordinates );
         this.repoId = repoId;
     }
 
-    public GemsNexusRunningITSupport( String repoId ) {
+    public RubyNexusRunningITSupport( String repoId ) {
         this( null, repoId );
      }
 
@@ -127,6 +128,31 @@ public abstract class GemsNexusRunningITSupport extends NexusRunningITSupport {
             .setStartTimeout( Time.minutes( 2 ).toSecondsI() )
             .setLogLevel( "DEBUG" )
             .setPort( 4711 );
+    }
+
+    protected File installLatestNexusGem()
+    {
+        return installLatestNexusGem( false );
+    }
+
+    protected File installLatestNexusGem( boolean withBundler )
+    {
+        //nexus gem
+        File nexusGem = artifactResolver().resolveFromDependencyManagement( "rubygems", "nexus", "gem", null, null, null );
+        
+        if ( withBundler )
+        {
+            // install nexus + bundler gem
+            File bundlerGem = testData().resolveFile( "bundler.gem" );
+            gemRunner().install( nexusGem, bundlerGem );
+        }
+        else
+        {
+            // install nexus gem
+            gemRunner().install( nexusGem );
+        }
+        
+        return nexusGem;
     }
 
 }

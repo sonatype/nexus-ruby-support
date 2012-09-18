@@ -12,7 +12,7 @@ import org.sonatype.nexus.testsuite.support.NexusStartAndStopStrategy;
 
 @NexusStartAndStopStrategy( NexusStartAndStopStrategy.Strategy.EACH_TEST )
 @RunWith(value = Parameterized.class)
-public class DownloadsOnEmptyRepositoriesIT extends GemsNexusRunningITSupport
+public class DownloadsOnEmptyRepositoriesIT extends RubyNexusRunningITSupport
 {
     
     public DownloadsOnEmptyRepositoriesIT(String repoId) {

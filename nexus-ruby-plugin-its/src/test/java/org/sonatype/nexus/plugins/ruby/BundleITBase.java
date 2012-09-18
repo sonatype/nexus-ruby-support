@@ -13,26 +13,25 @@ import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
 import org.sonatype.nexus.testsuite.support.NexusStartAndStopStrategy;
 
 @NexusStartAndStopStrategy( NexusStartAndStopStrategy.Strategy.EACH_METHOD )
-@RunWith(value = Parameterized.class)
-public class BundleIT extends GemsNexusRunningITSupport
+//running 3 or more tests in one go produces Errno::EBADF: Bad file descriptor - Bad file descriptor
+//so run each test in its own forked jvm :(
+//@RunWith(value = Parameterized.class)
+public class BundleITBase extends RubyNexusRunningITSupport
 {
     
     private File target;
 
-    public BundleIT( String repoId ) {
+    public BundleITBase( String repoId ) {
         super( repoId );
     }
 
     protected ITestJRubyScriptingContainer createScriptingContainer()
     {
-        System.out.println("++++++++++++++++" + new File( target, "project/Gemfile" ) );
-               return new ITestJRubyScriptingContainer( new File( target, "project/Gemfile" ) );
+        return new ITestJRubyScriptingContainer( new File( target, "project/Gemfile" ) );
     }
 
     @Test
@@ -40,45 +39,15 @@ public class BundleIT extends GemsNexusRunningITSupport
     {
         
         installLatestNexusGem( true );
-       // File config = testData().resolveFile( ".gem/nexus" );
-       // System.out.println("++++++++++++++++" + gemRunner().nexus( config,
-         //   new File( "/home/kristian/projects/active/sonatype/nexus-ruby-support/nexus-ruby-plugin-its/zip-2.0.2.gem") ) ); 
-        System.out.println("++++++++++++++++" + gemRunner().list( repoId ) );
-        System.out.println("++++++++++++++++" + gemRunner().list() );
         
         assertThat( numberOfLines( gemRunner().list() ), 
             allOf( greaterThanOrEqualTo( 2 ), lessThanOrEqualTo( 4 ) ) );
 
         assertThat(  bundleRunner().config(), containsString( "mirror.http://rubygems.org" ) );
         assertThat(  bundleRunner().config(), containsString( "http://localhost:4711/nexus/content/repositories/" + repoId ) );
-        System.out.println("++++++++++++++++" + bundleRunner().config() );
+        
         System.out.println("++++++++++++++++" + bundleRunner().install() );
     }
-    
-    protected File installLatestNexusGem()
-    {
-        return installLatestNexusGem( false );
-    }
-    
-    protected File installLatestNexusGem( boolean withBundler )
-    {
-        //nexus gem
-        File nexusGem = artifactResolver().resolveFromDependencyManagement( "rubygems", "nexus", "gem", null, null, null );
-        
-        if ( withBundler )
-        {
-            // install nexus + bundler gem
-            File bundlerGem = testData().resolveFile( "bundler.gem" );
-            gemRunner().install( nexusGem, bundlerGem );
-        }
-        else
-        {
-            // install nexus gem
-            gemRunner().install( nexusGem );
-        }
-        
-        return nexusGem;
-    }  
     
     @Override
     protected NexusBundleConfiguration configureNexus( NexusBundleConfiguration configuration ) {

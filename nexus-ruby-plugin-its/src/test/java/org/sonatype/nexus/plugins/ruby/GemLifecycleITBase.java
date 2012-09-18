@@ -4,40 +4,35 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.sonatype.nexus.ruby.TestUtils.lastLine;
 import static org.sonatype.nexus.ruby.TestUtils.numberOfLines;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.sonatype.nexus.testsuite.support.NexusStartAndStopStrategy;
 
-@NexusStartAndStopStrategy( NexusStartAndStopStrategy.Strategy.EACH_METHOD )
-@RunWith(value = Parameterized.class)
-public class GemLifecycleIT extends GemsNexusRunningITSupport
+@NexusStartAndStopStrategy( NexusStartAndStopStrategy.Strategy.EACH_TEST )
+// running 3 or more tests in one go produces Errno::EBADF: Bad file descriptor - Bad file descriptor
+// so run each test in its own forked jvm :(
+//@RunWith(value = Parameterized.class)
+public class GemLifecycleITBase extends RubyNexusRunningITSupport
 {
     
-    public GemLifecycleIT( String repoId ) {
+    public GemLifecycleITBase( String repoId ) {
         super( repoId );
     }
 
     @Test
-    public void uploadGemWithNexusGemCommand() throws IOException
+    public void uploadGemWithNexusGemCommand() throws Exception
     {
+        File nexusGem = installLatestNexusGem();
         
-        //nexus gem with its dependencies
-        File nexusGem = artifactResolver().resolveFromDependencyManagement( "rubygems", "nexus", "gem", null, null, null );
-        
-        // install nexus gem
-        assertThat( lastLine( gemRunner().install( nexusGem ) ), equalTo( "1 gem installed" ) );
-
-        // no we have three local gems
         // the rake gems comes from JRuby
-        assertThat( numberOfLines( gemRunner().list() ), allOf( greaterThanOrEqualTo( 2 ), lessThanOrEqualTo( 3 ) ) );
+        assertThat( numberOfLines( gemRunner().list() ), allOf( greaterThanOrEqualTo( 2 ), lessThanOrEqualTo( 4 ) ) );
 
         // make sure our gem is not on the repository
         File gem = nexusGem;
