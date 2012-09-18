@@ -23,18 +23,17 @@ public class JRubyScriptingContainer extends ScriptingContainer {
     
     public JRubyScriptingContainer()
     {
-        this( LocalContextScope.SINGLETON, LocalVariableBehavior.PERSISTENT );
+        this( (Map<String, String>)null );
     }
     
+    public JRubyScriptingContainer( Map<String, String> env )
+    {
+        this( LocalContextScope.CONCURRENT, LocalVariableBehavior.TRANSIENT, env );
+    }
     
     public JRubyScriptingContainer( String rubygems )
     {
         this( env( rubygems ) );
-    }
-
-    public JRubyScriptingContainer( Map<String, String> env )
-    {
-        this( LocalContextScope.SINGLETON, LocalVariableBehavior.TRANSIENT, env );
     }
     
     public JRubyScriptingContainer(LocalContextScope scope, LocalVariableBehavior behavior)
