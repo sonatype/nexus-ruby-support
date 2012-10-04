@@ -8,21 +8,21 @@ This plugin is powered by JRuby.
 Prerequisites
 -----
 
-1. Use Maven 3 for this build.
+Use Maven 3 for this build.
 
-2. Add the repositories list in this section to your repository group. This might be a bit confusing, this build assumes that you are using Nexus as a repository manager and that you've configure your Maven Settings to hit a repository group.  This group needs to contain the following proxy repositories: 
+Add the repositories list in this section to your repository group. This might be a bit confusing, this build assumes that you are using Nexus as a repository manager and that you've configure your Maven Settings to hit a repository group.  This group needs to contain the following proxy repositories: 
 
   * The Sonatype Forge Repository: http://repository.sonatype.org/content/groups/forge
   * The Codehaus Snapshot Repository: http://snapshots.repository.codehaus.org
   
-3. There's one more repository you'll need to configure and that is
+There's one more repository you'll need to configure and that is
 the Torquebox GEM repository here:
 
   * Torquebox GEM repository: http://rubygems-proxy.torquebox.org/releases
 
-  If you've successfully configured these repositories, you should be able to run the build as it is described below.
+If you've successfully configured these repositories, you should be able to run the build as it is described below.
 
-4. The Nexus gem requires net-http-digest_auth to run, install it:
+The Nexus gem requires net-http-digest_auth to run, install it:
 
     gem install net-http-digest_auth
 
