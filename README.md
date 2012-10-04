@@ -20,7 +20,14 @@ the Torquebox GEM repository here:
 
   * Torquebox GEM repository: http://rubygems-proxy.torquebox.org/releases
 
-If you've successfully configured these repositories, you should be able to run the build as it is described below.
+If you've successfully configured these repositories, you should be able to run the build as it is described below.    There's a problem running the nexus-ruby-plugin-its project, if you try to buld this project you may receive an error similar to the following:
+
+    Execution default of goal de.saumya.mojo:runit-maven-plugin:0.29.1:test failed: 
+    Plugin de.saumya.mojo:runit-maven-plugin:0.29.1 or one of its dependencies could 
+    not be resolved: Failed to collect dependencies for de.saumya.mojo:runit-maven-plugin:jar:0.29.1 (): 
+    No versions available for rubygems:shoulda-context:gem:[1.0,1.99999] within specified range -> [Help 1]
+    
+The (unsatisfying) solution to this problem is to simply skip building this nexus-ruby-plugin-its project altogether.    The important projects, the projects that produce the output you need are nexus-gem and nexus-ruby-plugin.   Good luck.
 
 The Nexus gem requires net-http-persistent to run, install it:
 
