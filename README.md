@@ -22,9 +22,9 @@ the Torquebox GEM repository here:
 
 If you've successfully configured these repositories, you should be able to run the build as it is described below.
 
-The Nexus gem requires net-http-digest_auth to run, install it:
+The Nexus gem requires net-http-persistent to run, install it:
 
-    gem install net-http-digest_auth
+    gem install net-http-persistent
 
 
 Build
