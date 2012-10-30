@@ -2,6 +2,8 @@ package org.sonatype.nexus.plugins.ruby.fs;
 
 import java.io.File;
 
+import org.sonatype.nexus.proxy.maven.gav.Gav;
+
 public class GemFile extends File
 {
     private static final long serialVersionUID = 6569845569736820559L;
@@ -23,9 +25,31 @@ public class GemFile extends File
         return path.matches( ".*/gems/([a-z]?/)?[^/]+\\.gem$" );
     }
     
-    public GemFile(File target)
+    public GemFile( File target )
     {
-        super(new File(target.getParentFile(), target.getName().substring(0, 1)), target.getName());
+        super( new File( target.getParentFile(), 
+                    target.getName().substring( 0, 1 ) ), 
+                    target.getName() );
+    }
+
+    public GemFile( Gav gav )
+    {
+        this( gav.getArtifactId() + "-" + gav.getVersion() + "-java.gem" );
+        if ( !"rubygems".equals( gav.getGroupId() ) )
+        {
+            throw new IllegalArgumentException( "only gav with groupId=='rubygems' allowed" );
+        }
+    }
+    
+    public GemFile( String name )
+    {
+        this( new File( "gems", name ) );
+    }
+
+    public String getGemspecRz()
+    {
+        return "/quick/Marshal.4.8/" + //getParentFile().getName() + "/" + 
+                getName() + "spec.rz";
     }
     
     
