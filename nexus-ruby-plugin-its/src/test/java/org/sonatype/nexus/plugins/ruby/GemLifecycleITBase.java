@@ -1,12 +1,9 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.sonatype.nexus.ruby.TestUtils.lastLine;
 import static org.sonatype.nexus.ruby.TestUtils.numberOfLines;
 
@@ -31,9 +28,6 @@ public class GemLifecycleITBase extends RubyNexusRunningITSupport
     {
         File nexusGem = installLatestNexusGem();
         
-        // the rake gems comes from JRuby
-        assertThat( numberOfLines( gemRunner().list() ), allOf( greaterThanOrEqualTo( 2 ), lessThanOrEqualTo( 4 ) ) );
-
         // make sure our gem is not on the repository
         File gem = nexusGem;
         assertFileDownload( "gems/" + gem.getName(), is( false ) );

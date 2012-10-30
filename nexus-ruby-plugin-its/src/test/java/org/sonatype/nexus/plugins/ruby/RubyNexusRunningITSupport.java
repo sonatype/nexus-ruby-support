@@ -1,6 +1,7 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.sonatype.sisu.filetasks.builder.FileRef.file;
 import static org.sonatype.sisu.filetasks.builder.FileRef.path;
 
@@ -151,7 +152,8 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
             // install nexus gem
             gemRunner().install( nexusGem );
         }
-        
+        assertThat( gemRunner().list().toString(), containsString( "nexus (" ) );
+
         return nexusGem;
     }
 

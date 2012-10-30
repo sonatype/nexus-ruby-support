@@ -1,11 +1,9 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.sonatype.nexus.ruby.TestUtils.numberOfLines;
+import static org.hamcrest.Matchers.startsWith;
+import static org.sonatype.nexus.ruby.TestUtils.lastLine;
 import static org.sonatype.sisu.filetasks.builder.FileRef.file;
 import static org.sonatype.sisu.filetasks.builder.FileRef.path;
 
@@ -15,7 +13,6 @@ import java.io.IOException;
 import org.junit.Test;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
 import org.sonatype.nexus.testsuite.support.NexusStartAndStopStrategy;
-
 @NexusStartAndStopStrategy( NexusStartAndStopStrategy.Strategy.EACH_METHOD )
 //running 3 or more tests in one go produces Errno::EBADF: Bad file descriptor - Bad file descriptor
 //so run each test in its own forked jvm :(
@@ -37,16 +34,12 @@ public class BundleITBase extends RubyNexusRunningITSupport
     @Test
     public void nbundleCommand() throws IOException
     {
-        
         installLatestNexusGem( true );
-        
-        assertThat( numberOfLines( gemRunner().list() ), 
-            allOf( greaterThanOrEqualTo( 2 ), lessThanOrEqualTo( 4 ) ) );
 
         assertThat(  bundleRunner().config(), containsString( "mirror.http://rubygems.org" ) );
         assertThat(  bundleRunner().config(), containsString( "http://localhost:4711/nexus/content/repositories/" + repoId ) );
         
-        System.out.println("++++++++++++++++" + bundleRunner().install() );
+        assertThat( lastLine( bundleRunner().install() ), startsWith( "Your bundle is complete!" ) );
     }
     
     @Override
