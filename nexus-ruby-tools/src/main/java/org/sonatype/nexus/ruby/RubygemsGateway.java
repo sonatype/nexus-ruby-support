@@ -11,11 +11,15 @@ public interface RubygemsGateway {
     InputStream emptyIndex();
 
     Object spec( InputStream gem );
+    
+    String pom( InputStream specRz );
 
     InputStream addSpec( Object spec, InputStream specsDump, SpecsIndexType type );
 
     InputStream deleteSpec( Object spec, InputStream specsDump );
 
     InputStream mergeSpecs( InputStream specs, List<InputStream> streams );
+
+    List<String> listVersions( String name, InputStream inputStream );
 
 }

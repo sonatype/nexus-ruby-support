@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.sonatype.nexus.ruby</groupId>
@@ -12,12 +12,27 @@
 
   <name>Nexus Ruby Tools</name>
 
+  <!-- maybe leave that out of the pom and put it into settings -->
+  <repositories>
+    <repository>
+      <id>rubygems-releases</id>
+      <url>http://rubygems-proxy.torquebox.org/releases</url>
+    </repository>
+  </repositories>
+
   <dependencies>
 
     <dependency>
       <groupId>org.jruby</groupId>
       <artifactId>jruby-complete</artifactId>
-      <version>1.7.0.preview2</version>
+      <version>1.7.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>rubygems</groupId>
+      <artifactId>maven-tools</artifactId>
+      <version>0.29.4</version>
+      <type>gem</type>
     </dependency>
 
     <dependency>
@@ -47,8 +62,34 @@
   </dependencies>
 
   <build>
-    
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${project.build.directory}/rubygems</directory>
+        <includes>
+          <include>gems/maven-tools-*/**</include>
+          <include>specifications/maven*gemspec</include>
+        </includes>
+      </resource>
+    </resources>
+
     <plugins>
+
+      <plugin>
+        <groupId>de.saumya.mojo</groupId>
+        <artifactId>gem-maven-plugin</artifactId>
+        <version>${jruby.plugins.version}</version>
+        <executions>
+          <execution>
+            <!--phase>initialize</phase-->
+            <goals>
+              <goal>initialize</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -60,33 +101,62 @@
       </plugin>
 
       <plugin>
-	<artifactId>maven-surefire-plugin</artifactId>
-	<version>2.10</version>
-	<configuration>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.10</version>
+        <configuration>
           <!--forkMode>pertest</forkMode-->
           <environmentVariables>
-<!--
-            <GEM_HOME>${project.build.testOutputDirectory}/rubygems</GEM_HOME>
-            <GEM_PATH>${project.build.testOutputDirectory}/rubygems</GEM_PATH>
-            <BUNDLE_GEMFILE>${project.build.testOutputDirectory}/it/Gemfile</BUNDLE_GEMFILE>
--->
+            <!--
+                <GEM_HOME>${project.build.testOutputDirectory}/rubygems</GEM_HOME>
+                <GEM_PATH>${project.build.testOutputDirectory}/rubygems</GEM_PATH>
+                <BUNDLE_GEMFILE>${project.build.testOutputDirectory}/it/Gemfile</BUNDLE_GEMFILE>
+            -->
           </environmentVariables>
         </configuration>
       </plugin>
       <plugin>
-	<artifactId>maven-jar-plugin</artifactId>
-	<version>2.3.2</version>
-	<executions>
-	  <execution>
-	    <phase>package</phase>
-	    <goals>
-	      <goal>test-jar</goal>
-	    </goals>
-	  </execution>
-	</executions>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.2</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
 
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>de.saumya.mojo</groupId>
+                    <artifactId>gem-maven-plugin</artifactId>
+                    <versionRange>[0.29.1,)</versionRange>
+                    <goals>
+                      <goal>initialize</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
 </project>

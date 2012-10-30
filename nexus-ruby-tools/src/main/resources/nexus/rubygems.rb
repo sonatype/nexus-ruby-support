@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'rubygems/format'
+require 'maven/tools/minimal_project'
 
 module Nexus
   class Rubygems
@@ -15,6 +16,19 @@ module Nexus
       else
         Gem::Format.from_io( StringIO.new( read_binary( gemfile ) ) ).spec
       end
+    end
+
+    def to_pom( spec_source )
+      spec = Marshal.load( Gem.inflate( read_binary( spec_source ) ) )
+      proj = Maven::Tools::MinimalProject.new( spec )
+      proj.to_xml
+    end
+
+    def list_versions( name, source )
+      specs = load_specs( source )
+      specs.select do |s|
+        s[0] == name && ( s[2] == 'ruby' || s[2] == 'java' || s[2] == 'jruby' )
+      end.collect { |s| s[1].to_s }.sort.uniq
     end
 
     def empty_specs

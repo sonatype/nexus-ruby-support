@@ -111,5 +111,23 @@ public class DefaultRubygemsGateway
                 List.class );
         
         return array == null ? null : new ByteArrayInputStream( array );
-    }    
+    }
+
+    @Override
+    public String pom(InputStream specRz) {
+        return scriptingContainer.callMethod( rubygems(), 
+                "to_pom",
+                specRz,
+                String.class );
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<String> listVersions(String name, InputStream inputStream) {
+        return (List<String>) scriptingContainer.callMethod( rubygems(), 
+                "list_versions",
+                new Object[] { name,
+                inputStream },
+                List.class );
+    }
 }
