@@ -13,6 +13,7 @@ import java.io.IOException;
 import org.junit.Test;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
 import org.sonatype.nexus.testsuite.support.NexusStartAndStopStrategy;
+
 @NexusStartAndStopStrategy( NexusStartAndStopStrategy.Strategy.EACH_METHOD )
 //running 3 or more tests in one go produces Errno::EBADF: Bad file descriptor - Bad file descriptor
 //so run each test in its own forked jvm :(
@@ -36,8 +37,8 @@ public class BundleITBase extends RubyNexusRunningITSupport
     {
         installLatestNexusGem( true );
 
-        assertThat(  bundleRunner().config(), containsString( "mirror.http://rubygems.org" ) );
-        assertThat(  bundleRunner().config(), containsString( "http://localhost:4711/nexus/content/repositories/" + repoId ) );
+        assertThat( bundleRunner().config(), containsString( "mirror.http://rubygems.org" ) );
+        assertThat( bundleRunner().config(), containsString( "http://localhost:4711/nexus/content/repositories/" + repoId ) );
         
         assertThat( lastLine( bundleRunner().install() ), startsWith( "Your bundle is complete!" ) );
     }
@@ -55,7 +56,7 @@ public class BundleITBase extends RubyNexusRunningITSupport
             .addOverlays(
                 overlays.copy()
                     .directory( file( testData().resolveFile( "repo" ) ) )
-                    .to().directory( path( "sonatype-work/nexus/storage/" + repoId ) )
+                    .to().directory( path( "sonatype-work/nexus/storage/gemshost" ) )
             )
             .addOverlays(
                 overlays.create()
