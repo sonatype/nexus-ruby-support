@@ -232,7 +232,7 @@ public class GemArtifactShadowRepository
     {
         if ( artifactStoreHelper == null )
         {
-            artifactStoreHelper = new ArtifactStoreHelper( this ){};
+            artifactStoreHelper = new GemArtifactStoreHelper( this );
         }
 
         return artifactStoreHelper;
@@ -240,7 +240,6 @@ public class GemArtifactShadowRepository
 
     @Override
     public boolean recreateMavenMetadata(ResourceStoreRequest request) {
-        // TODO Auto-generated method stub
         return false;
     }
     
@@ -319,14 +318,12 @@ public class GemArtifactShadowRepository
     
     String transformMaster2Shadow( String path )
     {
-        // /gems/n/nexus-0.1.0.gem => /rubygems/nexus/0.1.0/nexus-0.1.0.gem
-        path = path.replace( "-java.gem", ".gem" );  
-        System.out.println("-----------------------------"+ path);
-        System.out.println("-----------------------------"+ FileUtils.filename(path));
-
-        return path.replaceFirst("^gems/([a-z]/)?", "rubygems/")
-                .replace("-", "/")
-                .replaceFirst(".gem$", "/" + FileUtils.filename(path));
+        path = path.replace( "-java.gem", ".gem" );
+        
+        // map /gems/n/nexus-0.1.0.gem => /rubygems/nexus/0.1.0/nexus-0.1.0.gem
+        return path.replaceFirst( "^gems/([a-z]/)?", "rubygems/" )
+                .replace( "-", "/" )
+                .replaceFirst( ".gem$", "/" + FileUtils.filename( path ) );
     }
     
     @Override
@@ -399,7 +396,7 @@ public class GemArtifactShadowRepository
         // METADATA
         if ( isMavenMetadataPath( request.getRequestPath() ) ){
 
-            String name = request.getRequestPath().replaceFirst("/rubygems/", "").replaceFirst("maven-metadata.xml$", "");
+            String name = request.getRequestPath().replaceFirst( "/rubygems/", "" ).replaceFirst( "maven-metadata.xml$", "" );
 
             StorageFileItem specsIndex = (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( SpecsIndexType.RELEASE.filepath() ) );
             try
@@ -408,7 +405,7 @@ public class GemArtifactShadowRepository
                 if (item.getModified() < specsIndex.getModified() )
                 {
 
-                    return recreateMetadata(request, name, specsIndex);
+                    return recreateMetadata( request, name, specsIndex);
                     
                 }
                 return item;
@@ -417,7 +414,7 @@ public class GemArtifactShadowRepository
             catch( ItemNotFoundException e )
             {
 
-                return recreateMetadata(request, name, specsIndex);
+                return recreateMetadata( request, name, specsIndex );
                 
             }
         }
