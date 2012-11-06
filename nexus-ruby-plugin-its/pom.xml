@@ -41,10 +41,27 @@
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-testsuite-support</artifactId>
-      <version>2.2-SNAPSHOT</version>
+      <version>2.2.1</version>
       <scope>test</scope>
     </dependency>
 
+    <!-- not sure why I need to add those to the pom but they are missing otherwise -->
+    <dependency>
+      <groupId>org.sonatype.nexus</groupId>
+      <artifactId>nexus-it-helper-plugin</artifactId>
+      <version>2.2.1</version>
+      <classifier>bundle</classifier>
+      <type>zip</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.nexus</groupId>
+      <artifactId>nexus-oss-webapp</artifactId>
+      <version>2.2.1</version>
+      <classifier>bundle</classifier>
+      <type>zip</type>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <dependencyManagement>
