@@ -5,6 +5,34 @@ This repository contains components and Nexus plugins to enhance Nexus with Ruby
 
 This plugin is powered by JRuby.
 
+Prerequisites
+-----
+
+Use Maven 3 for this build.
+
+Add the repositories list in this section to your repository group. This might be a bit confusing, this build assumes that you are using Nexus as a repository manager and that you've configure your Maven Settings to hit a repository group.  This group needs to contain the following proxy repositories: 
+
+  * The Sonatype Forge Repository: http://repository.sonatype.org/content/groups/forge
+  * The Codehaus Snapshot Repository: http://snapshots.repository.codehaus.org
+  
+There's one more repository you'll need to configure and that is
+the Torquebox GEM repository here:
+
+  * Torquebox GEM repository: http://rubygems-proxy.torquebox.org/releases
+
+If you've successfully configured these repositories, you should be able to run the build as it is described below.    There's a problem running the nexus-ruby-plugin-its project, if you try to buld this project you may receive an error similar to the following:
+
+    Execution default of goal de.saumya.mojo:runit-maven-plugin:0.29.1:test failed: 
+    Plugin de.saumya.mojo:runit-maven-plugin:0.29.1 or one of its dependencies could 
+    not be resolved: Failed to collect dependencies for de.saumya.mojo:runit-maven-plugin:jar:0.29.1 (): 
+    No versions available for rubygems:shoulda-context:gem:[1.0,1.99999] within specified range -> [Help 1]
+    
+The (unsatisfying) solution to this problem is to simply skip building this nexus-ruby-plugin-its project altogether.    The important projects, the projects that produce the output you need are nexus-gem and nexus-ruby-plugin.   Good luck.
+
+The Nexus gem requires net-http-persistent to run, install it:
+
+    gem install net-http-persistent
+
 
 Build
 -----
