@@ -12,14 +12,6 @@
 
   <name>Nexus Ruby Tools</name>
 
-  <!-- maybe leave that out of the pom and put it into settings -->
-  <repositories>
-    <repository>
-      <id>rubygems-releases</id>
-      <url>http://rubygems-proxy.torquebox.org/releases</url>
-    </repository>
-  </repositories>
-
   <dependencies>
 
     <dependency>
@@ -29,10 +21,9 @@
     </dependency>
 
     <dependency>
-      <groupId>rubygems</groupId>
+      <groupId>de.saumya.mojo</groupId>
       <artifactId>maven-tools</artifactId>
-      <version>0.29.4</version>
-      <type>gem</type>
+      <version>0.30.0</version>
     </dependency>
 
     <dependency>
@@ -66,30 +57,9 @@
       <resource>
         <directory>src/main/resources</directory>
       </resource>
-      <resource>
-        <directory>${project.build.directory}/rubygems</directory>
-        <includes>
-          <include>gems/maven-tools-*/**</include>
-          <include>specifications/maven*gemspec</include>
-        </includes>
-      </resource>
     </resources>
 
     <plugins>
-
-      <plugin>
-        <groupId>de.saumya.mojo</groupId>
-        <artifactId>gem-maven-plugin</artifactId>
-        <version>${jruby.plugins.version}</version>
-        <executions>
-          <execution>
-            <!--phase>initialize</phase-->
-            <goals>
-              <goal>initialize</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
 
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -118,11 +88,25 @@
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.3.2</version>
         <executions>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
           <execution>
+	    <id>test</id>
             <phase>package</phase>
             <goals>
               <goal>test-jar</goal>
             </goals>
+            <configuration>
+              <includes>
+                <include>**/*.class</include>
+	      </includes>
+	    </configuration>
           </execution>
         </executions>
       </plugin>
