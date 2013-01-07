@@ -12,20 +12,24 @@ import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHo
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyProxyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
+import org.sonatype.nexus.plugins.ruby.fs.GunzipContentGenerator;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
+import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
+import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -125,8 +129,16 @@ public class DefaultRubyProxyRepository
         else
         {
             ResourceStoreRequest req = new ResourceStoreRequest( request );
-            req.setRequestPath( request.getRequestPath().replaceFirst( "/gems/[^/]/", "/gems/" ) );
+            req.setRequestPath( request.getRequestPath()
+                                    .replaceFirst( "/gems/[^/]/", "/gems/" )
+                                    .replaceFirst( ".4.8$", ".4.8.gz" ) );
             AbstractStorageItem item = super.doRetrieveRemoteItem( req );
+      
+            if ( request.getRequestPath().endsWith( ".4.8" ) ){ 
+                // the stored file is gzipped file so gunzip it 
+                ((StorageFileItem) item).setContentGeneratorId( GunzipContentGenerator.ID );
+            }
+            
             item.setResourceStoreRequest(request);
             item.setPath(request.getRequestPath());
             return item;
@@ -144,17 +156,14 @@ public class DefaultRubyProxyRepository
             // make sure the gzipped version of the file is downloaded and cached
             super.retrieveItem( new ResourceStoreRequest( request.getRequestPath() + ".gz" ) );
         }             
-        getLogger().warn("--------------" + request);
 
         if ( request.getRequestPath().matches( "^/quick/Marshal\\.4\\.8/.+\\.gemspec\\.rz$" ) )
         {
             // make sure the gzipped version of the file is downloaded and cached
             String path = request.getRequestPath().replace( "spec.rz", "" ).replace( "/quick/Marshal.4.8/", "/gems/");
-            getLogger().warn("--------------" + path);
             super.retrieveItem( new ResourceStoreRequest( path ) );
             request.setRequestLocalOnly( true );
-            getLogger().warn("--------------" + request);
-       }   
+        }   
 
         return super.retrieveItem( request );
     }
