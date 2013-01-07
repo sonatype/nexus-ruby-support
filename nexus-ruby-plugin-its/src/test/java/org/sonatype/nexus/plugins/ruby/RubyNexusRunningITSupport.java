@@ -96,21 +96,21 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
     }
 
     protected File assertFileDownload(String name, Matcher<Boolean> matcher) {
-        File nil = new File( util.createTempDir(), "null" );
+        File target = new File( util.createTempDir(), "null" );
         
         try
         {
-            client().getSubsystem( Content.class ).download( new Location( repoId, name ), nil );
+            client().getSubsystem( Content.class ).download( new Location( repoId, name ), target );
         }
         catch (IOException e)
         {
             // just ignore it and let matcher test
         }
-        assertThat( nil.exists(), matcher );
+        assertThat( target.exists(), matcher );
     
-        nil.deleteOnExit();
+        target.deleteOnExit();
         
-        return nil;
+        return target;
     }
 
     @Override
