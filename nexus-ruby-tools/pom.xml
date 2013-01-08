@@ -16,8 +16,8 @@
 
     <dependency>
       <groupId>org.jruby</groupId>
-      <artifactId>jruby-complete</artifactId>
-      <version>1.7.0</version>
+      <artifactId>jruby-core</artifactId>
+      <version>1.7.2</version>
     </dependency>
 
     <dependency>
