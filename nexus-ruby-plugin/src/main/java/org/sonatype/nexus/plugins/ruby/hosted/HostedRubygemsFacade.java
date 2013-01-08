@@ -1,13 +1,19 @@
 package org.sonatype.nexus.plugins.ruby.hosted;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.AbstractRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.fs.GzipContentGenerator;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
+import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
+import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.item.ContentLocator;
+import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
+import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.RubygemsGateway;
@@ -25,6 +31,28 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
     public void addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem ) 
             throws UnsupportedStorageOperationException, LocalStorageException
     {
+        // first createthe gemspec.rz file for the given gem
+        ResourceStoreRequest request = new ResourceStoreRequest( RubygemFile.fromFilename( gem.getPath() ).getGemspecRz() );
+        InputStream is;
+        try
+        {
+            is = gateway.createGemspecRz( gem.getInputStream() );
+        } 
+        catch ( IOException e )
+        {
+            throw new LocalStorageException( "error writing gemspec file", e );
+        }
+        
+        ContentLocator contentLocator = new PreparedContentLocator( is, "application/x-ruby-marshal" );
+        
+        DefaultStorageFileItem gemspecFile = new DefaultStorageFileItem( repository, request, true, true,
+               contentLocator );
+        gemspecFile.setModified( gem.getModified() );
+        gemspecFile.setCreated( gem.getCreated() );
+        
+        storage.storeItem( repository, gemspecFile );
+        
+        // now add the spec to the index
         try
         {
             Object spec = gateway.spec( toInputStream( gem ) );

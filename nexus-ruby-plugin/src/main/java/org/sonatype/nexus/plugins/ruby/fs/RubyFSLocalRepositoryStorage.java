@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +14,7 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.sonatype.nexus.mime.MimeSupport;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
+import org.sonatype.nexus.plugins.ruby.fs.RubygemFile.Type;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -48,7 +48,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     private ResourceStoreRequest fixPath(ResourceStoreRequest request)
     {
         // put the gems into subdirectory with first-letter of the gems name
-        request.setRequestPath( GemFile.fixPath( request.getRequestPath() ) );
+        request.setRequestPath( RubygemFile.fromFilename( request.getRequestPath() ).getPath() );
         return request;
     }
 
@@ -77,12 +77,6 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 return result;
                 
             }
-            if ( request.getRequestPath().equals( "/quick/" ) ) 
-            {
-                
-                return Arrays.asList( newCollection( repository, "/Marshal.4.8" ) );
-                
-            }
         }
         return super.listItems(repository, request);
     }
@@ -95,68 +89,6 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     private StorageItem newCollection( Repository repository, String name )
     {
         return new DefaultStorageCollectionItem( repository, new ResourceStoreRequest( name ), true, false );
-    }
-
-    @Override
-    protected AbstractStorageItem retrieveItemFromFile(Repository repository,
-            ResourceStoreRequest request, File target)
-            throws ItemNotFoundException, LocalStorageException
-    {
-        final RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
-        if ( rubyRepository != null ) 
-        {
-            if ( request.getRequestPath().matches( "^\\/quick\\/?$" ) ) 
-            {
-        
-                return new QuickMarshalStorageCollectionItem( rubyRepository, 
-                        request, 
-                        Arrays.asList(newCollection( repository, "/Marshal.4.8" ) ) );
-
-            }
-
-            if ( request.getRequestPath().matches( "^\\/quick\\/Marshal.4.8\\/?$" ) ) 
-            {
-                
-                File gems = new File( target.getAbsolutePath().replaceFirst( "\\/quick\\/Marshal.4.8\\/?$", "/gems/" ) );
-                final Collection<StorageItem> result = new ArrayList<StorageItem>();
-                if (gems.exists() )
-                {
-                    for( File entry: gems.listFiles() )
-                    {
-                        if ( entry.isDirectory() )
-                        {
-                            result.add( newCollection( repository, entry.getName() ) );
-                        }
-                        else if ( entry.isFile() )
-                        {
-                            result.add( newItem( repository, entry.getName() + "spec.rz" ) );
-                        }
-                    }
-                }
-                
-                return new QuickMarshalStorageCollectionItem( rubyRepository, request, result );
-            }
-            if ( request.getRequestPath().matches("/gems/[^/]+\\.gem$") )
-            {
-                
-                fixPath(request);
-                // each gems lives in sub-directory with starts with the first letter of the gem-name
-                target = new GemFile(target);
-                
-            }
-            else if ( request.getRequestPath().matches("^/quick/.+\\.gemspec.rz$") )
-            {
-                
-                DefaultStorageFileItem file = new DefaultStorageFileItem( repository, request, true, true,
-                        new FileContentLocator( target, "application/x-ruby-marshal" ) );
-                //repository.getAttributesHandler().fetchAttributes( file );
-                file.setContentGeneratorId( GemspecRzContentGenerator.ID );
-                return file;
-                
-            }
-        }
-
-        return super.retrieveItemFromFile(repository, request, target);
     }
 
     @Override
@@ -199,9 +131,10 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
         if ( rubyRepository != null ) 
         {
-            if ( GemFile.isGem( item.getPath() ) )
+            RubygemFile file = RubygemFile.fromFilename( item.getPath() );
+            if ( file.getType() == Type.GEM )
             {
-                ((AbstractStorageItem) item).setPath( GemFile.fixPath( item.getPath() ) );
+                ((AbstractStorageItem) item).setPath( file.getPath() );
                 item.getResourceStoreRequest().setRequestPath( item.getPath() );
 
                 super.storeItem( repository, item );
@@ -210,9 +143,9 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 {
                     // add it to the index files
                     File gem = getFileFromBase( rubyRepository, item.getResourceStoreRequest() );
-                    FileContentLocator locator = new FileContentLocator( gem, "application/x-rubygems" );
+                    FileContentLocator locator = new FileContentLocator( gem, file.getMime() );
                     ((StorageFileItem) item).setContentLocator( locator );
-                
+                    
                     rubyRepository.getRubygemsFacade().addGem( this, (StorageFileItem) item );
                 }
                 
@@ -230,7 +163,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
         if ( rubyRepository != null ) 
         {
-            if ( GemFile.isGem( request.getRequestPath() ) )
+            if ( RubygemFile.isGem( request.getRequestPath() ) )
             {
             
                 StorageFileItem item = (StorageFileItem) retrieveItem( rubyRepository, fixPath( request ) );
@@ -263,7 +196,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
         if ( rubyRepository != null ) 
         {
-            throw new UnsupportedStorageOperationException( "TODO why not ?" );
+            throw new UnsupportedStorageOperationException( "filenames within rubygems are part of the data itself." );
         }
         super.moveItem( repository, from, to );
     }

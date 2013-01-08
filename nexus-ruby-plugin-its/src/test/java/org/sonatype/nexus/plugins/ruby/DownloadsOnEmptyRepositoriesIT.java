@@ -29,10 +29,11 @@ public class DownloadsOnEmptyRepositoriesIT extends RubyNexusRunningITSupport
     public void download() throws Exception
     {
         assertAllSpecsIndexDownload();
-        assertFileDownload( "/quick", is( true ) );
-        assertFileDownload( "/quick/Marshal.4.8", is( true ) );
-        assertFileDownload( "/quick/", is( true ) );
-        assertFileDownload( "/quick/Marshal.4.8/", is( true ) );
+        // on an empty repo these directories are not there (yet)
+        assertFileDownload( "/gems", is( false ) );
+        assertFileDownload( "/quick", is( false ) );
+        assertFileDownload( "/quick/", is( false ) );
+        assertFileDownload( "/gems/", is( false ) );
     }
 
     private void assertAllSpecsIndexDownload( )

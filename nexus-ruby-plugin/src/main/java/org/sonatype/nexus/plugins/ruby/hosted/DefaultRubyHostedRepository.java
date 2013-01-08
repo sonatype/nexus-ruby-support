@@ -94,26 +94,4 @@ public class DefaultRubyHostedRepository
     {
         return (DefaultRubyHostedRepositoryConfiguration) super.getExternalConfiguration( forWrite );
     }
-
-    // ==
-    
-//    @Override
-//    public void storeItem( boolean fromTask, StorageItem item )
-//        throws UnsupportedStorageOperationException, IllegalOperationException, StorageException
-//    {
-//        super.storeItem( fromTask, item );
-//
-//        // to reflect modification
-//        //rubyIndexer.reindexRepository( this, true );
-//    }
-//
-//    @Override
-//    public void deleteItem( boolean fromTask, ResourceStoreRequest request )
-//        throws UnsupportedStorageOperationException, IllegalOperationException, ItemNotFoundException, StorageException
-//    {
-//        super.deleteItem( fromTask, request );
-//
-//        // to reflect modification
-//        //rubyIndexer.reindexRepository( this, true );
-//    }
 }

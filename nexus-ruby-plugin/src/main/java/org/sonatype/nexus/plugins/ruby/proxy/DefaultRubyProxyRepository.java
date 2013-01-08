@@ -17,7 +17,6 @@ import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
-import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
@@ -29,7 +28,6 @@ import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
-import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -109,11 +107,11 @@ public class DefaultRubyProxyRepository
     @Override
     protected boolean isOld( StorageItem item )
     {
-        if ( item.getName().contains( "specs" ) )
+        if ( item.getName().contains( "specs.4.8" ) )
         {
             // time in minutes
             // TODO get the MaxAge for metadate from config
-            return isOld( 50, item );
+            return isOld( 360, item );
         }
         return super.isOld( item );
     }
@@ -131,9 +129,10 @@ public class DefaultRubyProxyRepository
             ResourceStoreRequest req = new ResourceStoreRequest( request );
             req.setRequestPath( request.getRequestPath()
                                     .replaceFirst( "/gems/[^/]/", "/gems/" )
+                                    .replaceFirst( "/Marshal.4.8/[^/]/", "/Marshal.4.8/" )
                                     .replaceFirst( ".4.8$", ".4.8.gz" ) );
             AbstractStorageItem item = super.doRetrieveRemoteItem( req );
-      
+            
             if ( request.getRequestPath().endsWith( ".4.8" ) ){ 
                 // the stored file is gzipped file so gunzip it 
                 ((StorageFileItem) item).setContentGeneratorId( GunzipContentGenerator.ID );
@@ -155,15 +154,7 @@ public class DefaultRubyProxyRepository
         {
             // make sure the gzipped version of the file is downloaded and cached
             super.retrieveItem( new ResourceStoreRequest( request.getRequestPath() + ".gz" ) );
-        }             
-
-        if ( request.getRequestPath().matches( "^/quick/Marshal\\.4\\.8/.+\\.gemspec\\.rz$" ) )
-        {
-            // make sure the gzipped version of the file is downloaded and cached
-            String path = request.getRequestPath().replace( "spec.rz", "" ).replace( "/quick/Marshal.4.8/", "/gems/");
-            super.retrieveItem( new ResourceStoreRequest( path ) );
-            request.setRequestLocalOnly( true );
-        }   
+        }
 
         return super.retrieveItem( request );
     }

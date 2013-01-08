@@ -16,7 +16,7 @@ import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHo
 import org.sonatype.nexus.plugins.ruby.GemArtifactRepository;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
-import org.sonatype.nexus.plugins.ruby.fs.GemFile;
+import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
@@ -169,7 +169,7 @@ public class GemArtifactShadowRepository
 //    protected String transformShadow2Master(String path)
 //    {
 //        Gav gav = getGavCalculator().pathToGav( path );
-//        GemFile gem = new GemFile( gav.getArtifactId() + "-" + gav.getVersion() + "-java.gem" );
+//        RubygemFile gem = new RubygemFile( gav.getArtifactId() + "-" + gav.getVersion() + "-java.gem" );
 //        if ( "gem".equals( gav.getExtension() ) )
 //        {
 //            return gem.getPath();
@@ -277,7 +277,6 @@ public class GemArtifactShadowRepository
             InputStream is, Map<String, String> userAttributes)
             throws UnsupportedStorageOperationException, ItemNotFoundException,
             IllegalOperationException, StorageException, AccessDeniedException {
-        // TODO Auto-generated method stub
         getArtifactStoreHelper().storeItemWithChecksums(request, is, userAttributes);
     }
 
@@ -285,7 +284,6 @@ public class GemArtifactShadowRepository
     public void deleteItemWithChecksums(ResourceStoreRequest request)
             throws UnsupportedStorageOperationException, ItemNotFoundException,
             IllegalOperationException, StorageException, AccessDeniedException {
-        // TODO Auto-generated method stub
         getArtifactStoreHelper().deleteItemWithChecksums(request);
     }
 
@@ -294,7 +292,6 @@ public class GemArtifactShadowRepository
             AbstractStorageItem item)
             throws UnsupportedStorageOperationException,
             IllegalOperationException, StorageException {
-        // TODO Auto-generated method stub
         getArtifactStoreHelper().storeItemWithChecksums( fromTask, item );
     }
 
@@ -303,7 +300,6 @@ public class GemArtifactShadowRepository
             ResourceStoreRequest request)
             throws UnsupportedStorageOperationException,
             IllegalOperationException, ItemNotFoundException, StorageException {
-        // TODO Auto-generated method stub
         getArtifactStoreHelper().deleteItemWithChecksums( fromTask, request );
    }
 
@@ -430,7 +426,7 @@ public class GemArtifactShadowRepository
             }
             catch( ItemNotFoundException e )
             {
-                GemFile gem = new GemFile( gav );
+                RubygemFile gem = new RubygemFile( gav );
                 
                 // GEM ARTIFACT
                 if ( "gem".equals( gav.getExtension() ) )
