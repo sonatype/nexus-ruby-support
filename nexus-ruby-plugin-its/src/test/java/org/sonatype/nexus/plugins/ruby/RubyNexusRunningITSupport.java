@@ -14,6 +14,7 @@ import javax.inject.Inject;
 
 import org.hamcrest.Matcher;
 import org.junit.runners.Parameterized.Parameters;
+import org.sonatype.aether.transfer.ArtifactNotFoundException;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
 import org.sonatype.nexus.client.core.subsystem.content.Content;
 import org.sonatype.nexus.client.core.subsystem.content.Location;
@@ -138,8 +139,17 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
 
     protected File installLatestNexusGem( boolean withBundler )
     {
+        
         //nexus gem
-        File nexusGem = artifactResolver().resolveFromDependencyManagement( "rubygems", "nexus", "gem", null, null, null );
+        File nexusGem;
+        try
+        {
+           nexusGem = artifactResolver().resolveFromDependencyManagement( "rubygems", "nexus", "gem", null, null, null );
+        }
+        catch( RuntimeException e )
+        {
+            throw new RuntimeException( "maybe you forgot to install nexus gem", e );
+        }
         
         if ( withBundler )
         {
