@@ -1,6 +1,6 @@
 # test, build, deploy, push #
 
-there a two flavors of dong things. both result in **identical** gems !!
+there a two ways of doing things. both result in **identical** gems !!
 
 maven runs the test for some jruby versions in both 1.8 and 1.9 mode. i.e.
 it is a build CI of jruby.
@@ -13,7 +13,7 @@ prepare the dependencies
 	
 run tests
 
-    rake 
+    bundle exec rake 
 	
 build and push gem to rubygems.org
 
@@ -29,7 +29,8 @@ install the gem into your local rubgems repository
     mvn -Ppush
 	
 this will run the tests, package the gem and pushed it to rubygems.org
-the test run by jruby versions in both 1.8 as well 1.9 mode.
+
+the test run with some jruby versions in both 1.8 as well 1.9 mode.
 
     mvn install
 

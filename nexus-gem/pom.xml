@@ -20,6 +20,7 @@
   <url>http://sonatype.org/nexus</url>
 
   <developers>
+    <!-- original author of the gemcutter gem and its tests -->
     <developer>
       <id>nick_at_quaran_dot_to</id>
       <name>Nick Quaranto</name>

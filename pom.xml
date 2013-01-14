@@ -14,8 +14,8 @@
   <description>Nexus Ruby Support</description>
 
   <scm>
-    <connection>git://github.com/cstamas/nexus-ruby-support.git</connection>
-    <url>http://github.com/cstamas/nexus-ruby-support</url>
+    <connection>git://github.com/sonatype/nexus-ruby-support.git</connection>
+    <url>http://github.com/sonatype/nexus-ruby-support</url>
   </scm>
 
   <properties>
