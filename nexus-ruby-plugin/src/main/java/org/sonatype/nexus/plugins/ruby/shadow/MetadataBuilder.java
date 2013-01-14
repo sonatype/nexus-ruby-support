@@ -17,7 +17,7 @@ class MetadataBuilder {
         xml.append("    <versions>\n");
     }
 
-    public void appendVersion( List<String> versions )
+    public void appendVersions( List<String> versions )
     {
         for( String version : versions )
         {

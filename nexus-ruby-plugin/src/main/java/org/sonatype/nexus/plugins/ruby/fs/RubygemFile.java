@@ -79,7 +79,7 @@ public class RubygemFile extends File
 
     public RubygemFile( Gav gav )
     {
-        this( "gems/" + gav.getArtifactId() + "-" + gav.getVersion() + "-java.gem", Type.GEM );
+        this( "/gems/" + gav.getArtifactId() + "-" + gav.getVersion() + "-java.gem", Type.GEM );
         if ( !"rubygems".equals( gav.getGroupId() ) )
         {
             throw new IllegalArgumentException( "only gav with groupId=='rubygems' allowed" );
