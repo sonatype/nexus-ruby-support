@@ -25,10 +25,11 @@ module Nexus
     end
 
     def list_versions( name, source )
+      name = name.to_s
       specs = load_specs( source )
       specs.select do |s|
-        s[0] == name && ( s[2] == 'ruby' || s[2] == 'java' || s[2] == 'jruby' )
-      end.collect { |s| s[1].to_s }.sort.uniq
+        s[0].to_s == name && ( s[2] == 'ruby' || s[2] == 'java' || s[2] == 'jruby' )
+      end.collect { |s| s[1].to_s }.uniq
     end
 
     def empty_specs

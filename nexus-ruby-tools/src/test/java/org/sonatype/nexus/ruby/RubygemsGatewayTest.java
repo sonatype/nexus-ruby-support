@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -52,7 +53,20 @@ public class RubygemsGatewayTest
                 Boolean.class );
         assertTrue( "spec from stream equal spec from gem", equalSpecs );
     }
+    
+    @Test
+    public void testListVersions() throws Exception
+    {
+        File some = new File( "src/test/resources/some_specs" );
+        
+        List<String> versions = gateway.listVersions( "bla_does_not_exist", new FileInputStream( some ) );
+        assertEquals( "versions size", 0, versions.size() );
 
+        versions = gateway.listVersions( "activerecord", new FileInputStream( some ) );
+        assertEquals( "versions size", 1, versions.size() );
+        assertEquals( "version", "3.2.11", versions.get( 0 ) );
+    }
+    
     @Test
     public void testEmptySpecs() throws Exception
     {
