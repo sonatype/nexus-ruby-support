@@ -2,7 +2,6 @@ package org.sonatype.nexus.plugins.ruby.proxy;
 
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.AbstractRubygemsFacade;
-import org.sonatype.nexus.plugins.ruby.fs.GunzipContentGenerator;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
@@ -33,12 +32,6 @@ public class ProxyRubygemsFacade extends AbstractRubygemsFacade {
             SpecsIndexType type, boolean gzipped ) 
             throws ItemNotFoundException, LocalStorageException
     {
-        StorageFileItem result = storage.retrieveSpecsIndex( repository, type, true );
-
-        if ( !gzipped )
-        {
-            result.setContentGeneratorId( GunzipContentGenerator.ID );
-        }
-        return result;
+        return storage.retrieveSpecsIndex( repository, type, gzipped );
     }
 }

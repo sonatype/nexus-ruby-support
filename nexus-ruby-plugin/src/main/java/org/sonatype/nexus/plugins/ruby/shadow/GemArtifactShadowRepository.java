@@ -159,27 +159,6 @@ public class GemArtifactShadowRepository
     {
         return (GemArtifactShadowRepositoryConfiguration) super.getExternalConfiguration( forWrite );
     }
-    
-//    @Override
-//    protected String transformMaster2Shadow(String path) {
-//        throw new RuntimeException( "BUG - code shall never reach here" );
-//    }
-//
-//    @Override
-//    protected String transformShadow2Master(String path)
-//    {
-//        Gav gav = getGavCalculator().pathToGav( path );
-//        RubygemFile gem = new RubygemFile( gav.getArtifactId() + "-" + gav.getVersion() + "-java.gem" );
-//        if ( "gem".equals( gav.getExtension() ) )
-//        {
-//            return gem.getPath();
-//        }
-//        if ( "pom".equals( gav.getExtension() ) )
-//        {
-//            return gem.getGemspecRz();
-//        }
-//        return null;
-//    }
 
     @Override
     public GavCalculator getGavCalculator()
@@ -203,17 +182,20 @@ public class GemArtifactShadowRepository
     {
         try
         { 
-            return super.doRetrieveItemFromMaster( request );
+            StorageItem result = super.doRetrieveItemFromMaster( request );
+            return result;
         }
         catch( ItemNotFoundException e )
         {
-            request.setRequestPath( request.getRequestPath().replace("-java.gem", ".gem") );
-            return super.doRetrieveItemFromMaster( request );
-        }
-        catch( StorageException e )
-        {
-            request.setRequestPath( request.getRequestPath().replace("-java.gem", ".gem") );
-            return super.doRetrieveItemFromMaster( request );
+            if ( request.getRequestPath().contains( "-java.gem") )
+            {
+                request.setRequestPath( request.getRequestPath().replace("-java.gem", ".gem") );
+                return super.doRetrieveItemFromMaster( request );
+            }
+            else
+            {
+                throw e;
+            }
         }
     }
 
@@ -314,12 +296,29 @@ public class GemArtifactShadowRepository
     
     String transformMaster2Shadow( String path )
     {
-        path = path.replace( "-java.gem", ".gem" );
+        if ( path.startsWith( "/quick" ) || path.endsWith( "specs.4.8" ) || path.endsWith( "specs.4.8.gz" ) ) {
+            return null;
+        }
         
         // map /gems/n/nexus-0.1.0.gem => /rubygems/nexus/0.1.0/nexus-0.1.0.gem
-        return path.replaceFirst( "^gems/([a-z]/)?", "rubygems/" )
-                .replace( "-", "/" )
-                .replaceFirst( ".gem$", "/" + FileUtils.filename( path ) );
+        String filename = FileUtils.filename( path.replace( "-java.gem", "" ).replace( ".gem", "" ) );
+        int i = filename.lastIndexOf('-');
+        if ( i < 1 )
+        {
+            getLogger().error("bad path - ignored: " + path );
+            return null;
+        }
+        else
+        {
+            return new StringBuilder( "/rubygems/" )
+                .append( filename.substring( 0, i ) )
+                .append( "/" )
+                .append( filename.substring( i + 1 ) )
+                .append( "/" )
+                .append( filename )
+                .append( ".gem" )
+                .toString();
+        }
     }
     
     @Override
@@ -388,11 +387,10 @@ public class GemArtifactShadowRepository
     public StorageItem retrieveItem( ResourceStoreRequest request )
             throws IllegalOperationException, ItemNotFoundException, StorageException, AccessDeniedException
     {
-
         // METADATA
-        if ( isMavenMetadataPath( request.getRequestPath() ) ){
-
-            String name = request.getRequestPath().replaceFirst( "/rubygems/", "" ).replaceFirst( "maven-metadata.xml$", "" );
+        if ( isMavenMetadataPath( request.getRequestPath() ) && request.getRequestPath().startsWith( "/rubygems/" ) ){
+            
+            String name = request.getRequestPath().replaceFirst( "/rubygems/", "" ).replaceFirst( "/maven-metadata.xml$", "" );
 
             StorageFileItem specsIndex = (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( SpecsIndexType.RELEASE.filepath() ) );
             try
@@ -401,7 +399,7 @@ public class GemArtifactShadowRepository
                 if (item.getModified() < specsIndex.getModified() )
                 {
 
-                    return recreateMetadata( request, name, specsIndex);
+                    return recreateMetadata( request, name, specsIndex );
                     
                 }
                 return item;
@@ -417,7 +415,13 @@ public class GemArtifactShadowRepository
         
         // POM ARTIFACT or GEM ARTIFACT
         Gav gav = getGavCalculator().pathToGav( request.getRequestPath() );
-        if ( gav != null ){
+        if ( gav != null )
+        {
+            if ( !"rubygems".equals( gav.getGroupId() ) )
+            {
+                throw new ItemNotFoundException( request, this ); 
+            }
+        
             try
             {
                 
@@ -449,7 +453,7 @@ public class GemArtifactShadowRepository
                 {
                     try
                     {
-
+                        
                         StorageFileItem item = (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( gem.getGemspecRz() ) );                    
                         return storeXmlContentWithHashes( request, gateway.pom( item.getInputStream() ) );
                         
@@ -465,6 +469,7 @@ public class GemArtifactShadowRepository
                 }
             }
         }
+        
         return super.retrieveItem( request );
     }
 
@@ -473,20 +478,20 @@ public class GemArtifactShadowRepository
             throws IllegalOperationException, ItemNotFoundException {
         try
         {
-        
+            
             MetadataBuilder builder = new MetadataBuilder( name );
-            builder.appendVersion( gateway.listVersions( name, specsIndex.getInputStream() ) );
+            builder.appendVersions( gateway.listVersions( name, specsIndex.getInputStream() ) );
                
             return storeXmlContentWithHashes( request, builder.toString() );
 
         }
-        catch ( IOException ee )
+        catch ( IOException e )
         {
-            throw new ItemNotFoundException( request, this, ee );
+            throw new ItemNotFoundException( request, this, e );
         }
-        catch ( UnsupportedStorageOperationException ee )
+        catch ( UnsupportedStorageOperationException e )
         {
-            throw new ItemNotFoundException( request, this, ee );
+            throw new ItemNotFoundException( request, this, e );
         }
     }
 

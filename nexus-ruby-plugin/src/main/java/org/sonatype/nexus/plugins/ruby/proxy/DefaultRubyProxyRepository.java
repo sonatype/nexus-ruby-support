@@ -1,6 +1,7 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
 import java.util.Arrays;
+import java.util.zip.GZIPInputStream;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -17,10 +18,14 @@ import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
+import org.sonatype.nexus.proxy.item.ContentLocator;
+import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
+import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
@@ -28,6 +33,7 @@ import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
+import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -131,11 +137,36 @@ public class DefaultRubyProxyRepository
                                     .replaceFirst( "/gems/[^/]/", "/gems/" )
                                     .replaceFirst( "/Marshal.4.8/[^/]/", "/Marshal.4.8/" )
                                     .replaceFirst( ".4.8$", ".4.8.gz" ) );
+
             AbstractStorageItem item = super.doRetrieveRemoteItem( req );
-            
-            if ( request.getRequestPath().endsWith( ".4.8" ) ){ 
-                // the stored file is gzipped file so gunzip it 
-                ((StorageFileItem) item).setContentGeneratorId( GunzipContentGenerator.ID );
+
+            if ( req.getRequestPath().endsWith( ".4.8.gz" ) ){
+                
+                
+                try
+                {
+                    ContentLocator contentLocator = new PreparedContentLocator( 
+                            new GZIPInputStream( ((StorageFileItem) item ).getInputStream() ),
+                            "application/x-ruby-marshal" );
+                    
+                    DefaultStorageFileItem specIndex = new DefaultStorageFileItem( this, 
+                            new ResourceStoreRequest( request.getRequestPath().replace( ".gz", "" ) ), 
+                            true, true,
+                            contentLocator );
+                    specIndex.setModified( item.getModified() );
+                    specIndex.setCreated( item.getCreated() );
+                    
+                    getLocalStorage().storeItem( this, specIndex );
+                    
+                    if ( request.getRequestPath().endsWith( ".4.8" ) )
+                    {
+                        item = specIndex;
+                    }
+                }
+                catch( Exception e )
+                {
+                    throw new LocalStorageException( "error writing out gunzip spec index", e );
+                }
             }
             
             item.setResourceStoreRequest(request);
