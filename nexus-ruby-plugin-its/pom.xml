@@ -41,7 +41,7 @@
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-testsuite-support</artifactId>
-      <version>{nexus.version}</version>
+      <version>${nexus.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -49,7 +49,7 @@
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-it-helper-plugin</artifactId>
-      <version>{nexus.version}</version>
+      <version>${nexus.version}</version>
       <classifier>bundle</classifier>
       <type>zip</type>
       <scope>test</scope>
@@ -57,7 +57,7 @@
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-oss-webapp</artifactId>
-      <version>{nexus.version}</version>
+      <version>${nexus.version}</version>
       <classifier>bundle</classifier>
       <type>zip</type>
       <scope>test</scope>
