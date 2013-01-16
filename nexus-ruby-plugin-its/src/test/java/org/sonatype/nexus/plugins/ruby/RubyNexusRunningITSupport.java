@@ -6,7 +6,6 @@ import static org.sonatype.sisu.filetasks.builder.FileRef.file;
 import static org.sonatype.sisu.filetasks.builder.FileRef.path;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -14,7 +13,6 @@ import javax.inject.Inject;
 
 import org.hamcrest.Matcher;
 import org.junit.runners.Parameterized.Parameters;
-import org.sonatype.aether.transfer.ArtifactNotFoundException;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
 import org.sonatype.nexus.client.core.subsystem.content.Content;
 import org.sonatype.nexus.client.core.subsystem.content.Location;
@@ -103,7 +101,7 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
         {
             client().getSubsystem( Content.class ).download( new Location( repoId, name ), target );
         }
-        catch (IOException e)
+        catch (Exception e)
         {
             // just ignore it and let matcher test
         }
