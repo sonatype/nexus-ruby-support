@@ -384,15 +384,57 @@ public class GemArtifactShadowRepository
         req.setRequestPath( path );
     }    
 
+    private StorageItem processMetadata( StorageItem item ) throws IllegalOperationException, ItemNotFoundException, StorageException
+    {
+        ResourceStoreRequest request = item.getResourceStoreRequest();
+        if ( isRubygemsMetadata( request ) ){
+            
+            StorageFileItem specsIndex = storageItemOfSpecsIndex();
+            if (item.getModified() < specsIndex.getModified() )
+            {
+
+                return recreateMetadata( request, gemname( request ), specsIndex );
+                    
+            }
+        }
+        return item;
+    }
+
+    private String gemname(ResourceStoreRequest request) {
+        return request.getRequestPath().replaceFirst( "/rubygems/", "" ).replaceFirst( "/maven-metadata.xml$", "" );
+    }
+
+    private boolean isRubygemsMetadata(ResourceStoreRequest request) {
+        return isMavenMetadataPath( request.getRequestPath() ) && request.getRequestPath().startsWith( "/rubygems/" );
+    }
+    
+    private StorageItem processMetadata( ResourceStoreRequest request ) throws IllegalOperationException, ItemNotFoundException, StorageException
+    {            
+        return recreateMetadata( request, gemname( request ), storageItemOfSpecsIndex() );
+    }
+    
+    public StorageItem retrieveItem( boolean fromTask, ResourceStoreRequest request ) throws StorageException, ItemNotFoundException, IllegalOperationException
+    {
+        try
+        {
+            return processMetadata( super.retrieveItem( fromTask, request ) );
+        }
+        catch( ItemNotFoundException e )
+        {
+            return processMetadata( request );
+        }
+    }
+    
     public StorageItem retrieveItem( ResourceStoreRequest request )
             throws IllegalOperationException, ItemNotFoundException, StorageException, AccessDeniedException
     {
         // METADATA
-        if ( isMavenMetadataPath( request.getRequestPath() ) && request.getRequestPath().startsWith( "/rubygems/" ) ){
+        if ( isRubygemsMetadata( request ) ){
             
-            String name = request.getRequestPath().replaceFirst( "/rubygems/", "" ).replaceFirst( "/maven-metadata.xml$", "" );
+            String name = gemname( request );
 
-            StorageFileItem specsIndex = (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( SpecsIndexType.RELEASE.filepath() ) );
+            StorageFileItem specsIndex = storageItemOfSpecsIndex();
+            
             try
             {
                 StorageFileItem item = (StorageFileItem) super.retrieveItem( request );
@@ -473,14 +515,21 @@ public class GemArtifactShadowRepository
         return super.retrieveItem( request );
     }
 
+    private StorageFileItem storageItemOfSpecsIndex()
+            throws IllegalOperationException, ItemNotFoundException,
+            StorageException {
+        return (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( SpecsIndexType.RELEASE.filepath() ) );
+    }
+
     private StorageItem recreateMetadata(ResourceStoreRequest request,
             String name, StorageFileItem specsIndex)
             throws IllegalOperationException, ItemNotFoundException {
         try
         {
-            
-            MetadataBuilder builder = new MetadataBuilder( name );
-            builder.appendVersions( gateway.listVersions( name, specsIndex.getInputStream() ) );
+
+            long modified = specsIndex.getModified();
+            MetadataBuilder builder = new MetadataBuilder( name, modified );
+            builder.appendVersions( gateway.listVersions( name, specsIndex.getInputStream(), modified ) );
                
             return storeXmlContentWithHashes( request, builder.toString() );
 

@@ -24,12 +24,28 @@ module Nexus
       proj.to_xml
     end
 
-    def list_versions( name, source )
-      name = name.to_s
-      specs = load_specs( source )
-      specs.select do |s|
-        s[0].to_s == name && ( s[2] == 'ruby' || s[2] == 'java' || s[2] == 'jruby' )
-      end.collect { |s| s[1].to_s }.uniq
+    def list_all_versions( name, source )
+      name_versions_map( source )[ name.to_s ]
+    end
+
+    def list_versions( name, source, modified )
+      versions = name_versions_map( source, modified )[ name.to_s ] || []
+      versions = versions.select { |v| v =~ /(-|-ruby|-java|-jruby)$/ }.collect { |v| v.sub( /-.*$/, '' ) }
+      versions.uniq!
+      versions
+    end
+
+    def name_versions_map( source, modified )
+      if @name_versions_map.nil? || @name_versions_map_modified != modified
+        specs = load_specs( source )
+        @name_versions_map = {}
+        specs.select do |s|
+          v = @name_versions_map[ s[0].to_s ] ||= []
+          v << "#{s[1]}-#{s[2]}"
+        end
+        @name_versions_map_modified = modified
+      end
+      @name_versions_map
     end
 
     def empty_specs
@@ -49,6 +65,8 @@ module Nexus
     end
 
     def add_spec( spec, source, type )
+      # refill the map
+      @name_versions_map = nil
       case type.downcase.to_sym
       when :latest
         do_add_spec( spec, source )
@@ -60,6 +78,8 @@ module Nexus
     end
 
     def delete_spec( spec, source )
+      # refill the map
+      @name_versions_map = nil
       specs = load_specs( source )
       old_entry = [ spec.name, spec.version, spec.platform ]
       if specs.member? old_entry

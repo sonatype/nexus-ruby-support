@@ -20,6 +20,6 @@ public interface RubygemsGateway {
 
     InputStream mergeSpecs( InputStream specs, List<InputStream> streams );
 
-    List<String> listVersions( String name, InputStream inputStream );
+    List<String> listVersions( String name, InputStream inputStream, long modified );
 
 }

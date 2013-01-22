@@ -16,6 +16,8 @@ public class DefaultRubygemsGateway
     private JRubyScriptingContainer scriptingContainer;
 
     private final IRubyObject nexusRubygemsClass;
+
+    private Object rubygems;
     
     public DefaultRubygemsGateway()
     {
@@ -33,9 +35,13 @@ public class DefaultRubygemsGateway
         }
     }
     
-    private Object rubygems()
+    private synchronized Object rubygems()
     {
-        return scriptingContainer.callMethod( nexusRubygemsClass, "new", Object.class );
+        if (rubygems == null )
+        { 
+            rubygems = scriptingContainer.callMethod( nexusRubygemsClass, "new", Object.class );
+        }
+        return rubygems;
     }
     
     @Override
@@ -123,11 +129,12 @@ public class DefaultRubygemsGateway
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<String> listVersions(String name, InputStream inputStream) {
+    public List<String> listVersions(String name, InputStream inputStream, long modified ) {
         return (List<String>) scriptingContainer.callMethod( rubygems(), 
                 "list_versions",
                 new Object[] { name,
-                inputStream },
+                               inputStream, 
+                               modified },
                 List.class );
     }
 }

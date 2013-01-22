@@ -59,10 +59,10 @@ public class RubygemsGatewayTest
     {
         File some = new File( "src/test/resources/some_specs" );
         
-        List<String> versions = gateway.listVersions( "bla_does_not_exist", new FileInputStream( some ) );
+        List<String> versions = gateway.listVersions( "bla_does_not_exist", new FileInputStream( some ), 0 );
         assertEquals( "versions size", 0, versions.size() );
 
-        versions = gateway.listVersions( "activerecord", new FileInputStream( some ) );
+        versions = gateway.listVersions( "activerecord", new FileInputStream( some ), 0 );
         assertEquals( "versions size", 1, versions.size() );
         assertEquals( "version", "3.2.11", versions.get( 0 ) );
     }

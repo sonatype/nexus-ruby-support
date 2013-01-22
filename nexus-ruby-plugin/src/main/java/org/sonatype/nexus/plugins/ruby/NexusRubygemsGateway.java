@@ -5,7 +5,7 @@ import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 
 // just make Plexus component out of the DefaultRubygemsGateway
-@Component( role = RubygemsGateway.class, instantiationStrategy = "singleton" )
+@Component( role = RubygemsGateway.class, instantiationStrategy = "per-lookup" )
 public class NexusRubygemsGateway extends DefaultRubygemsGateway
 {    
 }
