@@ -421,7 +421,11 @@ public class GemArtifactShadowRepository
         }
         catch( ItemNotFoundException e )
         {
-            return processMetadata( request );
+            if ( isRubygemsMetadata( request ) )
+            {
+                return processMetadata( request );
+            }
+            throw e;
         }
     }
     
