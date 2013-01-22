@@ -13,7 +13,6 @@ import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHo
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyProxyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
-import org.sonatype.nexus.plugins.ruby.fs.GunzipContentGenerator;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
@@ -33,7 +32,6 @@ import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
-import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -115,11 +113,12 @@ public class DefaultRubyProxyRepository
     {
         if ( item.getName().contains( "specs.4.8" ) )
         {
-            // time in minutes
-            // TODO get the MaxAge for metadate from config
-            return isOld( 360, item );
+            return isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item );
         }
-        return super.isOld( item );
+        else
+        {
+            return isOld( getExternalConfiguration( false ).getArtifactMaxAge(), item );
+        }
     }
 
     @Override
@@ -190,9 +189,24 @@ public class DefaultRubyProxyRepository
         return super.retrieveItem( request );
     }
     
-    @Override
-    public void synchronizeWithRemoteRepository()
+    public int getArtifactMaxAge()
     {
-        throw new RuntimeException("TODO");
+        return getExternalConfiguration( false ).getArtifactMaxAge();
     }
+
+    public void setArtifactMaxAge( int maxAge )
+    {
+        getExternalConfiguration( true ).setArtifactMaxAge( maxAge );
+    }
+
+    public int getMetadataMaxAge()
+    {
+        return getExternalConfiguration( false ).getMetadataMaxAge();
+    }
+
+    public void setMetadataMaxAge( int metadataMaxAge )
+    {
+        getExternalConfiguration( true ).setMetadataMaxAge( metadataMaxAge );
+    }
+
 }

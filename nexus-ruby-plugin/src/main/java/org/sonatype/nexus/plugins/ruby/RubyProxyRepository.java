@@ -7,8 +7,11 @@ public interface RubyProxyRepository
     extends RubyRepository, ProxyRepository
 {
 
-    /**
-     * Triggers syncing with remote repository.
-     */
-    void synchronizeWithRemoteRepository();
+    int getArtifactMaxAge();
+
+    void setArtifactMaxAge( int maxAge );
+
+    int getMetadataMaxAge();
+
+    void setMetadataMaxAge( int metadataMaxAge );
 }
