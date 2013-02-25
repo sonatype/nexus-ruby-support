@@ -32,6 +32,7 @@ import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.nexus.proxy.repository.GroupRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
@@ -144,7 +145,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         {
             if ( request.getRequestPath().startsWith( "/api/v1/" ) )
             {
-                if ( request.getRequestPath().startsWith( "/api/v1/dependencies" ) && request.getRequestUrl().contains( "?gems=" ) )
+                if ( request.getRequestPath().startsWith( "/api/v1/dependencies" ) && request.getRequestUrl().contains( "?gems=" ) && ! ( repository instanceof GroupRepository ) )
                 {
                     if (getLogger().isDebugEnabled() )
                     {
@@ -158,7 +159,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                     }
                     StorageFileItem specs = retrieveSpecsIndex( rubyRepository, SpecsIndexType.RELEASE ); 
                     StorageFileItem prereleasedSpecs = retrieveSpecsIndex( rubyRepository, SpecsIndexType.PRERELEASE );
-                    File cacheDir = getFileFromBase( rubyRepository, new ResourceStoreRequest( NEXUS_PREFIX + "/dependencies_cache" ) );
+                    File cacheDir = getFileFromBase( rubyRepository, new ResourceStoreRequest( "/api/v1/dependencies" ) );
                     cacheDir.mkdirs();
                     try
                     {
