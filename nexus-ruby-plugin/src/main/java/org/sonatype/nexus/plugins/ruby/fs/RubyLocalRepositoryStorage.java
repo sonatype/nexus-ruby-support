@@ -16,7 +16,7 @@ import org.sonatype.nexus.ruby.SpecsIndexType;
 public interface RubyLocalRepositoryStorage extends LocalRepositoryStorage
 {
     
-    StorageFileItem retrieveSpecsIndex( RubyRepository repository, SpecsIndexType type, boolean gzipped ) 
+    StorageFileItem retrieveSpecsIndex( RubyRepository repository, SpecsIndexType type )
             throws LocalStorageException, ItemNotFoundException;
     
     void storeSpecsIndex( RubyRepository repository, SpecsIndexType type, InputStream content ) 

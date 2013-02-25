@@ -1,7 +1,6 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
 import java.util.Arrays;
-import java.util.zip.GZIPInputStream;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -17,14 +16,9 @@ import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
-import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
-import org.sonatype.nexus.proxy.item.ContentLocator;
-import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
-import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
@@ -113,7 +107,16 @@ public class DefaultRubyProxyRepository
     {
         if ( item.getName().contains( "specs.4.8" ) )
         {
-            return isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item );
+            if (item.getName().endsWith( ".gz" ) )
+            {
+                getLogger().info( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item ) );
+                return isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item );
+            }
+            else
+            {
+                // whenever there is retrieve call to unzipped version it will be preceeded by call to zipped file
+                return false;
+            }
         }
         else
         {
@@ -121,74 +124,52 @@ public class DefaultRubyProxyRepository
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected AbstractStorageItem doRetrieveRemoteItem(
             ResourceStoreRequest request ) throws ItemNotFoundException,
-            RemoteAccessException, StorageException {
-        if ( request.getRequestPath().startsWith( "/api/v1/" ) )
+            RemoteAccessException, org.sonatype.nexus.proxy.StorageException {
+        if ( request.getRequestPath().startsWith( "/api/" ) )
         {
             throw new ItemNotFoundException( request );
         }
         else
         {
-            ResourceStoreRequest req = new ResourceStoreRequest( request );
-            req.setRequestPath( request.getRequestPath()
-                                    .replaceFirst( "/gems/[^/]/", "/gems/" )
-                                    .replaceFirst( "/Marshal.4.8/[^/]/", "/Marshal.4.8/" )
-                                    .replaceFirst( ".4.8$", ".4.8.gz" ) );
+            ResourceStoreRequest req = new ResourceStoreRequest( request.getRequestPath()
+                                                                    .replaceFirst( "/gems/[^/]/", "/gems/" )
+                                                                    .replaceFirst( "/Marshal.4.8/[^/]/", "/Marshal.4.8/" )
+                                                                    .replaceFirst( ".4.8$", ".4.8.gz" ) );
 
             AbstractStorageItem item = super.doRetrieveRemoteItem( req );
-
-            if ( req.getRequestPath().endsWith( ".4.8.gz" ) ){
-                
-                
-                try
-                {
-                    ContentLocator contentLocator = new PreparedContentLocator( 
-                            new GZIPInputStream( ((StorageFileItem) item ).getInputStream() ),
-                            "application/x-ruby-marshal" );
-                    
-                    DefaultStorageFileItem specIndex = new DefaultStorageFileItem( this, 
-                            new ResourceStoreRequest( request.getRequestPath().replace( ".gz", "" ) ), 
-                            true, true,
-                            contentLocator );
-                    specIndex.setModified( item.getModified() );
-                    specIndex.setCreated( item.getCreated() );
-                    
-                    getLocalStorage().storeItem( this, specIndex );
-                    
-                    if ( request.getRequestPath().endsWith( ".4.8" ) )
-                    {
-                        item = specIndex;
-                    }
-                }
-                catch( Exception e )
-                {
-                    throw new LocalStorageException( "error writing out gunzip spec index", e );
-                }
-            }
-            
-            item.setResourceStoreRequest(request);
-            item.setPath(request.getRequestPath());
+            item.setResourceStoreRequest( request );
+            item.setPath( request.getRequestPath() );
             return item;
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    public StorageItem retrieveItem(
-            ResourceStoreRequest request ) throws AccessDeniedException, IllegalOperationException, 
-            ItemNotFoundException, RemoteAccessException , StorageException {
-        SpecsIndexType type = SpecsIndexType.fromFilename( request.getRequestPath() );
+    public StorageItem retrieveItem(ResourceStoreRequest request)
+            throws AccessDeniedException, IllegalOperationException,
+            ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+    {
+        SpecsIndexType type = SpecsIndexType.fromFilename(request.getRequestPath());
 
-        if ( type != null && !request.getRequestPath().endsWith( ".gz" ) )
+        if (type != null && !request.getRequestPath().endsWith(".gz"))
         {
-            // make sure the gzipped version of the file is downloaded and cached
-            super.retrieveItem( new ResourceStoreRequest( request.getRequestPath() + ".gz" ) );
+            // make sure we have the gzipped file in place
+            super.retrieveItem( new ResourceStoreRequest( type.filepathGzipped() ) );
         }
-
-        return super.retrieveItem( request );
+        else if ( request.getRequestPath().startsWith( "/api/" ) )
+        {
+            // make sure we have the specs-index files in place
+            super.retrieveItem( new ResourceStoreRequest( SpecsIndexType.RELEASE.filepathGzipped() ) );
+            super.retrieveItem( new ResourceStoreRequest( SpecsIndexType.PRERELEASE.filepathGzipped() ) );
+        }
+        
+        return super.retrieveItem(request);
     }
-    
+
     public int getArtifactMaxAge()
     {
         return getExternalConfiguration( false ).getArtifactMaxAge();
@@ -209,4 +190,13 @@ public class DefaultRubyProxyRepository
         getExternalConfiguration( true ).setMetadataMaxAge( metadataMaxAge );
     }
 
+    @SuppressWarnings("deprecation")
+    public StorageFileItem retrieveGemspec(String name) 
+            throws AccessDeniedException, IllegalOperationException, org.sonatype.nexus.proxy.StorageException, ItemNotFoundException
+    {
+        getLogger().error("name " + name);
+        StorageFileItem item = (StorageFileItem) retrieveItem(new ResourceStoreRequest( "quick/Marshal.4.8/" + name + ".gemspec.rz" ) );
+        getLogger().error("item " + item);
+        return item;
+    }
 }

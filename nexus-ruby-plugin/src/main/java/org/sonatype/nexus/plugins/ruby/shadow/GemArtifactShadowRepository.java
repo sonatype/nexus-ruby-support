@@ -182,8 +182,7 @@ public class GemArtifactShadowRepository
     {
         try
         { 
-            StorageItem result = super.doRetrieveItemFromMaster( request );
-            return result;
+            return super.doRetrieveItemFromMaster( request );
         }
         catch( ItemNotFoundException e )
         {
@@ -222,6 +221,7 @@ public class GemArtifactShadowRepository
 
     @Override
     public boolean recreateMavenMetadata(ResourceStoreRequest request) {
+        // TODO ???
         return false;
     }
     
@@ -259,7 +259,8 @@ public class GemArtifactShadowRepository
             InputStream is, Map<String, String> userAttributes)
             throws UnsupportedStorageOperationException, ItemNotFoundException,
             IllegalOperationException, StorageException, AccessDeniedException {
-        getArtifactStoreHelper().storeItemWithChecksums(request, is, userAttributes);
+        getLogger().error( "shadow " + request + " with checksum");
+        getArtifactStoreHelper().storeItemWithChecksums( request, is, userAttributes );
     }
 
     @Override
@@ -274,6 +275,7 @@ public class GemArtifactShadowRepository
             AbstractStorageItem item)
             throws UnsupportedStorageOperationException,
             IllegalOperationException, StorageException {
+        getLogger().error( "shadow " + item + " with checksum");
         getArtifactStoreHelper().storeItemWithChecksums( fromTask, item );
     }
 
@@ -384,12 +386,15 @@ public class GemArtifactShadowRepository
         req.setRequestPath( path );
     }    
 
-    private StorageItem processMetadata( StorageItem item ) throws IllegalOperationException, ItemNotFoundException, StorageException
+    private StorageItem processMetadata( StorageItem item ) 
+            throws IllegalOperationException, ItemNotFoundException, StorageException
     {
         ResourceStoreRequest request = item.getResourceStoreRequest();
         if ( isRubygemsMetadata( request ) ){
             
             StorageFileItem specsIndex = storageItemOfSpecsIndex();
+            getLogger().error( "metadata " + item.getModified());
+            getLogger().error( "specs.4.8 " + specsIndex.getModified());
             if (item.getModified() < specsIndex.getModified() )
             {
 
@@ -405,15 +410,19 @@ public class GemArtifactShadowRepository
     }
 
     private boolean isRubygemsMetadata(ResourceStoreRequest request) {
-        return isMavenMetadataPath( request.getRequestPath() ) && request.getRequestPath().startsWith( "/rubygems/" );
+        return isMavenMetadataPath( request.getRequestPath() ) && 
+                request.getRequestPath().startsWith( "/rubygems/" ) && 
+                request.getRequestPath().endsWith( ".xml" );
     }
     
-    private StorageItem processMetadata( ResourceStoreRequest request ) throws IllegalOperationException, ItemNotFoundException, StorageException
+    private StorageItem processMetadata( ResourceStoreRequest request ) 
+            throws IllegalOperationException, ItemNotFoundException, StorageException
     {            
         return recreateMetadata( request, gemname( request ), storageItemOfSpecsIndex() );
     }
     
-    public StorageItem retrieveItem( boolean fromTask, ResourceStoreRequest request ) throws StorageException, ItemNotFoundException, IllegalOperationException
+    public StorageItem retrieveItem( boolean fromTask, ResourceStoreRequest request ) 
+            throws StorageException, ItemNotFoundException, IllegalOperationException
     {
         try
         {
@@ -484,7 +493,34 @@ public class GemArtifactShadowRepository
                 
                     try {
                         
-                        StorageItem item = doRetrieveItemFromMaster( new ResourceStoreRequest( gem.getPath() ) );                                            
+                        StorageItem item;
+                        try
+                        {
+
+                            // first try to get version the java platform
+                            // bit tricky since that gem could be uploaded last and then race conditions
+                            // can take place.
+                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( gem.getPath() ) );
+
+                        }
+                        catch( ItemNotFoundException ee )
+                        {
+                            
+                            try 
+                            {
+
+                                String path = gem.getPath().replaceFirst( "-java.gem$", ".gem" ); 
+                                item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
+
+                            }
+                            catch( ItemNotFoundException eee )
+                            {
+                                // like https://rubygems.org/quick/Marshal.4.8/therubyrhino-1.72.4-jruby.gem
+                                String path = gem.getPath().replaceFirst( "-java.gem$", "-jruby.gem" );       
+                                item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
+                            }
+                            
+                        }
                         return createLink( item );
                         
                     }
@@ -497,20 +533,45 @@ public class GemArtifactShadowRepository
                 // POM ARTIFACT
                 if ( "pom".equals( gav.getExtension() ) )
                 {
+                    StorageItem item; 
                     try
                     {
+
+                        item = (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( gem.getGemspecRz() ) );
                         
-                        StorageFileItem item = (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( gem.getGemspecRz() ) );                    
-                        return storeXmlContentWithHashes( request, gateway.pom( item.getInputStream() ) );
-                        
+
                     }
-                    catch ( IOException ee )
+                    catch( ItemNotFoundException ee )
                     {
-                        throw new ItemNotFoundException( request, this, ee );
+                        
+                        try 
+                        {
+                            
+                            String path = gem.getGemspecRz().replaceFirst( "-java.gemspec.rz$", ".gemspec.rz" ); 
+                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
+
+                        }
+                        catch( ItemNotFoundException eee )
+                        {
+                            // like https://rubygems.org/quick/Marshal.4.8/therubyrhino-1.72.4-jruby.gemspec.rz
+                            String path = gem.getGemspecRz().replaceFirst( "-java.gemspec.rz$", "-jruby.gemspec.rz" );       
+                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
+                        }
+                      
+                    }
+                    try 
+                    {
+                    
+                        return storeXmlContentWithHashes( request, gateway.pom( ( (StorageFileItem) item ).getInputStream() ) );
+
+                    }
+                    catch ( IOException ioe )
+                    {
+                        throw new ItemNotFoundException( request, this, ioe );
                     } 
-                    catch ( UnsupportedStorageOperationException ee )
+                    catch ( UnsupportedStorageOperationException usoe )
                     {
-                        throw new ItemNotFoundException( request, this, ee );
+                        throw new ItemNotFoundException( request, this, usoe );
                     } 
                 }
             }
@@ -522,7 +583,7 @@ public class GemArtifactShadowRepository
     private StorageFileItem storageItemOfSpecsIndex()
             throws IllegalOperationException, ItemNotFoundException,
             StorageException {
-        return (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( SpecsIndexType.RELEASE.filepath() ) );
+        return (StorageFileItem) super.doRetrieveItemFromMaster( new ResourceStoreRequest( SpecsIndexType.RELEASE.filepath() ) );
     }
 
     private StorageItem recreateMetadata(ResourceStoreRequest request,
@@ -533,7 +594,10 @@ public class GemArtifactShadowRepository
 
             long modified = specsIndex.getModified();
             MetadataBuilder builder = new MetadataBuilder( name, modified );
+
+            long start = System.currentTimeMillis();
             builder.appendVersions( gateway.listVersions( name, specsIndex.getInputStream(), modified ) );
+            getLogger().warn( "versions " + (System.currentTimeMillis() - start ) + " " + modified + " " + gateway.hashCode());
                
             return storeXmlContentWithHashes( request, builder.toString() );
 

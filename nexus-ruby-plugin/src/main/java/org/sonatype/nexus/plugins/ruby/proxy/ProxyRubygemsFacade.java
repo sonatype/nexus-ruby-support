@@ -3,11 +3,8 @@ package org.sonatype.nexus.plugins.ruby.proxy;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.AbstractRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
-import org.sonatype.nexus.proxy.ItemNotFoundException;
-import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.ruby.RubygemsGateway;
-import org.sonatype.nexus.ruby.SpecsIndexType;
 
 public class ProxyRubygemsFacade extends AbstractRubygemsFacade {
     
@@ -22,16 +19,9 @@ public class ProxyRubygemsFacade extends AbstractRubygemsFacade {
     }
     
     @Override
-    public void removeGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )
+    public boolean removeGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )
     {
         //nothing to do
-    }
-    
-    @Override
-    public StorageFileItem retrieveSpecsIndex( RubyLocalRepositoryStorage storage, 
-            SpecsIndexType type, boolean gzipped ) 
-            throws ItemNotFoundException, LocalStorageException
-    {
-        return storage.retrieveSpecsIndex( repository, type, gzipped );
+        return false;
     }
 }

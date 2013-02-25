@@ -1,7 +1,6 @@
 package org.sonatype.nexus.plugins.ruby.group;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
@@ -19,13 +18,14 @@ import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
+import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.nexus.proxy.item.StorageLinkItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractGroupRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
-import org.sonatype.nexus.proxy.repository.GroupItemNotFoundException;
 import org.sonatype.nexus.proxy.repository.GroupRepository;
+import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.RubygemsGateway;
@@ -107,9 +107,12 @@ public class DefaultRubyGroupRepository
 
     // ==
 
+    @SuppressWarnings("deprecation")
     @Override
     public StorageItem retrieveItem( ResourceStoreRequest request )
-            throws AccessDeniedException, ItemNotFoundException, IllegalOperationException, StorageException {
+            throws AccessDeniedException, ItemNotFoundException, IllegalOperationException,
+                    org.sonatype.nexus.proxy.StorageException
+    {
         SpecsIndexType type = SpecsIndexType.fromFilename( request.getRequestPath() );
         if ( type == null )
         {
@@ -117,19 +120,34 @@ public class DefaultRubyGroupRepository
         }
         else
         {
-            //boolean gzipped = request.getRequestPath().endsWith( ".gz" );
             RubyLocalRepositoryStorage storage = (RubyLocalRepositoryStorage) getLocalStorage();
-            try {
+            try
+            {
+
                 storage.storeSpecsIndeces( this, type, 
-                        doRetrieveItems( new ResourceStoreRequest( request.getRequestPath().replace(".gz", "" ) ) ) );
-                return super.retrieveItem( request );
-            } catch (ItemNotFoundException e) {
-                // TODO maybe do the member reason
-                throw new GroupItemNotFoundException( request, this, Collections.EMPTY_MAP );
-            } catch (UnsupportedStorageOperationException e) {
-                // TODO maybe do the member reason
-                throw new GroupItemNotFoundException( request, this, Collections.EMPTY_MAP );
+                        doRetrieveItems( new ResourceStoreRequest( type.filepathGzipped() ) ) );
+                
+            }
+            catch (UnsupportedStorageOperationException e) {
+                throw new RuntimeException( "BUG : you have permissions to retrieve data but can not write", e );
+            }
+            return super.retrieveItem( request );
+        }
+    }
+    
+    @SuppressWarnings("deprecation")
+    public StorageFileItem retrieveGemspec(String name) 
+            throws AccessDeniedException, IllegalOperationException, org.sonatype.nexus.proxy.StorageException, ItemNotFoundException
+    {
+        String path = "quick/Marshal.4.8/" + name + ".gemspec.rz";
+        StorageLinkItem item = (StorageLinkItem) retrieveItem( new ResourceStoreRequest( path ) );
+        for( Repository repository: getMemberRepositories() )
+        {
+            if( repository.getId().equals( item.getRepositoryId() ) )
+            {
+                return (StorageFileItem) repository.retrieveItem( new ResourceStoreRequest( path ) );
             }
         }
+        throw new RuntimeException( "BUG: failed to find repository for link: " + item );
     }
  }

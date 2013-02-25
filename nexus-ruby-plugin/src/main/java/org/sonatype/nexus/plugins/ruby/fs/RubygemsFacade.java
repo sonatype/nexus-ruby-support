@@ -1,6 +1,8 @@
 package org.sonatype.nexus.plugins.ruby.fs;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import org.sonatype.nexus.proxy.ItemNotFoundException;
@@ -15,7 +17,7 @@ public interface RubygemsFacade {
     void addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )
             throws UnsupportedStorageOperationException, LocalStorageException;
 
-    void removeGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )
+    boolean removeGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )
             throws UnsupportedStorageOperationException, LocalStorageException;
 
     void mergeSpecsIndex( RubyLocalRepositoryStorage storage,
@@ -23,8 +25,12 @@ public interface RubygemsFacade {
                     throws UnsupportedStorageOperationException, 
                     LocalStorageException, IOException;
 
-    StorageFileItem retrieveSpecsIndex( RubyLocalRepositoryStorage storage,
-            SpecsIndexType type, boolean gzipped )
-                    throws ItemNotFoundException, LocalStorageException;
+    RubygemFile deletableFile( String path );
+
+    @SuppressWarnings("deprecation")
+    InputStream bundlerDependencies( StorageFileItem specs, long modified,
+            StorageFileItem prereleasedSpecs, long prereleasedModified,
+            File cacheDir, String... gemnames )
+                    throws ItemNotFoundException, org.sonatype.nexus.proxy.StorageException, IOException;
 
 }
