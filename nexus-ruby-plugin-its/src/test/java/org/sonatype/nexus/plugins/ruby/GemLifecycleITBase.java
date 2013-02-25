@@ -16,7 +16,7 @@ import org.sonatype.nexus.testsuite.support.NexusStartAndStopStrategy;
 // running 3 or more tests in one go produces Errno::EBADF: Bad file descriptor - Bad file descriptor
 // so run each test in its own forked jvm :(
 //@RunWith(value = Parameterized.class)
-public class GemLifecycleITBase extends RubyNexusRunningITSupport
+public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
 {
     
     public GemLifecycleITBase( String repoId ) {
@@ -28,23 +28,62 @@ public class GemLifecycleITBase extends RubyNexusRunningITSupport
     {
         File nexusGem = installLatestNexusGem();
         
+        String gemName = "gems/" + nexusGem.getName();
+        String gemspecName = "quick/Marshal.4.8/" + nexusGem.getName() + "spec.rz";
+        
         // make sure our gem is not on the repository
-        File gem = nexusGem;
-        assertFileDownload( "gems/" + gem.getName(), is( false ) );
-        assertFileDownload( "quick/Marshal.4.8/" + gem.getName() + "spec.rz", is( false ) );
+        assertFileDownload( gemName, is( false ) );
+        assertFileDownload( gemspecName, is( false ) );
 
         // upload gem to gemshost - repoId is hardcoded into config-file
         File config = testData().resolveFile( ".gem/nexus" );
-        assertThat( lastLine( gemRunner().nexus( config, gem ) ), equalTo( "Created" ) );
-        assertThat( lastLine( gemRunner().nexus( config, gem ) ), endsWith( "not allowed" ) );
+        assertThat( lastLine( gemRunner().nexus( config, nexusGem ) ), equalTo( "Created" ) );
+        assertThat( lastLine( gemRunner().nexus( config, nexusGem ) ), endsWith( "not allowed" ) );
 
-        assertFileDownload( "gems/" + gem.getName(), is( true ) );
-        assertFileDownload( "quick/Marshal.4.8/" + gem.getName() + "spec.rz", is( true ) );
+        assertFileDownload( gemName, is( true ) );
+        assertFileDownload( gemspecName, is( true ) );
         
         // now we have one remote gem
         assertThat( numberOfLines( gemRunner().list( repoId ) ), is( 1 ) );
 
         // reinstall the gem from repository
         assertThat( lastLine( gemRunner().install( repoId, "nexus" ) ), equalTo( "1 gem installed" ) );
+        
+        moreAsserts( gemName, gemspecName );
+    }
+    
+    abstract void moreAsserts( String gemName, String gemspecName );
+    
+    void deleteHostedFiles( String gemName, String gemspecName )
+    {
+        // can not delete gemspec files
+        assertFileRemoval( gemspecName, is( false ) );
+
+        assertFileDownload( gemName, is( true ) );
+        assertFileDownload( gemspecName, is( true ) );
+
+        // can delete gem files which also deletes the associated gemspec file
+        assertFileRemoval( gemName, is( true ) );
+
+        assertFileDownload( gemName, is( false ) );
+        assertFileDownload( gemspecName, is( false ) );
+        
+        // TODO specs index files
+    }
+
+    void deleteProxiedFiles( String gemName, String gemspecName )
+    {
+        // an delete any file
+        assertFileRemoval( gemspecName, is( true ) );
+        assertFileRemoval( gemspecName, is( false ) );
+
+        assertFileRemoval( gemName, is( true ) );
+        assertFileRemoval( gemName, is( false ) );
+
+        // after delete the file will be fetched from the source again
+        assertFileDownload( gemName, is( true ) );
+        assertFileDownload( gemspecName, is( true ) );
+        
+        // TODO specs index files
     }
 }

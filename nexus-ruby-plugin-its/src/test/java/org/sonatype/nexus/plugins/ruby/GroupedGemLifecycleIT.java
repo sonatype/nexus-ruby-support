@@ -6,4 +6,9 @@ public class GroupedGemLifecycleIT extends GemLifecycleITBase
     {
         super( "gemsgroup" );
     }
+    
+    void moreAsserts(String gemName, String gemspecName )
+    {
+        // TODO
+    }
 }

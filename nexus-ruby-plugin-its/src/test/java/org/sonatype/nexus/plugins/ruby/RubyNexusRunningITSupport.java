@@ -112,6 +112,19 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
         return target;
     }
 
+    protected void assertFileRemoval(String name, Matcher<Boolean> matcher) {
+        try
+        {
+            client().getSubsystem( Content.class ).delete( new Location( repoId, name ) );
+            assertThat( true, matcher );
+        }
+        catch (Exception e)
+        {
+            // just ignore it and let matcher test
+            assertThat( false, matcher );
+        }
+    }
+
     @Override
     protected NexusBundleConfiguration configureNexus( final NexusBundleConfiguration configuration ) {
         return configuration

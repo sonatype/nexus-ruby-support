@@ -3,6 +3,7 @@ package org.sonatype.nexus.plugins.ruby;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.not;
 import static org.sonatype.nexus.ruby.TestUtils.lastLine;
 import static org.sonatype.sisu.filetasks.builder.FileRef.file;
 import static org.sonatype.sisu.filetasks.builder.FileRef.path;
@@ -40,7 +41,12 @@ public class BundleITBase extends RubyNexusRunningITSupport
         assertThat( bundleRunner().config(), containsString( "mirror.http://rubygems.org" ) );
         assertThat( bundleRunner().config(), containsString( "http://localhost:4711/nexus/content/repositories/" + repoId ) );
         
-        assertThat( lastLine( bundleRunner().install() ), startsWith( "Your bundle is complete!" ) );
+        String out = bundleRunner().install();
+       
+        assertThat( lastLine( out ), startsWith( "Your bundle is complete!" ) );
+        
+        // assure that bundle support is working
+        assertThat( out, not( containsString( "Fetching full source index from http://localhost:4711" ) ) );
     }
     
     @Override

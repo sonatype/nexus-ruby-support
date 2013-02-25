@@ -6,4 +6,9 @@ public class ProxiedGroupGemLifecycleIT extends GemLifecycleITBase
     {
         super( "gemsproxygroup" );
     }
+    
+    void moreAsserts( String gemName, String gemspecName )
+    {
+        // TODO
+    }
 }

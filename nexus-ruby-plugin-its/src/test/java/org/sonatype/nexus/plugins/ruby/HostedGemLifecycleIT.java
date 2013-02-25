@@ -6,4 +6,9 @@ public class HostedGemLifecycleIT extends GemLifecycleITBase
     {
         super( "gemshost" );
     }
+    
+    void moreAsserts(String gemName, String gemspecName )
+    {
+        deleteHostedFiles( gemName, gemspecName );
+    }
 }
