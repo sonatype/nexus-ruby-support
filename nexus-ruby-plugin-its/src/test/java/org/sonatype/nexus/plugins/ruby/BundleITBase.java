@@ -2,8 +2,8 @@ package org.sonatype.nexus.plugins.ruby;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 import static org.sonatype.nexus.ruby.TestUtils.lastLine;
 import static org.sonatype.sisu.filetasks.builder.FileRef.file;
 import static org.sonatype.sisu.filetasks.builder.FileRef.path;
@@ -13,6 +13,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
+import org.sonatype.nexus.client.core.subsystem.repository.Repositories;
 import org.sonatype.nexus.testsuite.support.NexusStartAndStopStrategy;
 
 @NexusStartAndStopStrategy( NexusStartAndStopStrategy.Strategy.EACH_METHOD )
@@ -47,6 +48,8 @@ public class BundleITBase extends RubyNexusRunningITSupport
         
         // assure that bundle support is working
         assertThat( out, not( containsString( "Fetching full source index from http://localhost:4711" ) ) );
+        
+        // TODO check storage to be empty
     }
     
     @Override

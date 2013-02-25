@@ -156,11 +156,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                     {
                         gemnames = new String[ 0 ];
                     }
-                    getLogger().error( "-------------------------- specs");
                     StorageFileItem specs = retrieveSpecsIndex( rubyRepository, SpecsIndexType.RELEASE ); 
-                    getLogger().error( "specs " + specs );
                     StorageFileItem prereleasedSpecs = retrieveSpecsIndex( rubyRepository, SpecsIndexType.PRERELEASE );
-                    getLogger().error( "prespecs " + prereleasedSpecs );
                     File cacheDir = getFileFromBase( rubyRepository, new ResourceStoreRequest( NEXUS_PREFIX + "/dependencies_cache" ) );
                     cacheDir.mkdirs();
                     try
@@ -172,10 +169,12 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                         File tmpDir = getFileFromBase(rubyRepository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX ) );
                         File tmpFile = File.createTempFile( "bundler-", ".json", tmpDir );
                         IOUtil.copy(content, new FileOutputStream(tmpFile));
-                        // TODO ContentGenerator loads file into memory and deletes file
-                        return super.retrieveItem( repository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX + tmpFile.getName(), 
+                        AbstractStorageItem item = 
+                                super.retrieveItem( repository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX + tmpFile.getName(), 
                                                                                            true, false ) );
-                        
+                        ((StorageFileItem) item).setContentGeneratorId( TempFileContentGenerator.ID );
+                        item.getItemContext().put( TempFileContentGenerator.BUNLDER_TMP_FILE, tmpFile);
+                        return item;
                     }
                     catch ( IOException e )
                     {
@@ -196,10 +195,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 }
                 else
                 {
-                    getLogger().error( "restrieve ------> " + request );
-                    return (AbstractStorageItem) retrieveSpecsIndex( rubyRepository, type ); 
-                            //request.getRequestPath().endsWith( ".gz" ) );
-                    
+                    return (AbstractStorageItem) retrieveSpecsIndex( rubyRepository, type );                     
                 }
             }
             return super.retrieveItem( repository, fixPath( request ) );            
@@ -266,7 +262,6 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             if ( to.getRequestPath().startsWith( NEXUS_TRASH_PREFIX ) && ! from.getRequestPath().contains( NEXUS_PREFIX ) )
             {
                 RubygemFile file = rubyRepository.getRubygemsFacade().deletableFile( from.getRequestPath() );
-                getLogger().error("==========================>" + file);
                 if ( file != null && file.getType() == Type.GEM )
                 {
                     
@@ -332,7 +327,6 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             }
         }
         ResourceStoreRequest request = new ResourceStoreRequest( type.filepathGzipped() );
-        getLogger().error( "load specs " + request );
         StorageFileItem item = (StorageFileItem) super.retrieveItem( repository,  request );
         DefaultStorageFileItem unzippedItem = new DefaultStorageFileItem( repository, 
                 new ResourceStoreRequest( type.filepath(), true, false ), 
