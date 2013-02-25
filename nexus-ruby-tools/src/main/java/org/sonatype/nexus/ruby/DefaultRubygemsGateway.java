@@ -1,5 +1,6 @@
 package org.sonatype.nexus.ruby;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,12 +46,15 @@ public class DefaultRubygemsGateway
     }
     
     @Override
-    public InputStream createGemspecRz( InputStream gem ) throws IOException
+    public InputStream createGemspecRz( String gemname, InputStream gem ) throws IOException
     {
         @SuppressWarnings( "unchecked" )
         List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(), 
                 "create_quick", 
-                gem, 
+                new Object[] {
+                    gemname,
+                    gem 
+                },
                 List.class );
         
         return new ByteArrayInputStream( array );
@@ -136,5 +140,17 @@ public class DefaultRubygemsGateway
                                inputStream, 
                                modified },
                 List.class );
+    }
+    
+    @Override
+    public BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
+            InputStream prereleasedSpecs, long prereleasedModified,
+            File cacheDir ) {
+        Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
+            "dependencies", 
+            new Object[] { specs, modified, prereleasedSpecs, prereleasedModified, cacheDir.getAbsolutePath() },
+            Object.class );
+
+        return new BundlerDependencies(scriptingContainer, bundlerDeps);
     }
 }

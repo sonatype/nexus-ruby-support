@@ -1,12 +1,17 @@
 require 'rubygems'
 require 'rubygems/format'
 require 'maven/tools/minimal_project'
+require 'json'
+require 'nexus/bundler_dependencies'
 
 module Nexus
   class Rubygems
 
-    def create_quick( gemfile )
-      Gem.deflate( Marshal.dump( spec_get( gemfile ) ) ).bytes.to_a
+    def create_quick( gemname, gemfile )
+      spec = spec_get( gemfile )
+      expected = spec.name + "-" + spec.version.to_s + ".gem"
+      raise "mismatched filename: expected #{expected} but got #{gemname}" if gemname != expected
+      Gem.deflate( Marshal.dump( spec ) ).bytes.to_a
     end
 
     def spec_get( gemfile )
@@ -24,8 +29,11 @@ module Nexus
       proj.to_xml
     end
 
-    def list_all_versions( name, source )
-      name_versions_map( source )[ name.to_s ]
+    def dependencies( specs, modified, 
+                      prereleased_specs, prereleased_modified, 
+                      cache_dir )
+      BundlerDependencies.new( name_versions_map( specs, modified ), 
+                               cache_dir )
     end
 
     def list_versions( name, source, modified )

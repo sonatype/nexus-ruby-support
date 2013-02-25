@@ -35,7 +35,7 @@ public class RubygemsGatewayTest
     {
         String gem = "src/test/resources/gems/n/nexus-0.1.0.gem";
         
-        InputStream is = gateway.createGemspecRz( new FileInputStream( gem ) );
+        InputStream is = gateway.createGemspecRz( "nexus-0.1.0.gem", new FileInputStream( gem ) );
         int c = is.read();
         String gemspecPath = "target/nexus-0.1.0.gemspec.rz";
         FileOutputStream out = new FileOutputStream( gemspecPath );
