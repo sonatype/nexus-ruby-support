@@ -45,7 +45,7 @@ public class DownloadsOnEmptyRepositoriesIT extends RubyNexusRunningITSupport
 
     private void assertSpecsIndexdownload( String name )
             throws IOException {
-        assertFileDownload( "/" + name + ".4.8.gz", is( true) );
         assertFileDownload( "/" + name + ".4.8", is( true ) );
+        assertFileDownload( "/" + name + ".4.8.gz", is( true) );
     }
 }
