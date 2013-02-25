@@ -20,6 +20,11 @@ public enum SpecsIndexType {
         return "/" + filename();
     }
     
+    public String filepathGzipped()
+    {
+        return filepath() + ".gz";
+    }
+    
     public static SpecsIndexType fromFilename( String name )
     {
         try
