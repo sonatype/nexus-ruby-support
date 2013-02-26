@@ -1,15 +1,16 @@
 package org.sonatype.nexus.plugins.ruby.fs;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
+import org.sonatype.nexus.proxy.AccessDeniedException;
+import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
+import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
@@ -49,26 +50,40 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
         throw new UnsupportedStorageOperationException( "can not merge specs-indeces for this repository: " + repository );
     }
 
-    protected InputStream toGZIPInputStream(StorageFileItem item) throws LocalStorageException {
+    protected InputStream toGZIPInputStream( StorageFileItem item ) throws LocalStorageException {
         try
         {
 
-            return new GZIPInputStream( item.getInputStream() );
+            if ( item != null )
+            {
+                return new GZIPInputStream( item.getInputStream() );
+            }
+            else
+            {
+                return null;
+            }
         
         }
-        catch (IOException e) {
+        catch ( IOException e ) {
             throw new LocalStorageException( "error getting stream to: " + item, e );
         }
     }
 
-    protected InputStream toInputStream(StorageFileItem item) throws LocalStorageException {
+    protected InputStream toInputStream( StorageFileItem item ) throws LocalStorageException {
         try
         {
 
-            return item.getInputStream();
+            if ( item != null )
+            {
+                return item.getInputStream();
+            }
+            else
+            {
+                return null;
+            }
         
         }
-        catch (IOException e) {
+        catch ( IOException e ) {
             throw new LocalStorageException( "error getting stream to: " + item, e );
         }
     }
@@ -89,37 +104,74 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
         return RubygemFile.fromFilename( path );
     }
     
-    @SuppressWarnings("deprecation")
     @Override
-    public InputStream bundlerDependencies( StorageFileItem specs, long modified,
-            StorageFileItem prereleasedSpecs, long prereleasedModified,
-            File cacheDir, String... gemnames ) 
-                    throws ItemNotFoundException, org.sonatype.nexus.proxy.StorageException, IOException {
-        BundlerDependencies deps = gateway.newBundlerDependencies( toGZIPInputStream( specs ), modified, 
-                toGZIPInputStream( prereleasedSpecs ), prereleasedModified, cacheDir);
+    @SuppressWarnings("deprecation")
+    public BundlerDependencies bundlerDependencies()
+            throws AccessDeniedException, ItemNotFoundException, IllegalOperationException, 
+                    org.sonatype.nexus.proxy.StorageException
+    {
+        StorageFileItem specs = 
+                (StorageFileItem) repository.retrieveItem( new ResourceStoreRequest( SpecsIndexType.RELEASE.filepathGzipped() ) );
+        StorageFileItem prereleasedSpecs = 
+                (StorageFileItem) repository.retrieveItem( new ResourceStoreRequest( SpecsIndexType.PRERELEASE.filepathGzipped() ) );
+
+        return gateway.newBundlerDependencies( toGZIPInputStream( specs ), specs.getModified(), 
+                toGZIPInputStream( prereleasedSpecs ), prereleasedSpecs.getModified() );
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public StorageFileItem[] prepareDependencies( BundlerDependencies bundler, String... gemnames )
+            throws ItemNotFoundException, AccessDeniedException, IllegalOperationException, 
+                    org.sonatype.nexus.proxy.StorageException
+    {
+        if ( gemnames.length == 1 && gemnames[0].length() == 0 )
+        {
+            gemnames = new String[ 0 ];
+        }
+        StorageFileItem[] result = new StorageFileItem[ gemnames.length ];
+        int index = 0;
         for( String gemname: gemnames )
         {
-            
-            String[] missing = deps.addDependenciesFor( gemname );
-            if ( missing.length > 0 )
-            {
-                InputStream[] missingSpecs = new InputStream[ missing.length ];
-                int index = 0;
-                for( String version: missing )
-                {
-                    try {
-                        StorageFileItem item = repository.retrieveGemspec( gemname + "-" + version );
-                        missingSpecs[ index ++ ] = item.getInputStream();
-                    }
-                    // TODO better exception handling
-                    catch (Exception e)
-                    {
-                        throw new RuntimeException( e );
-                    }
-                }
-                deps.updateCache( gemname, missingSpecs );
-            }
+            doPrepareDependencies( bundler, gemname );
+            result[ index++ ] = repository.retrieveDependenciesItem( gemname );
         }
-        return deps.dump();
+        return result;
+    }
+
+    @SuppressWarnings("deprecation")
+    private void doPrepareDependencies( BundlerDependencies bundler, String gemname )
+                throws ItemNotFoundException, AccessDeniedException, IllegalOperationException, 
+                        org.sonatype.nexus.proxy.StorageException
+        {
+        StorageFileItem dependencies = repository.retrieveDependenciesItem( gemname );
+        try {
+
+            String[] missing = bundler.add(gemname, 
+                    dependencies == null ? null : dependencies.getInputStream());
+            if ( missing.length > 0 || dependencies == null )
+            {
+                InputStream[] missingSpecs = new InputStream[missing.length];
+                int index = 0;
+                for (String version : missing)
+                {
+                    StorageFileItem item = 
+                            repository.retrieveGemspec( gemname + "-" + version );
+                    missingSpecs[ index++ ] = item.getInputStream();
+                }
+                String json = bundler.update( gemname,
+                        dependencies == null ? null : dependencies.getInputStream(), missingSpecs );
+
+                repository.storeDependencies( gemname, json );
+            }
+        } 
+        catch ( IOException e )
+        {
+            throw new ItemNotFoundException( dependencies.getResourceStoreRequest(), e );
+        }
+        catch ( UnsupportedStorageOperationException e )
+        {
+            throw new RuntimeException("BUG: must be able to store data" );
+        }
     }
 }

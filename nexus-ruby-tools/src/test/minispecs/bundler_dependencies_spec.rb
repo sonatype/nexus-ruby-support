@@ -1,15 +1,8 @@
 require 'nexus/bundler_dependencies'
 require 'minitest/spec'
 require 'minitest/autorun'
-require 'fileutils'
 
 describe Nexus::BundlerDependencies do
-
-  let :cache_dir do
-    dir = ENV[ 'MINISPEC_WORK_DIR' ] || 'target/minispec'
-    FileUtils.mkdir_p dir
-    dir
-  end
 
   let :resources_dir do
     File.expand_path( File.join( File.dirname( __FILE__ ), '..', 'resources', 'bundler' ) )
@@ -21,19 +14,19 @@ describe Nexus::BundlerDependencies do
     }
   end
 
-  let( :cached_railties ){ File.join( cache_dir, 'r', 'railties' ) }
+  #let( :cached_railties ){ File.join( cache_dir, 'r', 'railties' ) }
 
   subject do
-    Nexus::BundlerDependencies.new( version_map, cache_dir )
+    Nexus::BundlerDependencies.new( version_map )
   end
 
   before {  }
 
   it 'should create cached when some versions are missing' do
-    FileUtils.rm_f( cached_railties )
+    #FileUtils.rm_f( cached_railties )
 
     specs = Dir[ File.join( resources_dir, 'railties*.rz' ) ]
-    missing_versions = subject.add_deps_for( 'railties' )
+    missing_versions = subject.add( 'railties', nil )
 
     expected_missing_versions = specs.collect do |f|
       File.basename( f ).gsub( /^.*-|.gemspec.rz$/, '' )
@@ -41,9 +34,8 @@ describe Nexus::BundlerDependencies do
 
     (missing_versions - expected_missing_versions).must_equal []
     subject.array.must_equal []
-    subject.update_cache( 'railties', *specs )
+    cached = JSON.parse( subject.update( 'railties', nil, *specs ) )
 
-    cached = JSON.load( File.read( cached_railties ) )
     reference = JSON.load( File.read( File.join( resources_dir, 'railties' ) ) )
     (cached.keys - reference.keys).must_equal []
     cached.keys.each do |k|
@@ -51,17 +43,34 @@ describe Nexus::BundlerDependencies do
     end
 
     ref = Marshal.load( File.read( File.join( resources_dir, 'railties.dump' ) ) )
-    p subject.array.sort - ref.sort
-#    p ref - subject.array
+
+    ref = ref.collect do |r|
+      r[:dependencies].sort!
+      r = r.to_a
+      r.sort!
+      r.to_s
+    end
+    result = subject.array.collect do |r| 
+      r[:dependencies].sort!
+      r = r.to_a
+      r.sort!
+      r.to_s
+    end
+    ( result - ref ).must_equal []
   end
   
   it 'should fail when updating non existing spec' do
-    lambda { subject.update_cache( 'railties', 'blabla.gemspec.rz' ) }.must_raise Errno::ENOENT
+    lambda { subject.update( 'railties', 'blabla.gemspec.rz' ) }.must_raise Errno::ENOENT
   end
 
-  it 'should fail when updating spec wth wrong gem name' do
+  it 'should fail when updating spec with wrong gem name' do
     spec = File.join( resources_dir, 'do_mysql-0.10.12.gemspec.rz' )
-    lambda { subject.update_cache( 'railties', spec ) }.must_raise RuntimeError
+    lambda { subject.update( 'railties', nil, spec ) }.must_raise RuntimeError
+  end
+
+  it 'should update spec with right gem name' do
+    spec = File.join( resources_dir, 'do_mysql-0.10.12.gemspec.rz' )
+    subject.update( 'do_mysql', nil, spec ).wont_be_nil
   end
 
 end

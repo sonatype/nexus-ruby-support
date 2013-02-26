@@ -32,7 +32,6 @@ import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
-import org.sonatype.nexus.proxy.repository.GroupRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
@@ -40,6 +39,7 @@ import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
 import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
+import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
 @Component( role = LocalRepositoryStorage.class, hint = DefaultFSLocalRepositoryStorage.PROVIDER_STRING )
@@ -143,55 +143,12 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         RubyRepository rubyRepository = repository.adaptToFacet( RubyRepository.class );
         if ( rubyRepository != null ) 
         {
-            if ( request.getRequestPath().startsWith( "/api/v1/" ) )
-            {
-                if ( request.getRequestPath().startsWith( "/api/v1/dependencies" ) && request.getRequestUrl().contains( "?gems=" ) && ! ( repository instanceof GroupRepository ) )
-                {
-                    if (getLogger().isDebugEnabled() )
-                    {
-                        getLogger().debug( "original url: " + request.getRequestUrl() );
-                    }
-                    // bundler API :)
-                    String[] gemnames = request.getRequestUrl().replaceFirst( ".*gems=", "" ).replaceAll(",,", ",").replace("\\s+", "").split(",");
-                    if ( gemnames.length == 1 && gemnames[0].length() == 0 )
-                    {
-                        gemnames = new String[ 0 ];
-                    }
-                    StorageFileItem specs = retrieveSpecsIndex( rubyRepository, SpecsIndexType.RELEASE ); 
-                    StorageFileItem prereleasedSpecs = retrieveSpecsIndex( rubyRepository, SpecsIndexType.PRERELEASE );
-                    File cacheDir = getFileFromBase( rubyRepository, new ResourceStoreRequest( "/api/v1/dependencies" ) );
-                    cacheDir.mkdirs();
-                    try
-                    {
-                        
-                        InputStream content = rubyRepository.getRubygemsFacade().bundlerDependencies( specs, specs.getModified(), 
-                                prereleasedSpecs, prereleasedSpecs.getModified(),
-                                cacheDir, gemnames );
-                        File tmpDir = getFileFromBase(rubyRepository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX ) );
-                        File tmpFile = File.createTempFile( "bundler-", ".json", tmpDir );
-                        IOUtil.copy(content, new FileOutputStream(tmpFile));
-                        AbstractStorageItem item = 
-                                super.retrieveItem( repository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX + tmpFile.getName(), 
-                                                                                           true, false ) );
-                        ((StorageFileItem) item).setContentGeneratorId( TempFileContentGenerator.ID );
-                        item.getItemContext().put( TempFileContentGenerator.BUNLDER_TMP_FILE, tmpFile);
-                        return item;
-                    }
-                    catch ( IOException e )
-                    {
-                        throw new ItemNotFoundException( request, e );
-                    }
-                }
-                else
-                {
-                    throw new ItemNotFoundException( request );
-                }
-            }
             SpecsIndexType type = SpecsIndexType.fromFilename( request.getRequestPath() );
             if ( type != null )
             {
                 if ( request.getRequestPath().startsWith( "/.nexus/" ) || request.getRequestPath().endsWith( ".gz" ) )
-                {      
+                {
+                    // do not fix the path !!
                     return super.retrieveItem( repository, request );
                 }
                 else
@@ -199,6 +156,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                     return (AbstractStorageItem) retrieveSpecsIndex( rubyRepository, type );                     
                 }
             }
+            // fix the path !!
             return super.retrieveItem( repository, fixPath( request ) );            
         }
         else
@@ -358,7 +316,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         }
     }
 
-    public void storeSpecsIndeces( RubyGroupRepository rubyRepository, SpecsIndexType type, List<StorageItem> specsItems)
+    // allow only one thread to merge and store the indices
+    public synchronized void storeSpecsIndices( RubyGroupRepository rubyRepository, SpecsIndexType type, List<StorageItem> specsItems)
             throws UnsupportedStorageOperationException, LocalStorageException  {
         StorageFileItem localSpecsItem = null;
         try
@@ -393,5 +352,29 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 throw new LocalStorageException( e );
             }
         }
+    }
+
+    @Override
+    public StorageFileItem createBundlerDownloadable( RubyRepository repository,
+            BundlerDependencies bundler) 
+                    throws LocalStorageException, ItemNotFoundException
+    {
+        File tmpDir = getFileFromBase( repository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX ) );
+        File tmpFile;
+        try
+        {
+            tmpDir.mkdirs();
+            tmpFile = File.createTempFile( "bundler-", ".json", tmpDir );
+            IOUtil.copy( bundler.dump(), new FileOutputStream( tmpFile ) );
+        } 
+        catch (IOException e) {
+            throw new LocalStorageException( "error creating temp file", e );
+        }
+        StorageFileItem item = 
+                (StorageFileItem) super.retrieveItem( repository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX + tmpFile.getName(), 
+                                                                               true, false ) );
+        item.setContentGeneratorId( TempFileContentGenerator.ID );
+        item.getItemContext().put( TempFileContentGenerator.BUNLDER_TMP_FILE, tmpFile );
+        return item;
     }
 }

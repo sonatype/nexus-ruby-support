@@ -11,6 +11,7 @@ import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
+import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
 public interface RubyLocalRepositoryStorage extends LocalRepositoryStorage
@@ -22,6 +23,9 @@ public interface RubyLocalRepositoryStorage extends LocalRepositoryStorage
     void storeSpecsIndex( RubyRepository repository, SpecsIndexType type, InputStream content ) 
             throws LocalStorageException, UnsupportedStorageOperationException;
 
-    void storeSpecsIndeces( RubyGroupRepository repository, SpecsIndexType type, List<StorageItem> specsItems)
+    void storeSpecsIndices( RubyGroupRepository repository, SpecsIndexType type, List<StorageItem> specsItems )
             throws LocalStorageException, UnsupportedStorageOperationException;
+
+    StorageFileItem createBundlerDownloadable( RubyRepository repository, BundlerDependencies bundler )
+            throws LocalStorageException, ItemNotFoundException;
 }

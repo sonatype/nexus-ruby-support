@@ -11,24 +11,25 @@ public class BundlerDependencies
     private final ScriptingContainer scriptingContainer;
     private final Object bundlerDeps;
 
-    BundlerDependencies(ScriptingContainer scriptingContainer, Object bundlerDeps )
+    BundlerDependencies( ScriptingContainer scriptingContainer, Object bundlerDeps )
     {
         this.scriptingContainer = scriptingContainer;
         this.bundlerDeps = bundlerDeps;
     }
-    
-    public String[] addDependenciesFor( String gemname )
+ 
+    public String[] add( String gemname, InputStream data )
     {
         return scriptingContainer.callMethod( bundlerDeps,
-            "add_deps_for", 
-            gemname,
+            "add",
+            new Object[] { gemname, data },
             String[].class );
     }
     
-    public String updateCache( String gemname, InputStream[] specs ){
+    public String update( String gemname, InputStream data, InputStream[] specs )
+    {
         return scriptingContainer.callMethod( bundlerDeps,
-                "update_cache", 
-                new Object[] { gemname, specs }, String.class );            
+                "update", 
+                new Object[] { gemname, data, specs }, String.class );      
     }
     
     public InputStream dump()

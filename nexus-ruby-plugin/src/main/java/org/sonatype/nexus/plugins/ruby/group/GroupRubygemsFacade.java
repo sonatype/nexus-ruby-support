@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
 
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.AbstractRubygemsFacade;
@@ -13,6 +12,7 @@ import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -38,4 +38,10 @@ public class GroupRubygemsFacade extends AbstractRubygemsFacade {
                          type,
                          gateway.mergeSpecs( is, streams ) );
     }   
+  
+    @Override
+    public BundlerDependencies bundlerDependencies() 
+    {
+        return gateway.newBundlerDependencies();
+    }
 }

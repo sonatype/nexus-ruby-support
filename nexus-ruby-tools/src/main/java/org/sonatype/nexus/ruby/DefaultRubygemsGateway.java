@@ -1,6 +1,5 @@
 package org.sonatype.nexus.ruby;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -141,14 +140,23 @@ public class DefaultRubygemsGateway
                                modified },
                 List.class );
     }
-    
+
     @Override
-    public BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
-            InputStream prereleasedSpecs, long prereleasedModified,
-            File cacheDir ) {
+    public BundlerDependencies newBundlerDependencies() {
         Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
             "dependencies", 
-            new Object[] { specs, modified, prereleasedSpecs, prereleasedModified, cacheDir.getAbsolutePath() },
+            new Object[] { null, 0, null, 0, null },
+            Object.class );
+
+        return new BundlerDependencies(scriptingContainer, bundlerDeps);
+    }
+
+    @Override
+    public BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
+            InputStream prereleasedSpecs, long prereleasedModified ) {
+        Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
+            "dependencies", 
+            new Object[] { specs, modified, prereleasedSpecs, prereleasedModified },
             Object.class );
 
         return new BundlerDependencies(scriptingContainer, bundlerDeps);
