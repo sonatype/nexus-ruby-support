@@ -265,7 +265,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     // RubyLocalRepositoryStorage
     
     @Override
-    public StorageFileItem retrieveSpecsIndex(RubyRepository repository,
+    public synchronized StorageFileItem retrieveSpecsIndex(RubyRepository repository,
             SpecsIndexType type) throws LocalStorageException, ItemNotFoundException {
         ResourceStoreRequest req = new ResourceStoreRequest( type.filepath() );
         if ( containsItem( repository, req ) ){
