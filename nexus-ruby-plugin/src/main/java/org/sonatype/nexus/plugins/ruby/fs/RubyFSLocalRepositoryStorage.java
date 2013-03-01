@@ -263,10 +263,11 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     }
 
     // RubyLocalRepositoryStorage
-    
+
     @Override
-    public synchronized StorageFileItem retrieveSpecsIndex(RubyRepository repository,
-            SpecsIndexType type) throws LocalStorageException, ItemNotFoundException {
+    public StorageFileItem retrieveSpecsIndex(RubyRepository repository,
+            SpecsIndexType type) throws LocalStorageException, ItemNotFoundException
+	{
         ResourceStoreRequest req = new ResourceStoreRequest( type.filepath() );
         if ( containsItem( repository, req ) ){
             StorageFileItem item = (StorageFileItem) super.retrieveItem( repository,  req );
@@ -294,7 +295,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         unzippedItem.setContentGeneratorId( GunzipContentGenerator.ID );
         unzippedItem.setModified( item.getModified() );
         return unzippedItem;
-    }
+	}
 
     @Override
     public void storeSpecsIndex(RubyRepository repository, SpecsIndexType type,
@@ -316,9 +317,9 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         }
     }
 
-    // allow only one thread to merge and store the indices
-    public synchronized void storeSpecsIndices( RubyGroupRepository rubyRepository, SpecsIndexType type, List<StorageItem> specsItems)
-            throws UnsupportedStorageOperationException, LocalStorageException  {
+    public void storeSpecsIndices( RubyGroupRepository rubyRepository, SpecsIndexType type, List<StorageItem> specsItems)
+            throws UnsupportedStorageOperationException, LocalStorageException
+    {
         StorageFileItem localSpecsItem = null;
         try
         {
@@ -333,9 +334,9 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         if ( localSpecsItem != null )
         {
             outdated = false;
-            for ( Iterator<StorageItem> iter = specsItems.iterator(); iter.hasNext(); )
+            for ( StorageItem item: specsItems )
             {     
-                outdated = outdated || ( iter.next().getModified() > localSpecsItem.getModified() );
+                outdated = outdated || ( item.getModified() > localSpecsItem.getModified() );
             }
         }
  
@@ -352,7 +353,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 throw new LocalStorageException( e );
             }
         }
-    }
+	}
 
     @Override
     public StorageFileItem createBundlerDownloadable( RubyRepository repository,

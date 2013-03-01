@@ -2,10 +2,12 @@ package org.sonatype.nexus.plugins.ruby.group;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.jruby.ext.thread.Mutex;
 import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
@@ -124,8 +126,8 @@ public class DefaultRubyGroupRepository
             try
             {
 
-                storage.storeSpecsIndices( this, type, 
-                        doRetrieveItems( new ResourceStoreRequest( type.filepathGzipped() ) ) );
+                List<StorageItem> items = doRetrieveItems( new ResourceStoreRequest( type.filepathGzipped() ) );
+                storage.storeSpecsIndices( this, type, items );
                 
             }
             catch (UnsupportedStorageOperationException e)
