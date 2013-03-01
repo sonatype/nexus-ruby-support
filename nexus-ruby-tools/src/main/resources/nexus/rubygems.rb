@@ -30,11 +30,9 @@ module Nexus
     end
 
     def dependencies( specs, modified, 
-                      prereleased_specs, prereleased_modified, 
-                      cache_dir )
+                      prereleased_specs, prereleased_modified )
       if specs
-        BundlerDependencies.new( name_versions_map( specs, modified ), 
-                                 cache_dir )
+        BundlerDependencies.new( name_versions_map( specs, modified ) )
       else
         BundlerDependencies.new
       end

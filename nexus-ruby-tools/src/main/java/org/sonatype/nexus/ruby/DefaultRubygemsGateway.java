@@ -145,7 +145,7 @@ public class DefaultRubygemsGateway
     public BundlerDependencies newBundlerDependencies() {
         Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
             "dependencies", 
-            new Object[] { null, 0, null, 0, null },
+            new Object[] { null, 0, null, 0 },
             Object.class );
 
         return new BundlerDependencies(scriptingContainer, bundlerDeps);
