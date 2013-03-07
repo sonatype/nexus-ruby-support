@@ -12,7 +12,7 @@
 
   <groupId>rubygems</groupId>
   <artifactId>nexus</artifactId>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
 
   <name><![CDATA[Nexus Gem command and Bundler 'extension']]></name>
   <packaging>gem</packaging>
@@ -28,7 +28,7 @@
     </developer>
     <developer>
       <id>mkristian</id>
-      <name>Kristian Meier</name>
+      <name>Christian Meier</name>
       <email>m.kristian@web.de</email>
     </developer>
   </developers>
@@ -40,19 +40,6 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-
-  <repositories>
-    <repository>
-      <id>rubygems-releases</id>
-      <url>http://rubygems-proxy.torquebox.org/releases</url>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>rubygems-releases</id>
-      <url>http://rubygems-proxy.torquebox.org/releases</url>
-    </pluginRepository>
-  </pluginRepositories>
 
   <dependencies>
 
@@ -68,48 +55,15 @@
 
   <properties>
     <!-- configuring the versions here allows CLI to overwrite them -->
-    <jruby.versions>1.6.8,1.7.2</jruby.versions>
+    <jruby.versions>1.6.8,1.7.3</jruby.versions>
     <jruby.18and19>true</jruby.18and19>
+    <jruby.plugins.version>0.29.4</jruby.plugins.version>
   </properties>
 
   <build>
 
     <plugins>
 
-      <plugin>
-        <groupId>de.saumya.mojo</groupId>
-        <artifactId>runit-maven-plugin</artifactId>
-        <version>${jruby.plugins.version}</version>
-	<executions>
-	  <execution>
-	    <phase>test</phase>
-	    <goals>
-	      <goal>test</goal>
-	    </goals>
-	  </execution>
-	</executions>
-        <dependencies>
-          <dependency>
-            <groupId>rubygems</groupId>
-            <artifactId>shoulda</artifactId>
-            <version>3.1.1</version>
-            <type>gem</type>
-          </dependency>
-          <dependency>
-            <groupId>rubygems</groupId>
-            <artifactId>webmock</artifactId>
-            <version>1.8.9</version>
-            <type>gem</type>
-          </dependency>
-          <dependency>
-            <groupId>rubygems</groupId>
-            <artifactId>rr</artifactId>
-            <version>1.0.4</version>
-            <type>gem</type>
-          </dependency>
-	</dependencies>   
-      </plugin>
-      
       <plugin>
         <groupId>de.saumya.mojo</groupId>
         <artifactId>gem-maven-plugin</artifactId>
@@ -183,9 +137,58 @@
   <profiles>
     <profile>
       <id>push</id>
+
+      <repositories>
+	<repository>
+	  <id>rubygems-releases</id>
+	  <url>http://rubygems-proxy.torquebox.org/releases</url>
+	</repository>
+      </repositories>
+      <pluginRepositories>
+	<pluginRepository>
+	  <id>rubygems-releases</id>
+	  <url>http://rubygems-proxy.torquebox.org/releases</url>
+	</pluginRepository>
+      </pluginRepositories>
+
       <build>
 	<defaultGoal>deploy</defaultGoal>
 	<plugins>
+	  
+	  <plugin>
+	    <groupId>de.saumya.mojo</groupId>
+	    <artifactId>runit-maven-plugin</artifactId>
+	    <version>${jruby.plugins.version}</version>
+	    <executions>
+	      <execution>
+		<phase>test</phase>
+		<goals>
+		  <goal>test</goal>
+		</goals>
+	      </execution>
+	    </executions>
+	    <dependencies>
+	      <dependency>
+		<groupId>rubygems</groupId>
+		<artifactId>shoulda</artifactId>
+		<version>3.1.1</version>
+		<type>gem</type>
+	      </dependency>
+	      <dependency>
+		<groupId>rubygems</groupId>
+		<artifactId>webmock</artifactId>
+		<version>1.8.9</version>
+		<type>gem</type>
+	      </dependency>
+	      <dependency>
+		<groupId>rubygems</groupId>
+		<artifactId>rr</artifactId>
+		<version>1.0.4</version>
+		<type>gem</type>
+	      </dependency>
+	    </dependencies>   
+	  </plugin>
+	  
 	  <plugin>
 	    <groupId>de.saumya.mojo</groupId>
 	    <artifactId>gem-maven-plugin</artifactId>
@@ -200,14 +203,6 @@
 		</configuration>
 	      </execution>
 	    </executions>
-	    <dependencies>
-	      <dependency>
-		<groupId>rubygems</groupId>
-		<artifactId>jruby-openssl</artifactId>
-		<version>0.7.6.1</version>
-		<type>gem</type>
-	      </dependency>
-	    </dependencies>
 	  </plugin>
 	</plugins>
       </build>
