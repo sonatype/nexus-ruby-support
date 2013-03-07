@@ -11,11 +11,11 @@ module Bundler
 end
 module Bundler
   # Handles all the fetching with the rubygems server
-  class Fetcher
+  class Fetcher    
+    alias :initialize_old :initialize
+
     def initialize(remote_uri)
-      @remote_uri = RubygemsMirror.to_uri(remote_uri)
-      @has_api    = true # will be set to false if the rubygems index is ever fetched
-      @@connection ||= Net::HTTP::Persistent.new nil, :ENV
+      initialize_old RubygemsMirror.to_uri(remote_uri)
     end
   end
 end
