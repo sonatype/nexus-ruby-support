@@ -132,7 +132,7 @@ public class DefaultRubygemsGateway
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<String> listVersions(String name, InputStream inputStream, long modified ) {
+    public synchronized List<String> listVersions(String name, InputStream inputStream, long modified ) {
         return (List<String>) scriptingContainer.callMethod( rubygems(), 
                 "list_versions",
                 new Object[] { name,
