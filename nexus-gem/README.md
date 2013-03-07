@@ -18,7 +18,7 @@ run tests
 build and push gem to rubygems.org
 
     gem build nexus.gemspec
-	gem push nexus-*.gem
+    gem push nexus-*.gem
 
 install the gem into your local rubgems repository
 
