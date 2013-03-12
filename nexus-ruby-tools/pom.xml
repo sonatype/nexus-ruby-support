@@ -96,7 +96,7 @@
       <plugin>
 	<groupId>de.saumya.mojo</groupId>
 	<artifactId>minitest-maven-plugin</artifactId>
-	<version>1.0.0-beta-SNAPSHOT</version>
+	<version>1.0.0-beta</version>
         <executions>
           <execution>
 	    <goals>
