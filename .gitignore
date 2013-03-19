@@ -9,6 +9,10 @@
 .project
 .settings
 
+# Intellij related
+.idea
+*.iml
+
 # Maven related
 target
 *.ser
