@@ -52,7 +52,7 @@ install the nexus plugin into your nexus server with
 nexus command
 -------------
 
-when pushing a gem to the nexus rubygems repo the first time the url of the repo and the credentials are prompted. these data will be stored in $HOME/.gemrc/nexus.
+when pushing a gem to the nexus rubygems repo the first time the url of the repo and the credentials are prompted. these data will be stored in $HOME/.gem/nexus.
 
     gem nexus my-1.0.gem
 
