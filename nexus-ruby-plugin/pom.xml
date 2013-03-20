@@ -17,6 +17,14 @@
   <name>Nexus Ruby Plugin</name>
   <description>Nexus Ruby Plugin</description>
 
+  <repositories>
+    <repository>
+      <id>sonatype-public</id>
+      <name>sonatype-public</name>
+      <url>https://repository.sonatype.org/content/repositories/sonatype-public-grid/</url>
+    </repository>
+  </repositories>
+
   <properties>
     <app-lifecycle.version>1.4</app-lifecycle.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
