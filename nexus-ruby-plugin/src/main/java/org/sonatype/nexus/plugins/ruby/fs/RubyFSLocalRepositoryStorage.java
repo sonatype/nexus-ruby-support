@@ -76,6 +76,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         
                 Collection<StorageItem> result = new ArrayList<StorageItem>( 8 );
                           
+                result.add( newCollection( repository, "/api" ) );
                 result.add( newCollection( repository, "/gems" ) );
                 result.add( newCollection( repository, "/quick" ) );
                 result.add( newItem( repository, "/latest_specs.4.8" ) );
@@ -172,8 +173,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         if ( rubyRepository != null ) 
         {
             RubygemFile file = RubygemFile.fromFilename( item.getPath() );
-            if ( file.getType() == Type.GEM )
-            {
+            switch( file.getType() ){
+            case GEM:
                 ((AbstractStorageItem) item).setPath( file.getPath() );
                 item.getResourceStoreRequest().setRequestPath( item.getPath() );
 
@@ -204,6 +205,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 }
                 
                 return;
+            case GEMSPEC:
+                fixPath( item.getResourceStoreRequest() );
             }
         }
         super.storeItem( repository, item );
