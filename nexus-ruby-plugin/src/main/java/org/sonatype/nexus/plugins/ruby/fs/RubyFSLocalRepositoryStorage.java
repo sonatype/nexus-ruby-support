@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
@@ -28,6 +27,7 @@ import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.ContentLocator;
 import org.sonatype.nexus.proxy.item.DefaultStorageCollectionItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
+import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
@@ -37,7 +37,6 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
-import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
 import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.SpecsIndexType;
@@ -371,11 +370,28 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         catch (IOException e) {
             throw new LocalStorageException( "error creating temp file", e );
         }
-        StorageFileItem item = 
-                (StorageFileItem) super.retrieveItem( repository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX + tmpFile.getName(), 
-                                                                               true, false ) );
-        item.setContentGeneratorId( TempFileContentGenerator.ID );
-        item.getItemContext().put( TempFileContentGenerator.BUNLDER_TMP_FILE, tmpFile );
-        return item;
+        ResourceStoreRequest request = new ResourceStoreRequest( NEXUS_TEMP_PREFIX + tmpFile.getName(), 
+                true, false );
+        DefaultStorageFileItem file =
+                new DefaultStorageFileItem( repository, request, tmpFile.canRead(), tmpFile.canWrite(),
+                    new FileContentLocator( tmpFile, getMimeSupport().guessMimeTypeFromPath(
+                            // set delete after close to true
+                        repository.getMimeRulesSource(), tmpFile.getAbsolutePath() ), true ) );
+        try
+        {
+            repository.getAttributesHandler().fetchAttributes( file );
+        
+            file.setModified( tmpFile.lastModified() );
+            file.setCreated( tmpFile.lastModified() );
+            file.setLength( tmpFile.length() );
+
+            repository.getAttributesHandler().touchItemLastRequested( System.currentTimeMillis(), file );
+            
+        }
+        catch ( IOException e )
+        {
+            throw new LocalStorageException( "Exception during reading up an item from FS storage!", e );
+        }
+        return file;
     }
 }
