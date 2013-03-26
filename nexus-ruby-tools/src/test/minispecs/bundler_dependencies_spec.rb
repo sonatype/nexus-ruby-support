@@ -60,7 +60,7 @@ describe Nexus::BundlerDependencies do
   end
   
   it 'should fail when updating non existing spec' do
-    lambda { subject.update( 'railties', 'blabla.gemspec.rz' ) }.must_raise Errno::ENOENT
+    lambda { subject.update( 'railties', nil, 'blabla.gemspec.rz' ) }.must_raise Errno::ENOENT
   end
 
   it 'should fail when updating spec with wrong gem name' do
