@@ -3,6 +3,7 @@ package org.sonatype.nexus.ruby;
 import java.io.InputStream;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.jruby.embed.ScriptingContainer;
 
 public class BundlerDependencies
@@ -19,17 +20,34 @@ public class BundlerDependencies
  
     public String[] add( String gemname, InputStream data )
     {
-        return scriptingContainer.callMethod( bundlerDeps,
-            "add",
-            new Object[] { gemname, data },
-            String[].class );
+        try
+        {
+            return scriptingContainer.callMethod( bundlerDeps,
+                "add",
+                new Object[] { gemname, data },
+                String[].class );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( data );
+        }
     }
     
     public String update( String gemname, InputStream data, InputStream[] specs )
     {
-        return scriptingContainer.callMethod( bundlerDeps,
+        try
+        {
+            return scriptingContainer.callMethod( bundlerDeps,
                 "update", 
-                new Object[] { gemname, data, specs }, String.class );      
+                new Object[] { gemname, data, specs }, String.class );
+        }
+        finally
+        {
+            for( InputStream spec: specs )
+            {
+                IOUtils.closeQuietly( spec );
+            }
+        }
     }
     
     public InputStream dump()

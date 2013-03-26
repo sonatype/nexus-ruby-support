@@ -33,8 +33,7 @@ public class GzipContentGenerator implements ContentGenerator {
             OutputStream out = new GZIPOutputStream( gzipped );
             IOUtil.copy( item.getInputStream(), out );
             out.close();
-//            ((DefaultStorageFileItem) item).setModified( item.getModified() );
-//            ((DefaultStorageFileItem) item).setCreated( item.getCreated() );
+            gzipped.close();
             item.setLength( gzipped.toByteArray().length );
 
             return new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ), "application/x-gzip" );

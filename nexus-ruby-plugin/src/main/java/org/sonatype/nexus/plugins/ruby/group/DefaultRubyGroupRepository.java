@@ -7,7 +7,6 @@ import java.util.List;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.jruby.ext.thread.Mutex;
 import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
@@ -172,7 +171,8 @@ public class DefaultRubyGroupRepository
     {
         for( Repository repository: getMemberRepositories() )
         {
-            StorageFileItem[] deps = ((RubyRepository) repository).retrieveDependenciesItems( gemnames );
+            RubygemsFacade facade = ((RubyRepository) repository).getRubygemsFacade();
+            StorageFileItem[] deps = facade.prepareDependencies(facade.bundlerDependencies(), gemnames);//retrieveDependenciesItems( gemnames );
             for( StorageFileItem dep: deps )
             {
                 try

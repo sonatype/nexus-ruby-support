@@ -1,10 +1,10 @@
 package org.sonatype.nexus.ruby;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -45,10 +45,12 @@ public class DefaultRubygemsGateway
     }
     
     @Override
-    public InputStream createGemspecRz( String gemname, InputStream gem ) throws IOException
+    public InputStream createGemspecRz( String gemname, InputStream gem )
     {
-        @SuppressWarnings( "unchecked" )
-        List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(), 
+        try
+        {
+            @SuppressWarnings( "unchecked" )
+            List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(), 
                 "create_quick", 
                 new Object[] {
                     gemname,
@@ -56,7 +58,12 @@ public class DefaultRubygemsGateway
                 },
                 List.class );
         
-        return new ByteArrayInputStream( array );
+            return new ByteArrayInputStream( array );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( gem );
+        }
     }
 
     @Override
@@ -72,16 +79,25 @@ public class DefaultRubygemsGateway
     
     @Override
     public Object spec( InputStream gem ) {
-        return scriptingContainer.callMethod( rubygems(), 
+        try
+        {
+            return scriptingContainer.callMethod( rubygems(), 
                 "spec_get",
                 gem,
                 Object.class );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( gem );
+        }
     }
 
     @Override
     public InputStream addSpec( Object spec, InputStream specsIndex, SpecsIndexType type ) {
-        @SuppressWarnings( "unchecked" )
-        List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
+        try
+        {
+            @SuppressWarnings( "unchecked" )
+            List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
                 "add_spec", 
                 new Object[] {
                     spec,
@@ -90,13 +106,20 @@ public class DefaultRubygemsGateway
                 },
                 List.class );
         
-        return array == null ? null : new ByteArrayInputStream( array );
+            return array == null ? null : new ByteArrayInputStream( array );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( specsIndex );
+        }
     }
     
     @Override
     public InputStream deleteSpec( Object spec, InputStream specsIndex ) {
-        @SuppressWarnings( "unchecked" )
-        List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
+        try
+        {
+            @SuppressWarnings( "unchecked" )
+            List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
                 "delete_spec", 
                 new Object[] {
                     spec,
@@ -104,14 +127,21 @@ public class DefaultRubygemsGateway
                 },
                 List.class );
         
-        return array == null ? null : new ByteArrayInputStream( array );
+            return array == null ? null : new ByteArrayInputStream( array );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( specsIndex );
+        }
     }
 
     @Override
     public InputStream mergeSpecs(InputStream specs,
             List<InputStream> streams) {
-        @SuppressWarnings( "unchecked" )
-        List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
+        try
+        {
+            @SuppressWarnings( "unchecked" )
+            List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
                 "merge_specs", 
                 new Object[] {
                     specs,
@@ -119,30 +149,56 @@ public class DefaultRubygemsGateway
                 },
                 List.class );
         
-        return array == null ? null : new ByteArrayInputStream( array );
+            return array == null ? null : new ByteArrayInputStream( array );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( specs );
+            for( InputStream in: streams )
+            {
+                IOUtils.closeQuietly( in );
+            }
+        }
     }
 
     @Override
-    public String pom(InputStream specRz) {
-        return scriptingContainer.callMethod( rubygems(), 
+    public String pom(InputStream specRz)
+    {
+        try
+        {
+            return scriptingContainer.callMethod( rubygems(), 
                 "to_pom",
                 specRz,
                 String.class );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( specRz );
+        }
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized List<String> listVersions(String name, InputStream inputStream, long modified ) {
-        return (List<String>) scriptingContainer.callMethod( rubygems(), 
+    public synchronized List<String> listVersions(String name, InputStream inputStream, long modified )
+    {
+        try
+        {
+            return (List<String>) scriptingContainer.callMethod( rubygems(), 
                 "list_versions",
                 new Object[] { name,
                                inputStream, 
                                modified },
                 List.class );
+        }
+        finally
+        {
+            IOUtils.closeQuietly( inputStream );
+        }
     }
 
     @Override
-    public BundlerDependencies newBundlerDependencies() {
+    public BundlerDependencies newBundlerDependencies()
+    {
         Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
             "dependencies", 
             new Object[] { null, 0, null, 0 },
@@ -153,12 +209,21 @@ public class DefaultRubygemsGateway
 
     @Override
     public BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
-            InputStream prereleasedSpecs, long prereleasedModified ) {
-        Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
-            "dependencies", 
-            new Object[] { specs, modified, prereleasedSpecs, prereleasedModified },
-            Object.class );
+            InputStream prereleasedSpecs, long prereleasedModified )
+    {
+        try
+        {
+            Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
+                    "dependencies", 
+                    new Object[] { specs, modified, prereleasedSpecs, prereleasedModified },
+                    Object.class );
 
-        return new BundlerDependencies(scriptingContainer, bundlerDeps);
+            return new BundlerDependencies(scriptingContainer, bundlerDeps);
+        }
+        finally
+        {
+            IOUtils.closeQuietly( specs );
+            IOUtils.closeQuietly( prereleasedSpecs );
+        }
     }
 }

@@ -33,8 +33,7 @@ public class GunzipContentGenerator implements ContentGenerator {
             InputStream in = new GZIPInputStream( item.getInputStream() );
             IOUtil.copy( in, out );
             out.close();
-//            ((DefaultStorageFileItem) item).setModified( item.getModified() );
-//            ((DefaultStorageFileItem) item).setCreated( item.getCreated() );
+            in.close();
             item.setLength( out.toByteArray().length );
 
             return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), "application/x-marshal-ruby" );
