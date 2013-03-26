@@ -157,16 +157,6 @@ public class DefaultRubyHostedRepository
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public StorageFileItem[] retrieveDependenciesItems(String... gemnames)
-            throws AccessDeniedException, IllegalOperationException,
-                    ItemNotFoundException, RemoteAccessException, 
-                    org.sonatype.nexus.proxy.StorageException
-    {
-        return facade.prepareDependencies( facade.bundlerDependencies(), gemnames );
-    }
-
-    @Override
     public void storeDependencies(String gemname, String json)
             throws LocalStorageException, UnsupportedStorageOperationException {
         StorageFileItem result = new DefaultStorageFileItem( this,

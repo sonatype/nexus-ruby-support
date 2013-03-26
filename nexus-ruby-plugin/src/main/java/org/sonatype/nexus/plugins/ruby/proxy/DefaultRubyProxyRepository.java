@@ -216,7 +216,7 @@ public class DefaultRubyProxyRepository
     }
     
     @Override
-    public StorageFileItem retrieveDependenciesItem(String gemname) 
+    public StorageFileItem retrieveDependenciesItem( String gemname ) 
             throws LocalStorageException, ItemNotFoundException
     {
         ResourceStoreRequest request = dependenciesRequest( gemname );
@@ -228,16 +228,6 @@ public class DefaultRubyProxyRepository
         {
             return null;
         }
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public StorageFileItem[] retrieveDependenciesItems( String... gemnames )
-            throws AccessDeniedException, IllegalOperationException,
-                    ItemNotFoundException, RemoteAccessException,
-                    org.sonatype.nexus.proxy.StorageException
-    {
-        return facade.prepareDependencies( facade.bundlerDependencies(), gemnames );
     }
 
     @Override

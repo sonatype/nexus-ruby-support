@@ -172,7 +172,7 @@ public class DefaultRubyGroupRepository
         for( Repository repository: getMemberRepositories() )
         {
             RubygemsFacade facade = ((RubyRepository) repository).getRubygemsFacade();
-            StorageFileItem[] deps = facade.prepareDependencies(facade.bundlerDependencies(), gemnames);//retrieveDependenciesItems( gemnames );
+            StorageFileItem[] deps = facade.prepareDependencies(facade.bundlerDependencies(), gemnames);
             for( StorageFileItem dep: deps )
             {
                 try
@@ -200,10 +200,4 @@ public class DefaultRubyGroupRepository
     {
         throw new RuntimeException( "BUG: not implemented for group repositories" );
     }
-    
-    @Override
-    public StorageFileItem[] retrieveDependenciesItems( String... gemnames )
-    {
-        throw new RuntimeException( "BUG: not implemented for group repositories" );
-    }    
 }
