@@ -29,6 +29,25 @@ module Nexus
       proj.to_xml
     end
 
+    %W(name_preversions_map name_versions_map).each do |method|
+
+      self.class_eval <<-EVAL
+        def #{method}( source, modified )
+          if @#{method}.nil? || @#{method}_modified != modified
+            specs = load_specs( source )
+            @#{method} = {}
+            specs.select do |s|
+              v = @#{method}[ s[0].to_s ] ||= []
+              v << "\#{s[1]}-\#{s[2]}"
+            end
+            @#{method}_modified = modified
+          end
+          @#{method}
+        end
+      EVAL
+
+    end
+
     def dependencies( specs, modified, 
                       prereleased_specs, prereleased_modified )
       if specs
@@ -43,19 +62,6 @@ module Nexus
       versions = versions.select { |v| v =~ /(-|-ruby|-java|-jruby)$/ }.collect { |v| v.sub( /-.*$/, '' ) }
       versions.uniq!
       versions
-    end
-
-    def name_versions_map( source, modified )
-      if @name_versions_map.nil? || @name_versions_map_modified != modified
-        specs = load_specs( source )
-        @name_versions_map = {}
-        specs.select do |s|
-          v = @name_versions_map[ s[0].to_s ] ||= []
-          v << "#{s[1]}-#{s[2]}"
-        end
-        @name_versions_map_modified = modified
-      end
-      @name_versions_map
     end
 
     def empty_specs

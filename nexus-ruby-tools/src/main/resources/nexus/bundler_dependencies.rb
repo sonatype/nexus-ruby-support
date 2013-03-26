@@ -7,11 +7,16 @@ module Nexus
 
     attr_reader :array
 
-    def initialize( name_versions_map = {} )
+    def initialize( name_versions_map = {}, name_preversions_map = {} )
       @versions = name_versions_map
+      @preversions = name_preversions_map
       @array = []
     end
     
+    def versions( gemname )
+      ( @versions[ gemname ] || [] ) + ( @preversions[ gemname ] || [] )
+    end
+
     def add( gemname, data )
       deps_map = load_dependencies( data )
       deps_map.each do |version, deps|
@@ -20,7 +25,7 @@ module Nexus
                       version.sub( /^[^-]+-/, '' ),
                       deps.entries )
       end
-      ( (@versions[ gemname ] || [] ) - deps_map.keys ).collect { |v| v.sub( /-(ruby)?$/, '' ) }
+      ( versions( gemname ) - deps_map.keys ).collect { |v| v.sub( /-(ruby)?$/, '' ) }
     end
 
     def update( gemname, data, *specs )
@@ -30,7 +35,7 @@ module Nexus
         spec = load_spec( gemname, file )
         dependencies = deps_from( spec )
         # TODO do something when version does not exists but spec.rz
-        vv = @versions[ gemname ] || []
+        vv = versions( gemname )
         if vv.member?( spec.version.to_s + "-" + spec.platform.to_s )
           platform = spec.platform.to_s
         elsif spec.platform.respond_to? :os
