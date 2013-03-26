@@ -87,7 +87,7 @@ module Nexus
 
     def load_dependencies( data )
       if data
-        JSON.parse( read_binary( data ) )
+        JSON.parse( read_binary( data ) ) rescue Hash.new
       else
         Hash.new
       end
