@@ -195,18 +195,18 @@ private JRubyScriptingContainer scriptingContainer;
     }
 
     @Override
-    public BundlerDependencies newBundlerDependencies()
+    public synchronized BundlerDependencies newBundlerDependencies()
     {
         Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
             "dependencies", 
             new Object[] { null, 0, null, 0 },
             Object.class );
 
-        return new BundlerDependencies(scriptingContainer, bundlerDeps);
+        return new BundlerDependencies( scriptingContainer, bundlerDeps );
     }
 
     @Override
-    public BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
+    public synchronized BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
             InputStream prereleasedSpecs, long prereleasedModified )
     {
         try
