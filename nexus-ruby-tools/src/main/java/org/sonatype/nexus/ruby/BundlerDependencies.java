@@ -3,7 +3,6 @@ package org.sonatype.nexus.ruby;
 import java.io.InputStream;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.jruby.embed.ScriptingContainer;
 
 public class BundlerDependencies
@@ -29,7 +28,7 @@ public class BundlerDependencies
         }
         finally
         {
-            IOUtils.closeQuietly( data );
+            IOUtil.close( data );
         }
     }
     
@@ -45,7 +44,7 @@ public class BundlerDependencies
         {
             for( InputStream spec: specs )
             {
-                IOUtils.closeQuietly( spec );
+                IOUtil.close( spec );
             }
         }
     }

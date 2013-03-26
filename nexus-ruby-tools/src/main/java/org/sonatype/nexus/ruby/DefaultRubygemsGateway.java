@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -12,8 +11,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 public class DefaultRubygemsGateway
     implements RubygemsGateway
 {
-
-    private JRubyScriptingContainer scriptingContainer;
+private JRubyScriptingContainer scriptingContainer;
 
     private final IRubyObject nexusRubygemsClass;
 
@@ -62,7 +60,7 @@ public class DefaultRubygemsGateway
         }
         finally
         {
-            IOUtils.closeQuietly( gem );
+            IOUtil.close( gem );
         }
     }
 
@@ -88,7 +86,7 @@ public class DefaultRubygemsGateway
         }
         finally
         {
-            IOUtils.closeQuietly( gem );
+            IOUtil.close( gem );
         }
     }
 
@@ -110,7 +108,7 @@ public class DefaultRubygemsGateway
         }
         finally
         {
-            IOUtils.closeQuietly( specsIndex );
+            IOUtil.close( specsIndex );
         }
     }
     
@@ -131,7 +129,7 @@ public class DefaultRubygemsGateway
         }
         finally
         {
-            IOUtils.closeQuietly( specsIndex );
+            IOUtil.close( specsIndex );
         }
     }
 
@@ -153,10 +151,10 @@ public class DefaultRubygemsGateway
         }
         finally
         {
-            IOUtils.closeQuietly( specs );
+            IOUtil.close( specs );
             for( InputStream in: streams )
             {
-                IOUtils.closeQuietly( in );
+                IOUtil.close( in );
             }
         }
     }
@@ -173,7 +171,7 @@ public class DefaultRubygemsGateway
         }
         finally
         {
-            IOUtils.closeQuietly( specRz );
+            IOUtil.close( specRz );
         }
     }
 
@@ -192,7 +190,7 @@ public class DefaultRubygemsGateway
         }
         finally
         {
-            IOUtils.closeQuietly( inputStream );
+            IOUtil.close( inputStream );
         }
     }
 
@@ -222,8 +220,8 @@ public class DefaultRubygemsGateway
         }
         finally
         {
-            IOUtils.closeQuietly( specs );
-            IOUtils.closeQuietly( prereleasedSpecs );
+            IOUtil.close( specs );
+            IOUtil.close( prereleasedSpecs );
         }
     }
 }
