@@ -9,9 +9,16 @@ public class RubyContentClass
     extends AbstractIdContentClass
 {
     public static final String ID = "rubygems";
+    public static final String NAME = "Rubygems";
 
     public String getId()
     {
         return ID;
+    }
+    
+    @Override
+    public String getName()
+    {
+        return NAME;
     }
 }
