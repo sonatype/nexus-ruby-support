@@ -43,8 +43,6 @@ import org.sonatype.nexus.proxy.maven.packaging.ArtifactPackagingMapper;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractShadowRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
-import org.sonatype.nexus.proxy.repository.IncompatibleMasterRepositoryException;
-import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.repository.ShadowRepository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
@@ -110,23 +108,6 @@ public class GemArtifactShadowRepository
     public RubyRepository getMasterRepository()
     {
         return super.getMasterRepository().adaptToFacet( RubyRepository.class );
-    }
-
-    @Override
-    public void setMasterRepository( Repository masterRepository )
-        throws IncompatibleMasterRepositoryException
-    {
-        // we allow only RubyRepository instances as masters
-        
-        //TODO the GUI does show only maven2 repos as source
-        if ( !masterRepository.getRepositoryKind().isFacetAvailable( RubyRepository.class ) )
-        {
-            throw new IncompatibleMasterRepositoryException(
-                "This shadow repository needs master repository which implements RubyRepository interface!", this,
-                masterRepository.getId() );
-        }
-
-        super.setMasterRepository( masterRepository );
     }
 
     @Override
