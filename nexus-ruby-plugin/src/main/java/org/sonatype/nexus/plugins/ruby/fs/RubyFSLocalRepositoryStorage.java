@@ -223,7 +223,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             if ( to.getRequestPath().startsWith( NEXUS_TRASH_PREFIX ) && ! from.getRequestPath().contains( NEXUS_PREFIX ) )
             {
                 RubygemFile file = rubyRepository.getRubygemsFacade().deletableFile( from.getRequestPath() );
-                if ( file != null && file.getType() == Type.GEM )
+                if ( file != null )
                 {
                     
                     StorageFileItem item = (StorageFileItem) retrieveItem( rubyRepository, from );
