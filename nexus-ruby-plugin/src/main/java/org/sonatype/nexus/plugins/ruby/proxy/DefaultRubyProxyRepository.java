@@ -118,7 +118,7 @@ public class DefaultRubyProxyRepository
         {
             if (item.getName().endsWith( ".gz" ) )
             {
-                getLogger().info( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item ) );
+                getLogger().debug( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item ) );
                 return isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item );
             }
             else
