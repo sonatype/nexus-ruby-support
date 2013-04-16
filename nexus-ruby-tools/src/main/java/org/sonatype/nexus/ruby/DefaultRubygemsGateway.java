@@ -43,7 +43,7 @@ private JRubyScriptingContainer scriptingContainer;
     }
     
     @Override
-    public InputStream createGemspecRz( String gemname, InputStream gem )
+    public synchronized InputStream createGemspecRz( String gemname, InputStream gem )
     {
         try
         {
