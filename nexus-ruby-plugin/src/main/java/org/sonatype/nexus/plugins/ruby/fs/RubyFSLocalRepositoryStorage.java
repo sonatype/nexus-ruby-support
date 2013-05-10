@@ -206,6 +206,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 return;
             case GEMSPEC:
                 fixPath( item.getResourceStoreRequest() );
+            default:
+                // nothing to do
             }
         }
         super.storeItem( repository, item );

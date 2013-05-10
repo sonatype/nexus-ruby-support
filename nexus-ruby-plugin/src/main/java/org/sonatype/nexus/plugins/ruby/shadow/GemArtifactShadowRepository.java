@@ -342,6 +342,7 @@ public class GemArtifactShadowRepository
         
         String sha1Hash = item.getRepositoryItemAttributes().get( DigestCalculatingInspector.DIGEST_SHA1_KEY );
 
+        @SuppressWarnings("deprecation")
         String md5Hash = item.getRepositoryItemAttributes().get( DigestCalculatingInspector.DIGEST_MD5_KEY );
 
         if ( !StringUtils.isEmpty( sha1Hash ) )

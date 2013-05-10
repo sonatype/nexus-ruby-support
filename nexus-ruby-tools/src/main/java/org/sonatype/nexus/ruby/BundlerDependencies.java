@@ -49,6 +49,7 @@ public class BundlerDependencies
         }
     }
     
+    @SuppressWarnings("resource")
     public InputStream dump()
     {
         @SuppressWarnings( "unchecked" )

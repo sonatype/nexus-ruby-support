@@ -90,6 +90,7 @@ private JRubyScriptingContainer scriptingContainer;
         }
     }
 
+    @SuppressWarnings("resource")
     @Override
     public InputStream addSpec( Object spec, InputStream specsIndex, SpecsIndexType type ) {
         try
@@ -112,6 +113,7 @@ private JRubyScriptingContainer scriptingContainer;
         }
     }
     
+    @SuppressWarnings("resource")
     @Override
     public InputStream deleteSpec( Object spec, InputStream specsIndex ) {
         try
@@ -133,6 +135,7 @@ private JRubyScriptingContainer scriptingContainer;
         }
     }
 
+    @SuppressWarnings("resource")
     @Override
     public InputStream mergeSpecs(InputStream specs,
             List<InputStream> streams) {
