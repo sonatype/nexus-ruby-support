@@ -1,6 +1,7 @@
 package org.sonatype.nexus.plugins.ruby;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -24,6 +25,15 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
     }
 
     @Test
+    public void installPrereleasedGem() throws Exception 
+    {
+        String result = gemRunner().install( repoId, "pre", "-v" ,"0.1.0.beta" );
+        System.err.println(result);
+        assertThat( result, containsString( "nexus (" ) );
+
+    }
+    
+    @Test
     public void uploadGemWithNexusGemCommand() throws Exception
     {
         File nexusGem = installLatestNexusGem();
@@ -41,6 +51,7 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
         assertThat( lastLine( gemRunner().nexus( config, nexusGem ) ), endsWith( "not allowed" ) );
 
         assertFileDownload( gemName, is( true ) );
+        
         assertFileDownload( gemspecName, is( true ) );
         
         // now we have one remote gem
