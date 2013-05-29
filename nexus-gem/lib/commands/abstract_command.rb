@@ -52,8 +52,9 @@ class Gem::AbstractCommand < Gem::Command
     username = ask("Username: ")
     password = ask_for_password("Password: ")
 
+    # mimic strict_encode64 which is not there on ruby1.8
     store_config(:authorization, 
-                 "Basic #{Base64.encode64(username + ':' + password).strip}")
+                 "Basic #{Base64.encode64(username + ':' + password).gsub(/\s+/, '')}")
 
     say "Your Nexus credentials has been stored in ~/.gem/nexus"
   end

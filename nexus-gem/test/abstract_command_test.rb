@@ -93,7 +93,7 @@ class AbstractCommandTest < CommandTest
     context "signing in" do
       setup do
         @username = "username"
-        @password = "password"
+        @password = "password 01234567890123456789012345678901234567890123456789"
         @key = "key"
 
         stub(@command).say
@@ -106,14 +106,14 @@ class AbstractCommandTest < CommandTest
         @command.sign_in
         assert_received(@command) { |command| command.ask("Username: ") }
         assert_received(@command) { |command| command.ask_for_password("Password: ") }
-        assert_received(@command) { |command| command.store_config(:authorization, "Basic dXNlcm5hbWU6cGFzc3dvcmQ=") }
+        assert_received(@command) { |command| command.store_config(:authorization, "Basic dXNlcm5hbWU6cGFzc3dvcmQgMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODk=") }
       end
 
       should "say that we signed in" do
         @command.sign_in
         assert_received(@command) { |command| command.say("Enter your Nexus credentials") }
         assert_received(@command) { |command| command.say("Your Nexus credentials has been stored in ~/.gem/nexus") }
-        assert_received(@command) { |command| command.store_config(:authorization, "Basic dXNlcm5hbWU6cGFzc3dvcmQ=") }
+        assert_received(@command) { |command| command.store_config(:authorization, "Basic dXNlcm5hbWU6cGFzc3dvcmQgMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODk=") }
       end
     end
 
