@@ -95,7 +95,14 @@ module Nexus
     
     def deps_from( spec )
       spec.runtime_dependencies.collect do |d|
-        [ d.name, d.requirement.to_s ]
+        # issue https://github.com/sonatype/nexus-ruby-support/issues/25
+        name = case d.name
+               when Array
+                 d.name.first
+               else
+                 d.name
+               end
+        [ name, d.requirement.to_s ]
       end
     end
   end

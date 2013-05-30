@@ -73,4 +73,9 @@ describe Nexus::BundlerDependencies do
     subject.update( 'do_mysql', nil, spec ).wont_be_nil
   end
 
+  it 'should correct gemnames which come as an array' do
+    file = File.join( resources_dir, 'memcache-client-1.6.3.gemspec' )
+    spec = Gem::Specification.from_yaml( File.read( file ) )
+    subject.send( :deps_from, spec ).must_equal [["RubyInline", ">= 0"]]
+  end
 end
