@@ -271,6 +271,9 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     public StorageFileItem retrieveSpecsIndex(RubyRepository repository,
             SpecsIndexType type) throws LocalStorageException, ItemNotFoundException
 	{
+
+	// some old repos used the unzipped specs.4.8 files
+	// create a zipped version of it as the current implementation needs it
         ResourceStoreRequest req = new ResourceStoreRequest( type.filepath() );
         if ( containsItem( repository, req ) ){
             StorageFileItem item = (StorageFileItem) super.retrieveItem( repository,  req );
@@ -282,7 +285,9 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             try
             {
                 storeItem( repository, zippedItem );
-                deleteItem( repository, req );
+		// keep unzipped file in place since deleting it ends up in 
+		// infinite recursion
+                //deleteItem( repository, req );
             }
             catch (UnsupportedStorageOperationException e)
             {

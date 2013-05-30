@@ -27,9 +27,9 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
     @Test
     public void installPrereleasedGem() throws Exception 
     {
-        String result = gemRunner().install( repoId, "pre", "-v" ,"0.1.0.beta" );
-        System.err.println(result);
-        assertThat( result, containsString( "nexus (" ) );
+	File preGem = testData().resolveFile( "pre-0.1.0.beta.gem" );
+        String result = gemRunner().install( preGem );
+        assertThat( result, containsString( "Successfully installed pre-0.1.0.beta" ) );
 
     }
     
