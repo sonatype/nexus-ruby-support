@@ -37,8 +37,10 @@ The Nexus gem requires net-http-persistent to run, install it:
 Build
 -----
 
-    mvn install -Dmaven.test.skip
-	 
+**IMPORTANT** the plugin is build for a particular nexus version. so make sure the nexus version you build the plugin matches the version of the nexus server !!!
+
+    mvn clean install -Dmaven.test.skip -Dnexus.version=2.4.0-1
+
 after that you will find the nexus plugin in **nexus-ruby-plugin/target/nexus-ruby-plugin-*-bundle.zip** and the gem with the nexus rubygems command in **nexus-gem/target/nexus-*.gem**.
 
 install the nexus gem for you local ruby environment with
@@ -61,11 +63,11 @@ using nexus ruby repo
 
 with this you can list the latest versions of the gems from the nexus rubygems repo (mind the trailing slash !!)
 
-    gem list --remote --clear-sources --source http://localhost:8081/nexus/content/rubygems/my-repo/
+    gem list --remote --clear-sources --source http://localhost:8081/nexus/content/repositories/my-repo/
 
 using nexus rubygem repo with rubygems add it as source with (mind the trailing slash !!)
 
-    gem sources --add http://localhost:8081/nexus/content/rubygems/my-repo/
+    gem sources --add http://localhost:8081/nexus/content/repositories/my-repo/
 	
 now you can install the gems from that repo
 
