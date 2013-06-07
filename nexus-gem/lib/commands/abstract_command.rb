@@ -1,9 +1,4 @@
 require 'rubygems/local_remote_options'
-begin
-  require 'always_verify_ssl_certificates'
-rescue LoadError
-  warn 'skip "always_verify_ssl_certificates"'
-end
 require 'base64'
 
 class Gem::AbstractCommand < Gem::Command
@@ -92,6 +87,9 @@ class Gem::AbstractCommand < Gem::Command
     if url.scheme == 'https'
       http.use_ssl = true
     end
+    
+    #Because sometimes our gems are huge and our people are on vpns
+    http.read_timeout = 300
 
     request_method =
       case method
