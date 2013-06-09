@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = 'nexus'
-  s.version = "0.2.3"
+  s.version = "0.2.4"
 
   s.authors = ["Nick Quaranto", 'Christian Meier']
   s.email = ['nick@quaran.to', 'm.kristian@web.de']
