@@ -53,6 +53,17 @@ public class RubygemsGatewayTest
                 Boolean.class );
         assertTrue( "spec from stream equal spec from gem", equalSpecs );
     }
+
+    @Test
+    public void testGenerateGemspecRzWithPlatform()
+        throws Exception
+    {
+        String gem = "src/test/resources/gems/n/nexus-0.1.0-java.gem";
+        
+        InputStream is = gateway.createGemspecRz( "nexus-0.1.0-java.gem", new FileInputStream( gem ) );
+        is.close();
+        assertTrue( "did create without inconsistent gem-name exception", true );
+    }
     
     @Test
     public void testListVersions() throws Exception

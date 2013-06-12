@@ -9,7 +9,7 @@ module Nexus
 
     def create_quick( gemname, gemfile )
       spec = spec_get( gemfile )
-      expected = spec.name + "-" + spec.version.to_s + ".gem"
+      expected = spec.file_name
       raise "mismatched filename: expected #{expected} but got #{gemname}" if gemname != expected
       Gem.deflate( Marshal.dump( spec ) ).bytes.to_a
     end
