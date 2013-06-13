@@ -275,7 +275,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
 	// some old repos used the unzipped specs.4.8 files
 	// create a zipped version of it as the current implementation needs it
         ResourceStoreRequest req = new ResourceStoreRequest( type.filepath() );
-        if ( containsItem( repository, req ) ){
+        ResourceStoreRequest request = new ResourceStoreRequest( type.filepathGzipped() );
+        if ( !containsItem( repository, request) && containsItem( repository, req ) ){
             StorageFileItem item = (StorageFileItem) super.retrieveItem( repository,  req );
             
             ContentLocator content = new GzipContentGenerator().generateContent( repository, null, item );
@@ -294,7 +295,6 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 throw new RuntimeException( "BUG : should be able to write on repository" );
             }
         }
-        ResourceStoreRequest request = new ResourceStoreRequest( type.filepathGzipped() );
         StorageFileItem item = (StorageFileItem) super.retrieveItem( repository,  request );
         DefaultStorageFileItem unzippedItem = new DefaultStorageFileItem( repository, 
                 new ResourceStoreRequest( type.filepath(), true, false ), 

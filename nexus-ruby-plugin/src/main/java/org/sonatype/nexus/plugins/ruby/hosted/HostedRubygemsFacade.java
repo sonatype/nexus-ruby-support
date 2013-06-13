@@ -92,12 +92,14 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
         try
         {
             Object spec = gateway.spec( toInputStream( gem ) );
-            System.err.println( "=========================" + spec);
             for ( SpecsIndexType type : SpecsIndexType.values() )
             {
                 // assume specs-index exists since gem-file does
                 StorageFileItem specsIndex = retrieveSpecsIndex( repository, storage, type );
-                InputStream newSpecsIndex = gateway.deleteSpec( spec, toGZIPInputStream( specsIndex ) );
+                InputStream newSpecsIndex = type == SpecsIndexType.LATEST ? 
+		    gateway.deleteSpec( spec, toGZIPInputStream( specsIndex ),
+					toGZIPInputStream( retrieveSpecsIndex( repository, storage, SpecsIndexType.RELEASE ) ) ) : 
+		    gateway.deleteSpec( spec, toGZIPInputStream( specsIndex ) );
                 storeSpecsIndex( repository, storage, type, newSpecsIndex );
             }
             return true;

@@ -86,7 +86,7 @@ module Nexus
       @name_versions_map = nil
       case type.downcase.to_sym
       when :latest
-        do_add_spec( spec, source )
+        do_add_spec( spec, source, true )
       when :release
         do_add_spec( spec, source ) unless spec.version.prerelease?
       when :prerelease
@@ -94,23 +94,52 @@ module Nexus
       end
     end
 
-    def delete_spec( spec, source )
+    def delete_spec( spec, source, ref_source = nil )
       # refill the map
       @name_versions_map = nil
       specs = load_specs( source )
-      old_entry = [ spec.name, spec.version, spec.platform ]
+      old_entry = [ spec.name, spec.version, spec.platform.to_s ]
       if specs.member? old_entry
         specs.delete old_entry
+        specs += ensure_latest( spec, ref_source ) if ref_source
         dump_specs( specs )
       end
     end 
 
     private
 
-    def do_add_spec( spec, source )
+    def ensure_latest( spec, ref_source )
+      ref = load_specs( ref_source )
+      map = {}
+      ref.each do |s|
+        if s[ 0 ] == spec.name  and ( s[1] != spec.version or s[2].to_s != spec.platform.to_s )
+          a = map[ s[1] ] ||= []
+          a << s
+        end
+      end
+      k = map.keys.sort.last
+      map[ k ] || []
+    end
+      
+    def do_add_spec( spec, source, latest = false )
       specs = load_specs( source )
-      new_entry = [ spec.name, spec.version, spec.platform ]
-      unless specs.member? new_entry
+      new_entry = [ spec.name, spec.version, spec.platform.to_s ]
+      skip = false
+      if latest
+        specs.delete_if do |s| 
+          if s[ 0 ] == spec.name
+            if s[1] > spec.version
+              skip = true
+              # keeps spec with newer version
+              false
+            else
+              # keep spec with same version
+              s[1] < spec.version
+            end
+          end
+        end
+      end
+      if not skip and not specs.member?( new_entry )
         specs << new_entry
         dump_specs( specs )
       end
@@ -128,7 +157,7 @@ module Nexus
         result.pack 'C*'
       end
     ensure
-      io.close unless io.is_a? String
+      io.close if io.respond_to? :close
     end
 
     def load_specs( source )

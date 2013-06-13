@@ -112,10 +112,15 @@ private JRubyScriptingContainer scriptingContainer;
             IOUtil.close( specsIndex );
         }
     }
+
+    @Override
+    public InputStream deleteSpec( Object spec, InputStream specsIndex ) {
+	return deleteSpec( spec, specsIndex, null );
+    }
     
     @SuppressWarnings("resource")
     @Override
-    public InputStream deleteSpec( Object spec, InputStream specsIndex ) {
+    public InputStream deleteSpec( Object spec, InputStream specsIndex, InputStream refSpecs ) {
         try
         {
             @SuppressWarnings( "unchecked" )
@@ -124,6 +129,7 @@ private JRubyScriptingContainer scriptingContainer;
                 new Object[] {
                     spec,
                     specsIndex,
+                    refSpecs
                 },
                 List.class );
         
