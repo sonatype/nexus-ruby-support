@@ -30,29 +30,31 @@ public class RubygemFile extends File
     
     public static boolean isGem( String path )
     {
-        return path.matches( ".*/gems/([a-zA-Z]?/)?[^/]+\\.gem$" );
+        // there is gem with name '-'
+        return path.matches( ".*/gems/([a-zA-Z-]?/)?[^/]+\\.gem$" );
     }
 
     public static boolean isGemspec( String path )
     {
-        return path.matches( ".*/([a-zA-Z]?/)?[^/]+\\.gemspec.rz$" );
+        // there is gem with name '-'
+        return path.matches( ".*/([a-zA-Z-]?/)?[^/]+\\.gemspec.rz$" );
     }
 
     public static boolean isSpecsIndex( String path )
     {
         return path.contains( "specs.4.8" );
     }
-    
+
     public static Type toType( String path )
     {
-        return isGem( path ) ? Type.GEM : 
-            ( isGemspec( path ) ? Type.GEMSPEC : 
+        return isGem( path ) ? Type.GEM :
+            ( isGemspec( path ) ? Type.GEMSPEC :
                 isSpecsIndex( path ) ? Type.SPECS_INDEX : Type.OTHER );
-        
+
     }
-    
+
     private final Type type;
-    
+
     public static RubygemFile newGem( String name )
     {
         return new RubygemFile( new File( "gems", name ), Type.GEM );
@@ -68,18 +70,19 @@ public class RubygemFile extends File
         switch( t )
         {
         case OTHER:
-        case SPECS_INDEX:   
+        case SPECS_INDEX:
             return new RubygemFile( name, t );
         default:
-            // this constructor will create the nested one letter subdirectory 
-            return new RubygemFile( new File( name.replaceFirst( "/[a-zA-Z]/", "/" ) ), t );
+            // this constructor will create the nested one letter subdirectory
+            // there is gem with name '-' !!!
+            return new RubygemFile( new File( name.replaceFirst( "/[a-zA-Z-]/", "/" ) ), t );
         }
     }
 
     private RubygemFile( File target, Type type )
     {
-        super( new File( target.getParentFile(), 
-                target.getName().substring( 0, 1 ) ), 
+        super( new File( target.getParentFile(),
+                target.getName().substring( 0, 1 ) ),
                 target.getName() );
         this.type = type;
     }
