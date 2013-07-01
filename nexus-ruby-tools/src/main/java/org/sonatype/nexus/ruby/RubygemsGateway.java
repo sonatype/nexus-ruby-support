@@ -20,7 +20,7 @@ public interface RubygemsGateway {
 
     InputStream deleteSpec( Object spec, InputStream specsIndex, InputStream refSpecs );
 
-    InputStream mergeSpecs( InputStream specs, List<InputStream> streams );
+    InputStream mergeSpecs( InputStream specs, List<InputStream> streams, boolean latest );
 
     List<String> listVersions( String name, InputStream inputStream, long modified );
 

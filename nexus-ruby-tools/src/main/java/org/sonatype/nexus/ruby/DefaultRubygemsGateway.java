@@ -143,8 +143,8 @@ private JRubyScriptingContainer scriptingContainer;
 
     @SuppressWarnings("resource")
     @Override
-    public InputStream mergeSpecs(InputStream specs,
-            List<InputStream> streams) {
+    public InputStream mergeSpecs( InputStream specs,
+            List<InputStream> streams, boolean latest ) {
         try
         {
             @SuppressWarnings( "unchecked" )
@@ -153,6 +153,7 @@ private JRubyScriptingContainer scriptingContainer;
                 new Object[] {
                     specs,
                     streams,
+                    latest
                 },
                 List.class );
         

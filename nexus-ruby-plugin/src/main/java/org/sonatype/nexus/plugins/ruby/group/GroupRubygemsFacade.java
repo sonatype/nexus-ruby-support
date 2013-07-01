@@ -36,7 +36,7 @@ public class GroupRubygemsFacade extends AbstractRubygemsFacade {
         storeSpecsIndex( repository, 
                          storage, 
                          type,
-                         gateway.mergeSpecs( is, streams ) );
+                         gateway.mergeSpecs( is, streams, type == SpecsIndexType.LATEST ) );
     }   
   
     @Override

@@ -48,7 +48,7 @@ module Nexus
 
     end
 
-    def dependencies( specs, modified, 
+    def dependencies( specs, modified,
                       prereleased_specs, prereleased_modified )
       if specs
         BundlerDependencies.new( name_versions_map( specs, modified ),
@@ -69,7 +69,7 @@ module Nexus
       dump_specs( [] )
     end
 
-    def merge_specs( source, sources )
+    def merge_specs( source, sources, lastest = false )
       result = if source
                  load_specs( source )
                else
@@ -78,8 +78,33 @@ module Nexus
       sources.each do |s|
         result += load_specs( s )
       end
+      result = regenerate_latest( result ) if lastest
       dump_specs( result )
     end
+
+    def regenerate_latest( specs )
+      specs.sort!
+      specs.uniq!
+      map = {}
+      specs.each do |s|
+        list = map[ s[ 0 ] ] ||= []
+        list << s
+      end
+      result = []
+      map.each do |name, list|
+        list.sort!
+        list.uniq!
+        lastest_versions = {}
+        list.each do |i|
+          version = i[1]
+          platform = i[2]
+          lastest_versions[ platform ] = i
+        end
+        result += lastest_versions.collect { |k, v| v }
+      end
+      result
+    end
+    private :regenerate_latest
 
     def add_spec( spec, source, type )
       # refill the map
@@ -104,7 +129,7 @@ module Nexus
         specs += ensure_latest( spec, ref_source ) if ref_source
         dump_specs( specs )
       end
-    end 
+    end
 
     private
 
@@ -120,13 +145,13 @@ module Nexus
       k = map.keys.sort.last
       map[ k ] || []
     end
-      
+
     def do_add_spec( spec, source, latest = false )
       specs = load_specs( source )
       new_entry = [ spec.name, spec.version, spec.platform.to_s ]
       skip = false
       if latest
-        specs.delete_if do |s| 
+        specs.delete_if do |s|
           if s[ 0 ] == spec.name
             if s[1] > spec.version
               skip = true
@@ -143,7 +168,7 @@ module Nexus
         specs << new_entry
         dump_specs( specs )
       end
-    end 
+    end
 
     def read_binary( io )
       case io
