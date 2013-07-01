@@ -1,3 +1,4 @@
+require 'bundler'
 require 'bundler/fetcher'
 require 'bundler/rubygems_integration'
 require 'bundler/rubygems_mirror'
