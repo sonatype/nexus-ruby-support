@@ -98,43 +98,51 @@ public class RubygemsGatewayTest
         File empty = new File( "src/test/resources/empty_specs" );
         File target = new File( "target/test_specs" );
         File gem = new File( "src/test/resources/gems/n/nexus-0.1.0.gem" );
-        
-        Object spec1 = gateway.spec( new FileInputStream( gem ) );
-        
-        // add gem
-        InputStream is = gateway.addSpec( spec1, new FileInputStream( empty ), SpecsIndexType.LATEST );
 
-	// add another gem with different platform
+        Object spec1 = gateway.spec( new FileInputStream( gem ) );
+
+        // add gem
+        InputStream is = gateway.addSpec( spec1,
+                                          new FileInputStream( empty ),
+                                          SpecsIndexType.LATEST );
+
+        // add another gem with different platform
         gem = new File( "src/test/resources/gems/n/nexus-0.1.0-java.gem" );
         Object specJ = gateway.spec( new FileInputStream( gem ) );
         is = gateway.addSpec( specJ, is, SpecsIndexType.LATEST );
-        
+
         dumpStream(is, target);
-        
-        int size = scriptingContainer.callMethod( check, 
-                "specs_size", 
-                target.getAbsolutePath(), 
-                Integer.class ); 
+
+        int size = scriptingContainer.callMethod( check,
+                "specs_size",
+                target.getAbsolutePath(),
+                Integer.class );
         assertEquals( "specsfile size", 2, size );
 
-	// add a gem with newer version
-	gem = new File( "src/test/resources/gems/n/nexus-0.2.0.gem" );
+        // add a gem with newer version
+        gem = new File( "src/test/resources/gems/n/nexus-0.2.0.gem" );
         Object spec = gateway.spec( new FileInputStream( gem ) );
-        is = gateway.addSpec( spec, new FileInputStream( target ), SpecsIndexType.LATEST );
-        
-        dumpStream(is, target);
-        
-        size = scriptingContainer.callMethod( check, 
-                "specs_size", 
-                target.getAbsolutePath(), 
-                Integer.class ); 
-        assertEquals( "specsfile size", 1, size );
+        is = gateway.addSpec( spec,
+                              new FileInputStream( target ),
+                              SpecsIndexType.LATEST );
 
-	// add both the gems with older version
-        is = gateway.addSpec( spec1, new FileInputStream( target ), SpecsIndexType.LATEST );
-	assertNull( is );
-        is = gateway.addSpec( specJ, new FileInputStream( target ), SpecsIndexType.LATEST );
-	assertNull( is );
+        dumpStream(is, target);
+
+        size = scriptingContainer.callMethod( check,
+                "specs_size",
+                target.getAbsolutePath(),
+                Integer.class );
+        assertEquals( "specsfile size", 2, size );
+
+        // add both the gems with older version
+        is = gateway.addSpec( spec1,
+                              new FileInputStream( target ),
+                              SpecsIndexType.LATEST );
+        assertNull( is );
+        is = gateway.addSpec( specJ,
+                              new FileInputStream( target ),
+                              SpecsIndexType.LATEST );
+        assertNull( is );
     }
 
     @Test
@@ -144,9 +152,9 @@ public class RubygemsGatewayTest
         File target = new File( "target/test_specs" );
         File targetRef = new File( "target/test_ref_specs" );
         File gem = new File( "src/test/resources/gems/n/nexus-0.1.0.gem" );
-        
+
         Object spec = gateway.spec( new FileInputStream( gem ) );
-        
+
         // add gem
         InputStream isRef = gateway.addSpec( spec, new FileInputStream( empty ), SpecsIndexType.RELEASE );
 

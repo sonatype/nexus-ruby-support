@@ -126,7 +126,11 @@ module Nexus
       old_entry = [ spec.name, spec.version, spec.platform.to_s ]
       if specs.member? old_entry
         specs.delete old_entry
-        specs += ensure_latest( spec, ref_source ) if ref_source
+        if ref_source
+          ref_specs = load_specs( ref_source )
+          ref_specs.delete old_entry
+          specs = regenerate_latest( ref_specs )
+        end
         dump_specs( specs )
       end
     end
@@ -149,24 +153,14 @@ module Nexus
     def do_add_spec( spec, source, latest = false )
       specs = load_specs( source )
       new_entry = [ spec.name, spec.version, spec.platform.to_s ]
-      skip = false
-      if latest
-        specs.delete_if do |s|
-          if s[ 0 ] == spec.name
-            if s[1] > spec.version
-              skip = true
-              # keeps spec with newer version
-              false
-            else
-              # keep spec with same version
-              s[1] < spec.version
-            end
-          end
+      unless specs.member?( new_entry )
+        if latest
+          new_specs = regenerate_latest( specs + [ new_entry ] )
+          dump_specs( new_specs ) if new_specs != specs
+        else
+          specs << new_entry
+          dump_specs( specs )
         end
-      end
-      if not skip and not specs.member?( new_entry )
-        specs << new_entry
-        dump_specs( specs )
       end
     end
 
