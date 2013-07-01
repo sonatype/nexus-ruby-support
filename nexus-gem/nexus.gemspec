@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = 'nexus'
-  s.version = "0.2.5"
+  s.version = "0.2.6"
 
   s.authors = ["Nick Quaranto", 'Christian Meier']
   s.email = ['nick@quaran.to', 'm.kristian@web.de']
@@ -37,7 +37,8 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency('rake', '0.9.2.2')
   s.add_development_dependency('shoulda', "~> 3.1.1")
+  # to use a version which works
+  s.add_development_dependency('activesupport', "< 4.0.0")
   s.add_development_dependency('webmock', "~> 1.8.8")
   s.add_development_dependency('rr', ">= 0")
 end
-

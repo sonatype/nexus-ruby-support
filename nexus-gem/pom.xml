@@ -12,7 +12,7 @@
 
   <groupId>rubygems</groupId>
   <artifactId>nexus</artifactId>
-  <version>0.2.5</version>
+  <version>0.2.6</version>
 
   <name><![CDATA[Nexus Gem command and Bundler 'extension']]></name>
   <packaging>gem</packaging>
@@ -184,6 +184,12 @@
 		<groupId>rubygems</groupId>
 		<artifactId>rr</artifactId>
 		<version>1.0.4</version>
+		<type>gem</type>
+	      </dependency>
+	      <dependency>
+		<groupId>rubygems</groupId>
+		<artifactId>activesupport</artifactId>
+		<version>[0, 4.0.0)</version>
 		<type>gem</type>
 	      </dependency>
 	    </dependencies>   
