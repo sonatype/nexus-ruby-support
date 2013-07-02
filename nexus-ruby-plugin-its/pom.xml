@@ -17,43 +17,29 @@
   <name>Nexus Ruby Plugin ITs</name>
   <description>Nexus Ruby Plugin ITs</description>
 
-  <properties>
-    <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
-  </properties>
-
   <dependencies>
-
     <dependency>
       <groupId>org.sonatype.nexus.ruby</groupId>
       <artifactId>nexus-ruby-tools</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.sonatype.nexus.ruby</groupId>
       <artifactId>nexus-ruby-tools</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-      <scope>test</scope>
       <classifier>tests</classifier>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-testsuite-support</artifactId>
-      <version>${nexus.version}</version>
       <scope>test</scope>
     </dependency>
 
-    <!-- not sure why I need to add those to the pom but somethings are missing otherwise -->
-    <dependency>
-      <groupId>org.sonatype.nexus</groupId>
-      <artifactId>nexus-it-helper-plugin</artifactId>
-      <version>${nexus.version}</version>
-      <classifier>bundle</classifier>
-      <type>zip</type>
-      <scope>test</scope>
-    </dependency>
+    <!--
+    Dependency here to force Maven to download this before tests execute, as they could timeout attempting to fetch this artifact.
+    -->
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-oss-webapp</artifactId>
@@ -63,69 +49,5 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>rubygems</groupId>
-        <artifactId>nexus</artifactId>
-        <version>0.2.6</version>
-        <type>gem</type>
-      </dependency>
-      <dependency>
-        <groupId>org.sonatype.nexus.plugins</groupId>
-        <artifactId>nexus-ruby-plugin</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-        <type>nexus-plugin</type>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <build>
-    <testResources>
-      <testResource>
-        <directory>${project.basedir}/src/test/resources</directory>
-        <filtering>false</filtering>
-        <includes>
-          <include>**/*</include>
-        </includes>
-      </testResource>
-      <testResource>
-        <directory>${project.basedir}/src/test/filtered-resources</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>**/*</include>
-        </includes>
-      </testResource>
-    </testResources>
-
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.12.3</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <forkMode>always</forkMode>
-          <useSystemClassLoader>false</useSystemClassLoader>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 
 </project>
