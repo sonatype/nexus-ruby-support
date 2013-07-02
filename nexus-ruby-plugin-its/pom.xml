@@ -43,7 +43,6 @@
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>nexus-oss-webapp</artifactId>
-      <version>${nexus.version}</version>
       <classifier>bundle</classifier>
       <type>zip</type>
       <scope>test</scope>
