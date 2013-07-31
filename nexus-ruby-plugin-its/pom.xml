@@ -41,8 +41,9 @@
     Dependency here to force Maven to download this before tests execute, as they could timeout attempting to fetch this artifact.
     -->
     <dependency>
-      <groupId>org.sonatype.nexus</groupId>
-      <artifactId>nexus-oss-webapp</artifactId>
+      <groupId>org.sonatype.nexus.assemblies</groupId>
+      <artifactId>nexus-bundle-template</artifactId>
+      <version>2.6.0-05</version>
       <classifier>bundle</classifier>
       <type>zip</type>
       <scope>test</scope>
