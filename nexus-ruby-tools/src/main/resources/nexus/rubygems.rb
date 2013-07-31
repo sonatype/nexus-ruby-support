@@ -107,14 +107,16 @@ module Nexus
     private :regenerate_latest
 
     def add_spec( spec, source, type )
-      # refill the map
-      @name_versions_map = nil
       case type.downcase.to_sym
       when :latest
         do_add_spec( spec, source, true )
       when :release
+        # refill the map
+        @name_versions_map = nil
         do_add_spec( spec, source ) unless spec.version.prerelease?
       when :prerelease
+        # refill the map
+        @name_preversions_map = nil
         do_add_spec( spec, source ) if spec.version.prerelease?
       end
     end
@@ -122,6 +124,7 @@ module Nexus
     def delete_spec( spec, source, ref_source = nil )
       # refill the map
       @name_versions_map = nil
+      @name_preversions_map = nil
       specs = load_specs( source )
       old_entry = [ spec.name, spec.version, spec.platform.to_s ]
       if specs.member? old_entry
