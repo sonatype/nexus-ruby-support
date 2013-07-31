@@ -323,6 +323,10 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         {
             new LocalStorageException( "error storing: " + type.filename(), e);
         }
+        finally
+        {
+            IOUtil.close( content );
+        }
     }
 
     public void storeSpecsIndices( RubyGroupRepository rubyRepository, SpecsIndexType type, List<StorageItem> specsItems)
