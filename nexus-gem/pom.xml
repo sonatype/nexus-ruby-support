@@ -11,9 +11,9 @@
 
   <groupId>rubygems</groupId>
   <artifactId>nexus</artifactId>
-  <version>1.0.0</version>
+  <version>0.2.6</version>
 
-  <name><![CDATA[Nexus Gem command and Bundler 'extension']]></name>
+  <name><![CDATA[Nexus Gem Command and Bundler 'Extension']]></name>
   <packaging>gem</packaging>
   <description><![CDATA[Adds a command to RubyGems for uploading gems to a nexus server. Adds a 'nbundle' command which allows to configure mirror urls for rubygems.org and/or other rubygems repositories.]]></description>
   <url>http://sonatype.org/nexus</url>
