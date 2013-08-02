@@ -41,13 +41,69 @@
     Dependency here to force Maven to download this before tests execute, as they could timeout attempting to fetch this artifact.
     -->
     <dependency>
-      <groupId>org.sonatype.nexus.assemblies</groupId>
-      <artifactId>nexus-bundle-template</artifactId>
-      <version>2.6.0-05</version>
+      <groupId>${it.nexus.groupId}</groupId>
+      <artifactId>${it.nexus.artifactId}</artifactId>
+      <version>${it.nexus.version}</version>
       <classifier>bundle</classifier>
       <type>zip</type>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
+  <properties>
+    <it.nexus.groupId>org.sonatype.nexus</it.nexus.groupId>
+    <it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
+    <it.nexus.version>${nexus.version}</it.nexus.version>
+  </properties>
+
+  <profiles>
+    <profile>
+      <id>run-its</id>
+      <build>
+	<plugins>
+	  <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+	    <executions>
+	      <execution>
+		<goals>
+		  <goal>integration-test</goal>
+		  <goal>verify</goal>
+		</goals>
+	      </execution>
+	    </executions>
+	  </plugin>
+	</plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>2.6.0-01</id>
+      <activation>
+	<property>
+	  <name>nexus.version</name>
+	  <value>2.6.0-01</value>
+	</property>
+      </activation>
+
+      <properties>
+	<it.nexus.groupId>org.sonatype.nexus.assemblies</it.nexus.groupId>
+	<it.nexus.artifactId>nexus-bundle-template</it.nexus.artifactId>
+      </properties>
+
+    </profile>
+    <profile>
+      <id>2.6.0-05</id>
+      <activation>
+	<property>
+	  <name>nexus.version</name>
+	  <value>2.6.0-05</value>
+	</property>
+      </activation>
+
+      <properties>
+	<it.nexus.groupId>org.sonatype.nexus.assemblies</it.nexus.groupId>
+	<it.nexus.artifactId>nexus-bundle-template</it.nexus.artifactId>
+      </properties>
+
+    </profile>
+  </profiles>
 </project>
