@@ -14,6 +14,7 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.inject.Inject;
 
+import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.util.IOUtil;
 import org.sonatype.nexus.mime.MimeSupport;
@@ -308,12 +309,12 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     @Override
     public void storeSpecsIndex(RubyRepository repository, SpecsIndexType type,
             InputStream content) throws LocalStorageException, UnsupportedStorageOperationException {
+        OutputStream out = null;
         try
         {
             ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
-            OutputStream out = new GZIPOutputStream( gzipped );
+            out = new GZIPOutputStream( gzipped );
             IOUtil.copy( content, out );
-            out.close();
             DefaultStorageFileItem item = new DefaultStorageFileItem( repository, new ResourceStoreRequest( type.filename() + ".gz" ), 
                     true, true,
                     new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ), "application/x-gzip" ) );
@@ -326,6 +327,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         finally
         {
             IOUtil.close( content );
+            IOUtil.close( out );
         }
     }
 
