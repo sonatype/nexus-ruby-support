@@ -11,7 +11,7 @@
 
   <groupId>rubygems</groupId>
   <artifactId>nexus</artifactId>
-  <version>0.2.6</version>
+  <version>1.0.0</version>
 
   <name><![CDATA[Nexus Gem Command and Bundler 'Extension']]></name>
   <packaging>gem</packaging>
