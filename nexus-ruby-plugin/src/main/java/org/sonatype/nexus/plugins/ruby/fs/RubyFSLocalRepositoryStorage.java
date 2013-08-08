@@ -14,7 +14,6 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.inject.Inject;
 
-import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.util.IOUtil;
 import org.sonatype.nexus.mime.MimeSupport;

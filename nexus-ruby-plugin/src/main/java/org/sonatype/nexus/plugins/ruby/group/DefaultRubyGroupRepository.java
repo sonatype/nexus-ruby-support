@@ -125,8 +125,12 @@ public class DefaultRubyGroupRepository
             try
             {
 
-                List<StorageItem> items = doRetrieveItems( new ResourceStoreRequest( type.filepathGzipped() ) );
-                storage.storeSpecsIndices( this, type, items );
+                synchronized( this ){
+
+                    List<StorageItem> items = doRetrieveItems( new ResourceStoreRequest( type.filepathGzipped() ) );
+                    storage.storeSpecsIndices( this, type, items );
+
+                }
                 
             }
             catch (UnsupportedStorageOperationException e)
