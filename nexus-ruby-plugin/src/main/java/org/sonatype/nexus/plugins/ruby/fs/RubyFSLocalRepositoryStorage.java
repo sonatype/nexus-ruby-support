@@ -314,6 +314,7 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
             out = new GZIPOutputStream( gzipped );
             IOUtil.copy( content, out );
+            out.close();
             DefaultStorageFileItem item = new DefaultStorageFileItem( repository, new ResourceStoreRequest( type.filename() + ".gz" ), 
                     true, true,
                     new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ), "application/x-gzip" ) );
