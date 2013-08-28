@@ -34,6 +34,12 @@ install the nexus plugin into your nexus server with
 
     unzip -d $NEXUS_HOME/nexus/WEB-INF/plugin-repository/ -o nexus-ruby-plugin/target/nexus-ruby-plugin-*-SNAPSHOT-bundle.zip
 
+**NOTE** if you see `java.lang.OutOfMemoryError: PermGen space` errors when re-starting nexus with the plugin installed, you need to bump the size of the garbage collector's permanent generation. Edit `bin/jsw/conf/wrapper.conf` and add an additional java argument:
+
+```
+wrapper.java.additional.3=-XX:MaxPermSize=128m
+```
+
 nexus command
 -------------
 
