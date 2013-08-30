@@ -25,6 +25,7 @@ import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
@@ -158,6 +159,10 @@ public class DefaultRubyProxyRepository
     protected AbstractStorageItem doRetrieveRemoteItem(
             ResourceStoreRequest request ) throws ItemNotFoundException,
             RemoteAccessException, org.sonatype.nexus.proxy.StorageException {
+        //normalize PATH-Separator from Windows platform to valid URL-Path - https://github.com/sonatype/nexus-ruby-support/issues/38
+        String path= request.getRequestPath().replace("\\",RepositoryItemUid.PATH_SEPARATOR);
+        request.setRequestPath(path);
+
         if ( request.getRequestPath().startsWith( "/api/" ) )
         {
             throw new ItemNotFoundException( request );
