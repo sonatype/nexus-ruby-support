@@ -52,8 +52,8 @@
 
   <properties>
     <it.nexus.groupId>org.sonatype.nexus</it.nexus.groupId>
-    <it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
-    <it.nexus.version>${nexus.version}</it.nexus.version>
+	<it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
+	<it.nexus.version>${nexus.version}</it.nexus.version>
   </properties>
 
   <profiles>
@@ -98,12 +98,37 @@
 	  <value>2.6.0-05</value>
 	</property>
       </activation>
-
+      
       <properties>
 	<it.nexus.groupId>org.sonatype.nexus.assemblies</it.nexus.groupId>
 	<it.nexus.artifactId>nexus-bundle-template</it.nexus.artifactId>
       </properties>
 
     </profile>
+
+
+
+    <profile>
+	<!--
+	http://jira.codehaus.org/browse/MNG-4777  :(
+	
+	https://support.sonatype.com/entries/25049567-Where-is-nexus-oss-webapp-
+    https://github.com/sonatype/nexus-ruby-support/issues/31
+    -->    
+      <id>2.6.2-01</id>
+      <activation>
+	<property>
+	  <name>nexus.version</name>
+	  <value>2.6.2-01</value>
+	</property>
+      </activation>
+      
+      <properties>
+	<it.nexus.groupId>org.sonatype.nexus.assemblies</it.nexus.groupId>
+	<it.nexus.artifactId>nexus-bundle-template</it.nexus.artifactId>
+      </properties>
+
+    </profile>
+
   </profiles>
 </project>
