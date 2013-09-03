@@ -31,13 +31,13 @@ public class RubygemFile extends File
     public static boolean isGem( String path )
     {
         // there is gem with name '-'
-        return path.matches( ".*/gems/([a-zA-Z-]?/)?[^/]+\\.gem$" );
+        return path.matches( ".*/gems/([0-9a-zA-Z-]?/)?[^/]+\\.gem$" );
     }
 
     public static boolean isGemspec( String path )
     {
         // there is gem with name '-'
-        return path.matches( ".*/([a-zA-Z-]?/)?[^/]+\\.gemspec.rz$" );
+        return path.matches( ".*/([0-9a-zA-Z-]?/)?[^/]+\\.gemspec.rz$" );
     }
 
     public static boolean isSpecsIndex( String path )
@@ -75,7 +75,7 @@ public class RubygemFile extends File
         default:
             // this constructor will create the nested one letter subdirectory
             // there is gem with name '-' !!!
-            return new RubygemFile( new File( name.replaceFirst( "/[a-zA-Z-]/", "/" ) ), t );
+            return new RubygemFile( new File( name.replaceFirst( "/[0-9a-zA-Z-]/", "/" ) ), t );
         }
     }
 
