@@ -6,6 +6,8 @@ import org.sonatype.nexus.proxy.maven.gav.Gav;
 
 public class RubygemFile extends File
 {
+    // there are gems with name '-', '_' or digits as first letter !!!
+    private static final String _0_9A_Z_A_Z = "[0-9a-zA-Z-_]";
     private static final String GEMSPEC_RZ = ".gemspec.rz";
     private static final String QUICK_MARSHAL_4_8 = "/quick/Marshal.4.8/";
     private static final long serialVersionUID = 6569845569736820559L;
@@ -30,14 +32,12 @@ public class RubygemFile extends File
     
     public static boolean isGem( String path )
     {
-        // there is gem with name '-'
-        return path.matches( ".*/gems/([0-9a-zA-Z-]?/)?[^/]+\\.gem$" );
+        return path.matches( ".*/gems/(" +_0_9A_Z_A_Z +"?/)?[^/]+\\.gem$" );
     }
 
     public static boolean isGemspec( String path )
     {
-        // there is gem with name '-'
-        return path.matches( ".*/([0-9a-zA-Z-]?/)?[^/]+\\.gemspec.rz$" );
+        return path.matches( ".*/(" +_0_9A_Z_A_Z + "?/)?[^/]+\\.gemspec.rz$" );
     }
 
     public static boolean isSpecsIndex( String path )
@@ -73,9 +73,8 @@ public class RubygemFile extends File
         case SPECS_INDEX:
             return new RubygemFile( name, t );
         default:
-            // this constructor will create the nested one letter subdirectory
-            // there is gem with name '-' !!!
-            return new RubygemFile( new File( name.replaceFirst( "/[0-9a-zA-Z-]/", "/" ) ), t );
+            // this constructor will create the nested one letter subdirectory.
+            return new RubygemFile( new File( name.replaceFirst( "/" + _0_9A_Z_A_Z + "/", "/" ) ), t );
         }
     }
 
