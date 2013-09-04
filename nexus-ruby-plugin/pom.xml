@@ -62,6 +62,7 @@
       <plugin>
         <groupId>org.sonatype.nexus</groupId>
         <artifactId>nexus-plugin-bundle-maven-plugin</artifactId>
+        <version>1.0.1</version>
       </plugin>
 
       <plugin>

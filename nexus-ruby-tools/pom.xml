@@ -83,7 +83,7 @@
       <plugin>
         <groupId>de.saumya.mojo</groupId>
         <artifactId>minitest-maven-plugin</artifactId>
-        <version>1.0.0-beta</version>
+        <version>1.0.0-rc</version>
         <executions>
           <execution>
             <goals>
