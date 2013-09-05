@@ -14,6 +14,7 @@ class Gem::Commands::FakeCommand < Gem::AbstractCommand
 end
 
 class AbstractCommandTest < CommandTest
+
   context "with an fake command" do
     setup do
       @command = Gem::Commands::FakeCommand.new

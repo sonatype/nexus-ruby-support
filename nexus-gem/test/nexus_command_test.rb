@@ -52,8 +52,7 @@ class NexusCommandTest < CommandTest
                          :body => @gem_binary,
                          :headers => {
                            'Authorization' => 'key', 
-                           'Content-Type' => 'application/octet-stream', 
-                           'User-Agent'=>'Ruby'
+                           'Content-Type' => 'application/octet-stream'
                          })
       end
     end

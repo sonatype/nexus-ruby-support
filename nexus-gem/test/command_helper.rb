@@ -1,7 +1,16 @@
-require 'rubygems'
-require 'test/unit'
+require 'minitest/autorun'
 
 require 'shoulda'
+
+# for some reasons the refute_predicate is missing when executing
+# via jruby-1.7.4
+module ActiveSupport
+  class TestCase < ::MiniTest::Unit::TestCase
+    def refute_predicate
+    end
+  end
+end
+
 require 'active_support'
 require 'active_support/test_case'
 require 'webmock'
@@ -19,8 +28,8 @@ $:.unshift File.expand_path(File.join(File.dirname(__FILE__), ".."))
 require "rubygems_plugin"
 
 class CommandTest < ActiveSupport::TestCase
-  include RR::Adapters::TestUnit unless include?(RR::Adapters::TestUnit)
   include WebMock::API
+  include ShouldaContextLoadable 
 
   def teardown
     WebMock.reset!
