@@ -1,3 +1,3 @@
 # that file is for convinence for bundler users
-source :rubygems
+source 'https://rubygems.org'
 gemspec
