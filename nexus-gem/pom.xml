@@ -1,77 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
     <groupId>org.sonatype.nexus.ruby</groupId>
     <artifactId>nexus-ruby-support</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
   </parent>
-
   <groupId>rubygems</groupId>
   <artifactId>nexus</artifactId>
   <version>1.0.0</version>
-
-  <name><![CDATA[Nexus Gem Command and Bundler 'Extension']]></name>
   <packaging>gem</packaging>
-  <description><![CDATA[Adds a command to RubyGems for uploading gems to a nexus server. Adds a 'nbundle' command which allows to configure mirror urls for rubygems.org and/or other rubygems repositories.]]></description>
-  <url>http://sonatype.org/nexus</url>
-
-  <developers>
-    <!-- original author of the gemcutter gem and its tests -->
-    <developer>
-      <id>nick_at_quaran_dot_to</id>
-      <name>Nick Quaranto</name>
-      <email>nick@quaran.to</email>
-    </developer>
-    <developer>
-      <id>mkristian</id>
-      <name>Christian Meier</name>
-      <email>m.kristian@web.de</email>
-    </developer>
-  </developers>
-
-  <licenses>
-    <license>
-      <name>MIT-LICENSE</name>
-      <url>./MIT-LICENSE</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
+  <name>Gem Command to interact with Nexus server</name>
+  <description>Adds a command to RubyGems for uploading gems to a nexus server.</description>
+  <url>https://github.com/sonatype/nexus-ruby-support/tree/master/nexus-gem</url>
   <properties>
-    <!-- configuring the versions here allows CLI to overwrite them -->
-    <jruby.versions>1.6.8,1.7.3</jruby.versions>
-    <jruby.18and19>true</jruby.18and19>
+    <jruby.version>1.7.4</jruby.version>
+    <tesla.dump.readonly>true</tesla.dump.readonly>
     <jruby.plugins.version>1.0.0-rc</jruby.plugins.version>
+    <tesla.dump.pom>pom.xml</tesla.dump.pom>
   </properties>
-
+  <dependencies>
+    <dependency>
+      <groupId>org.jruby</groupId>
+      <artifactId>jruby-complete</artifactId>
+      <version>${jruby.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
   <build>
+    <extensions>
+      <extension>
+        <groupId>de.saumya.mojo</groupId>
+        <artifactId>gem-extension</artifactId>
+      </extension>
+    </extensions>
     <plugins>
       <plugin>
         <groupId>de.saumya.mojo</groupId>
         <artifactId>gem-maven-plugin</artifactId>
         <version>${jruby.plugins.version}</version>
-        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>default-push</id>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </execution>
+        </executions>
         <configuration>
           <gemspec>nexus.gemspec</gemspec>
         </configuration>
-      	<executions>
-      	  <execution>
-      	    <id>default-push</id>
-      	    <configuration>
-      	      <skip>true</skip>
-      	    </configuration>
-      	  </execution>
-      	</executions>
       </plugin>
       <plugin>
-      	<artifactId>maven-deploy-plugin</artifactId>
-      	<version>2.4</version>
-      	<configuration>
-  	      <skip>true</skip>
-  	    </configuration>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
@@ -79,143 +64,93 @@
         <configuration>
           <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
         </configuration>
-      </plugin>      
+      </plugin>
     </plugins>
-
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <action>
-                    <ignore />
-                  </action>
-                  <pluginExecutionFilter>
-                    <artifactId>bundler-maven-plugin</artifactId>
-                    <goals>
-                      <goal>install</goal>
-                    </goals>
-                    <groupId>de.saumya.mojo</groupId>
-                    <versionRange>[0,)</versionRange>
-                  </pluginExecutionFilter>
-                </pluginExecution>
-                <pluginExecution>
-                  <action>
-                    <ignore />
-                  </action>
-                  <pluginExecutionFilter>
-                    <artifactId>gem-maven-plugin</artifactId>
-                    <goals>
-                      <goal>initialize</goal>
-                    </goals>
-                    <groupId>de.saumya.mojo</groupId>
-                    <versionRange>[0,)</versionRange>
-                  </pluginExecutionFilter>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
   </build>
-
   <profiles>
     <profile>
       <id>push</id>
-
-      <repositories>
-	<repository>
-	  <id>rubygems-releases</id>
-	  <url>http://rubygems-proxy.torquebox.org/releases</url>
-	</repository>
-      </repositories>
-      <pluginRepositories>
-	<pluginRepository>
-	  <id>rubygems-releases</id>
-	  <url>http://rubygems-proxy.torquebox.org/releases</url>
-	</pluginRepository>
-      </pluginRepositories>
-
-      <dependencies>
-
-	<dependency>
-	  <groupId>rubygems</groupId>
-	  <artifactId>rake</artifactId>
-	  <version>10.0.3</version>
-	  <type>gem</type>
-	  <scope>test</scope>
-	</dependency>
-	
-      </dependencies>
-
       <build>
-	<defaultGoal>deploy</defaultGoal>
-	<plugins>
-	  
-	  <plugin>
-	    <groupId>de.saumya.mojo</groupId>
-	    <artifactId>runit-maven-plugin</artifactId>
-	    <version>${jruby.plugins.version}</version>
-	    <executions>
-	      <execution>
-		<phase>test</phase>
-		<goals>
-		  <goal>test</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	    <dependencies>
-	      <dependency>
-		<groupId>rubygems</groupId>
-		<artifactId>shoulda</artifactId>
-		<version>3.1.1</version>
-		<type>gem</type>
-	      </dependency>
-	      <dependency>
-		<groupId>rubygems</groupId>
-		<artifactId>webmock</artifactId>
-		<version>1.8.9</version>
-		<type>gem</type>
-	      </dependency>
-	      <dependency>
-		<groupId>rubygems</groupId>
-		<artifactId>rr</artifactId>
-		<version>1.0.4</version>
-		<type>gem</type>
-	      </dependency>
-	      <dependency>
-		<groupId>rubygems</groupId>
-		<artifactId>activesupport</artifactId>
-		<version>[0, 4.0.0)</version>
-		<type>gem</type>
-	      </dependency>
-	    </dependencies>   
-	  </plugin>
-	  
-	  <plugin>
-	    <groupId>de.saumya.mojo</groupId>
-	    <artifactId>gem-maven-plugin</artifactId>
-	    <executions>
-	      <execution>
-		<id>default-push</id>
-		<goals>
-		  <goal>push</goal>
-		</goals>
-		<configuration>
-		  <skip>false</skip>
-		</configuration>
-	      </execution>
-	    </executions>
-	  </plugin>
-	</plugins>
+        <defaultGoal>deploy</defaultGoal>
+        <directory>${basedir}/pkg</directory>
+        <plugins>
+          <plugin>
+            <groupId>de.saumya.mojo</groupId>
+            <artifactId>gem-maven-plugin</artifactId>
+            <version>${jruby.plugins.version}</version>
+            <configuration>
+              <gemspec>nexus.gemspec</gemspec>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>de.saumya.mojo</groupId>
+            <artifactId>runit-maven-plugin</artifactId>
+            <version>${jruby.plugins.version}</version>
+            <executions>
+              <execution>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
+      <properties>
+        <jruby.plugins.version>1.0.0-rc</jruby.plugins.version>
+        <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>rubygems</groupId>
+          <artifactId>rake</artifactId>
+          <version>[10.1,10.99999]</version>
+          <type>gem</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>rubygems</groupId>
+          <artifactId>ruby-maven</artifactId>
+          <version>[3.1.0.0.0,3.1.0.0.99999]</version>
+          <type>gem</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>rubygems</groupId>
+          <artifactId>shoulda</artifactId>
+          <version>[3.1,3.99999]</version>
+          <type>gem</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>rubygems</groupId>
+          <artifactId>activesupport</artifactId>
+          <version>[4.0.0,4.0.99999]</version>
+          <type>gem</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>rubygems</groupId>
+          <artifactId>webmock</artifactId>
+          <version>[1.8,1.99999]</version>
+          <type>gem</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>rubygems</groupId>
+          <artifactId>rr</artifactId>
+          <version>[1.1,1.99999]</version>
+          <type>gem</type>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <repositories>
+        <repository>
+          <id>rubygems-releases</id>
+          <url>http://rubygems-proxy.torquebox.org/releases</url>
+        </repository>
+      </repositories>
     </profile>
   </profiles>
 </project>
