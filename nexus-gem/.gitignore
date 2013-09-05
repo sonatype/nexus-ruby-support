@@ -1,3 +1,4 @@
 Gemfile.lock
 nexus-*.gem
 .pom.xml
+pkg
