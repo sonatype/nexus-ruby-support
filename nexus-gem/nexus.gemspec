@@ -1,14 +1,20 @@
 # -*- mode: ruby -*-
 # -*- encoding: utf-8 -*-
 
+require './lib/nexus/version'
+
 Gem::Specification.new do |s|
   s.name = 'nexus'
-  s.version = "0.2.6"
+  s.version = Nexus::VERSION
 
   s.authors = ["Nick Quaranto", 'Christian Meier']
   s.email = ['nick@quaran.to', 'm.kristian@web.de']
 
+  s.license = 'MIT-LICENSE'
+
+  s.summary = 'Gem Command to interact with Nexus server'
   s.description = 'Adds a command to RubyGems for uploading gems to a nexus server.'
+
 
   s.executables = ['nbundle']
   s.files = ["MIT-LICENSE", "Rakefile"]
@@ -34,12 +40,12 @@ Gem::Specification.new do |s|
 
 }
   s.require_paths = ["lib"]
-  s.summary = %q{Commands to interact with nexus server}
 
-  s.add_development_dependency('rake', '0.9.2.2')
-  s.add_development_dependency('shoulda', "~> 3.1.1")
+  s.add_development_dependency('rake', '~> 10.1')
+  s.add_development_dependency('ruby-maven', '~> 3.1.0.0.0')
+  s.add_development_dependency('shoulda', "~> 3.1")
   # to use a version which works
-  s.add_development_dependency('activesupport', "< 4.0.0")
-  s.add_development_dependency('webmock', "~> 1.8.8")
-  s.add_development_dependency('rr', ">= 0")
+  s.add_development_dependency('activesupport', "~> 4.0.0")
+  s.add_development_dependency('webmock', "~> 1.8")
+  s.add_development_dependency('rr', "~> 1.1")
 end
