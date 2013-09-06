@@ -2,6 +2,9 @@ package org.sonatype.nexus.plugins.ruby.fs;
 
 import java.io.File;
 
+import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.Os;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.maven.gav.Gav;
 
 public class RubygemFile extends File
@@ -9,7 +12,8 @@ public class RubygemFile extends File
     // there are gems with name '-', '_' or digits as first letter !!!
     private static final String _0_9A_Z_A_Z = "[0-9a-zA-Z-_]";
     private static final String GEMSPEC_RZ = ".gemspec.rz";
-    private static final String QUICK_MARSHAL_4_8 = "/quick/Marshal.4.8/";
+    private static final String QUICK_MARSHAL_4_8 = RepositoryItemUid.PATH_SEPARATOR + "quick" + 
+            RepositoryItemUid.PATH_SEPARATOR + "Marshal.4.8" + RepositoryItemUid.PATH_SEPARATOR;
     private static final long serialVersionUID = 6569845569736820559L;
 
     public enum Type {
@@ -30,22 +34,26 @@ public class RubygemFile extends File
         }
     }
     
-    public static boolean isGem( String path )
+    static boolean isGem( String path )
     {
-        return path.matches( ".*/gems/(" +_0_9A_Z_A_Z +"?/)?[^/]+\\.gem$" );
+        return path.matches( ".*" + RepositoryItemUid.PATH_SEPARATOR + "gems" + RepositoryItemUid.PATH_SEPARATOR + 
+                             "(" +_0_9A_Z_A_Z +"?" + RepositoryItemUid.PATH_SEPARATOR + ")?" +
+                             		"[^" + RepositoryItemUid.PATH_SEPARATOR + "]+\\.gem$" );
     }
 
-    public static boolean isGemspec( String path )
+    static boolean isGemspec( String path )
     {
-        return path.matches( ".*/(" +_0_9A_Z_A_Z + "?/)?[^/]+\\.gemspec.rz$" );
+        return path.matches( ".*" + RepositoryItemUid.PATH_SEPARATOR +
+        		"(" +_0_9A_Z_A_Z + "?" + RepositoryItemUid.PATH_SEPARATOR + ")?" +
+        				"[^" + RepositoryItemUid.PATH_SEPARATOR + "]+\\.gemspec.rz$" );
     }
 
-    public static boolean isSpecsIndex( String path )
+    private static boolean isSpecsIndex( String path )
     {
         return path.contains( "specs.4.8" );
     }
 
-    public static Type toType( String path )
+    private static Type toType( String path )
     {
         return isGem( path ) ? Type.GEM :
             ( isGemspec( path ) ? Type.GEMSPEC :
@@ -57,15 +65,19 @@ public class RubygemFile extends File
 
     public static RubygemFile newGem( String name )
     {
-        return new RubygemFile( new File( "gems", name ), Type.GEM );
+        return new RubygemFile( new File( "gems" + RepositoryItemUid.PATH_SEPARATOR + name ),
+                                          Type.GEM );
     }
 
     public static RubygemFile newGemspec( String name )
     {
-        return new RubygemFile( new File( QUICK_MARSHAL_4_8, name ), Type.GEMSPEC );
+        return new RubygemFile( new File( QUICK_MARSHAL_4_8 + RepositoryItemUid.PATH_SEPARATOR + name ),
+                                          Type.GEMSPEC );
     }
 
     public static RubygemFile fromFilename( String name ){
+        // make sure we use the nexus PATH_SEPARATOR
+        name = name.replaceAll( "\\\\", RepositoryItemUid.PATH_SEPARATOR );
         Type t = toType( name );
         switch( t )
         {
@@ -73,8 +85,10 @@ public class RubygemFile extends File
         case SPECS_INDEX:
             return new RubygemFile( name, t );
         default:
-            // this constructor will create the nested one letter subdirectory.
-            return new RubygemFile( new File( name.replaceFirst( "/" + _0_9A_Z_A_Z + "/", "/" ) ), t );
+            // this constructor will create the nested one letter subdirectory so remove it here
+            return new RubygemFile( new File( name.replaceFirst( RepositoryItemUid.PATH_SEPARATOR 
+                                                                     + _0_9A_Z_A_Z + RepositoryItemUid.PATH_SEPARATOR, 
+                                                                     RepositoryItemUid.PATH_SEPARATOR ) ), t );
         }
     }
 
@@ -88,7 +102,8 @@ public class RubygemFile extends File
     
     public RubygemFile( Gav gav )
     {
-        super( "/gems/" + gav.getArtifactId() + "-" + gav.getVersion() + "-java.gem" );
+        super( RepositoryItemUid.PATH_SEPARATOR + "gems" + RepositoryItemUid.PATH_SEPARATOR +
+               gav.getArtifactId() + "-" + gav.getVersion() + "-java.gem" );
         type = Type.GEM;
         assert !"rubygems".equals( gav.getGroupId() );
     }
@@ -121,5 +136,18 @@ public class RubygemFile extends File
     public String getGemnameWithVersion()
     {
         return getName().replaceFirst(".gem(spec.rz)?$", "");
+    }
+
+    @Override
+    public String getPath()
+    {
+        if ( Os.isFamily( Os.FAMILY_WINDOWS ) && isAbsolute() )
+        {
+            return super.getPath();
+        }
+        else
+        {
+            return super.getPath().replaceAll( "\\\\", RepositoryItemUid.PATH_SEPARATOR );
+        }
     }
 }

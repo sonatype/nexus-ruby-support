@@ -30,7 +30,13 @@ public class RubygemFileTest
     
     private void assertGemspecRz( String filename )
     {
-        RubygemFile gem = RubygemFile.fromFilename( "/" + filename + ".gemspec.rz" );
+        assertGemspecRz( filename, "/" );
+        assertGemspecRz( filename, "\\" );
+    }
+    
+    private void assertGemspecRz( String filename, String pathSeparator )
+    {
+        RubygemFile gem = RubygemFile.fromFilename( pathSeparator + filename + ".gemspec.rz" );
         assertThat( gem.getGemnameWithVersion(), is( filename ) );
         assertThat( gem.getGemspecRz(), is( "/quick/Marshal.4.8/" + filename.charAt( 0 ) + "/" + filename + ".gemspec.rz" ) );
         assertThat( gem.getType(), is( Type.GEMSPEC ) );
@@ -41,7 +47,13 @@ public class RubygemFileTest
     
     private void assertGem( String filename )
     {
-        RubygemFile gem = RubygemFile.fromFilename( "/gems/" + filename + ".gem" );
+        assertGem( filename, "/" );
+        assertGem( filename, "\\" );
+    }
+    
+    private void assertGem( String filename, String pathSeparator )
+    {
+        RubygemFile gem = RubygemFile.fromFilename( pathSeparator + "gems" + pathSeparator + filename + ".gem" );
         assertThat( gem.getGemnameWithVersion(), is( filename ) );
         assertThat( gem.getGemspecRz(), is( "/quick/Marshal.4.8/" + filename.charAt( 0 ) + "/" + filename + ".gemspec.rz" ) );
         assertThat( gem.getType(), is( Type.GEM ) );
