@@ -16,6 +16,7 @@ import javax.inject.Inject;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.util.IOUtil;
+
 import org.sonatype.nexus.mime.MimeSupport;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
@@ -29,6 +30,7 @@ import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
@@ -58,7 +60,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     private ResourceStoreRequest fixPath(ResourceStoreRequest request)
     {
         // put the gems into subdirectory with first-letter of the gems name
-        request.setRequestPath( RubygemFile.fromFilename( request.getRequestPath() ).getPath() );
+        final File gemFile = RubygemFile.fromFilename( request.getRequestPath() );
+        request.setRequestPath( gemFile.getPath().replaceAll( "\\", RepositoryItemUid.PATH_SEPARATOR) );
         return request;
     }
 
