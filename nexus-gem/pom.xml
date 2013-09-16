@@ -35,6 +35,32 @@
         <artifactId>gem-extension</artifactId>
       </extension>
     </extensions>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecution>
+                <action>
+                  <ignore />
+                </action>
+                <pluginExecutionFilter>
+                  <groupId>de.saumya.mojo</groupId>
+                  <artifactId>gem-maven-plugin</artifactId>
+                  <versionRange>[0,)</versionRange>
+                  <goals>
+                    <goal>initialize</goal>
+                  </goals>
+                </pluginExecutionFilter>
+              </pluginExecution>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>de.saumya.mojo</groupId>
@@ -72,7 +98,6 @@
       <id>push</id>
       <build>
         <defaultGoal>deploy</defaultGoal>
-        <directory>${basedir}/pkg</directory>
         <plugins>
           <plugin>
             <groupId>de.saumya.mojo</groupId>

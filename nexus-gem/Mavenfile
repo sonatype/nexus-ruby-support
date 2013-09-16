@@ -27,7 +27,7 @@ plugin :deploy, :skip => true
 plugin( 'org.sonatype.plugins:nexus-staging-maven-plugin',
         :skipNexusStagingDeployMojo => true )
 
-inherited do
+plugin_management do
   plugin( 'org.eclipse.m2e:lifecycle-mapping', '1.0.0',
           :lifecycleMappingMetadata => {
             :pluginExecution => [ :action => { :ignore => nil },
@@ -42,9 +42,6 @@ end
 
 profile( :push ) do
   gemspec
-
-  # bug in gemspec above
-  id :push
 
   build.default_goal = :deploy
 
