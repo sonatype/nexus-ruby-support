@@ -121,6 +121,19 @@
               </execution>
             </executions>
           </plugin>
+          <plugin>
+            <groupId>de.saumya.mojo</groupId>
+            <artifactId>gem-maven-plugin</artifactId>
+            <version>${jruby.plugins.version}</version>
+            <executions>
+              <execution>
+                <id>default-push</id>
+                <configuration>
+                  <skip>false</skip>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
       <properties>

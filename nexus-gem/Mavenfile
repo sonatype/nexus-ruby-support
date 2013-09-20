@@ -52,6 +52,10 @@ profile( :push ) do
       execute_goals( :test )
     end
   end
+
+  plugin( 'de.saumya.mojo:gem-maven-plugin', '${jruby.plugins.version}' ) do
+    execute_goals :id => 'default-push', :skip => false
+  end
 end
 
 # lock down versions
