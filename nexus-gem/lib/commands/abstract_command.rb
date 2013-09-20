@@ -38,8 +38,8 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def setup
-    use_proxy! if http_proxy( url )
     configure_url unless url
+    use_proxy!( url ) if http_proxy( url )
     sign_in unless authorization
   end
 
@@ -124,7 +124,8 @@ class Gem::AbstractCommand < Gem::Command
 
   # @return [URI, nil] the HTTP-proxy as a URI if set; +nil+ otherwise
   def http_proxy( url )
-    uri = URI.parse( url )
+    uri = URI.parse( url ) rescue nil
+    return nil if uri.nil?
     if no_proxy = ENV[ 'no_proxy' ] || ENV[ 'NO_PROXY' ]
       # does not look on ip-adress ranges
       return nil if no_proxy.split( /, */ ).member?( uri.host )

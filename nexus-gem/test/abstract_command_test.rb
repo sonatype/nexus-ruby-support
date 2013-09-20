@@ -26,26 +26,26 @@ class AbstractCommandTest < CommandTest
     context "parsing the proxy" do
       should "return nil if no proxy is set" do
         stub_config(:http_proxy => nil)
-        assert_equal nil, @command.http_proxy
+        assert_equal nil, @command.http_proxy( nil )
       end
 
       should "return nil if the proxy is set to :no_proxy" do
         stub_config(:http_proxy => :no_proxy)
-        assert_equal nil, @command.http_proxy
+        assert_equal nil, @command.http_proxy( 'asd' )
       end
 
       should "return a proxy as a URI if set" do
         stub_config( :http_proxy => 'http://proxy.example.org:9192' )
-        assert_equal 'proxy.example.org', @command.http_proxy.host
-        assert_equal 9192, @command.http_proxy.port
+        assert_equal 'proxy.example.org', @command.http_proxy( 'http://asd' ).host
+        assert_equal 9192, @command.http_proxy( 'http://asd' ).port
       end
 
       should "return a proxy as a URI if set by environment variable" do
         ENV['http_proxy'] = "http://jack:duck@192.168.1.100:9092"
-        assert_equal "192.168.1.100", @command.http_proxy.host
-        assert_equal 9092, @command.http_proxy.port
-        assert_equal "jack", @command.http_proxy.user
-        assert_equal "duck", @command.http_proxy.password
+        assert_equal "192.168.1.100", @command.http_proxy( 'http://asd' ).host
+        assert_equal 9092, @command.http_proxy( 'http://asd' ).port
+        assert_equal "jack", @command.http_proxy( 'http://asd' ).user
+        assert_equal "duck", @command.http_proxy( 'http://asd' ).password
       end
     end
 
@@ -83,7 +83,7 @@ class AbstractCommandTest < CommandTest
         stub_config( :http_proxy => "http://gilbert:sekret@proxy.example.org:8081" )
         @proxy_class = Object.new
         mock(Net::HTTP).Proxy('proxy.example.org', 8081, 'gilbert', 'sekret') { @proxy_class }
-        @command.use_proxy!
+        @command.use_proxy!( 'http://asd' )
       end
 
       should "replace Net::HTTP with a proxy version" do
