@@ -1,4 +1,5 @@
 require 'rubygems/local_remote_options'
+require 'net/http'
 require 'base64'
 
 class Gem::AbstractCommand < Gem::Command
@@ -37,7 +38,7 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def setup
-    use_proxy! if http_proxy
+    use_proxy! if http_proxy( url )
     configure_url unless url
     sign_in unless authorization
   end
@@ -112,8 +113,8 @@ class Gem::AbstractCommand < Gem::Command
     http.request(request)
   end
 
-  def use_proxy!
-    proxy_uri = http_proxy
+  def use_proxy!( url )
+    proxy_uri = http_proxy( url )
     @proxy_class = Net::HTTP::Proxy(proxy_uri.host, proxy_uri.port, proxy_uri.user, proxy_uri.password)
   end
 
@@ -122,10 +123,16 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   # @return [URI, nil] the HTTP-proxy as a URI if set; +nil+ otherwise
-  def http_proxy
-    proxy = Gem.configuration[:http_proxy] || ENV['http_proxy'] || ENV['HTTP_PROXY']
+  def http_proxy( url )
+    uri = URI.parse( url )
+    if no_proxy = ENV[ 'no_proxy' ] || ENV[ 'NO_PROXY' ]
+      # does not look on ip-adress ranges
+      return nil if no_proxy.split( /, */ ).member?( uri.host )
+    end
+    key = uri.scheme == 'http' ? 'http_proxy' : 'https_proxy'
+    proxy = Gem.configuration[ :http_proxy ] || ENV[ key ] || ENV[ key.upcase ]
     return nil if proxy.nil? || proxy == :no_proxy
-    URI.parse(proxy)
+    URI.parse( proxy )
   end
 
   def ask_for_password(message)
