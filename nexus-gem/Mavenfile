@@ -40,6 +40,8 @@ plugin_management do
             } )
 end
 
+build.directory = '${basedir}/pkg'
+
 profile( :push ) do
   gemspec
 

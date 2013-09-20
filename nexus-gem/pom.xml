@@ -35,6 +35,7 @@
         <artifactId>gem-extension</artifactId>
       </extension>
     </extensions>
+    <directory>${basedir}/pkg</directory>
     <pluginManagement>
       <plugins>
         <plugin>
