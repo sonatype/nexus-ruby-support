@@ -113,6 +113,36 @@
                     <ignore></ignore>
                   </action>
                 </pluginExecution>
+                <pluginExecution>
+                	<pluginExecutionFilter>
+                		<groupId>org.sonatype.nexus</groupId>
+                		<artifactId>
+                			nexus-plugin-bundle-maven-plugin
+                		</artifactId>
+                		<versionRange>[1.0.1,)</versionRange>
+                		<goals>
+                			<goal>check-dependencies</goal>
+                			<goal>generate-metadata</goal>
+                		</goals>
+                	</pluginExecutionFilter>
+                	<action>
+                		<ignore></ignore>
+                	</action>
+                </pluginExecution>
+                <pluginExecution>
+                	<pluginExecutionFilter>
+                		<groupId>org.sonatype.plugins</groupId>
+                		<artifactId>sisu-maven-plugin</artifactId>
+                		<versionRange>[1.1,)</versionRange>
+                		<goals>
+                			<goal>test-index</goal>
+                			<goal>main-index</goal>
+                		</goals>
+                	</pluginExecutionFilter>
+                	<action>
+                		<ignore></ignore>
+                	</action>
+                </pluginExecution>
               </pluginExecutions>
             </lifecycleMappingMetadata>
           </configuration>
