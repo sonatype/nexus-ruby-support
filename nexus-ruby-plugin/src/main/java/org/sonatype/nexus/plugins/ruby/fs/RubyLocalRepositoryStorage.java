@@ -17,15 +17,26 @@ import org.sonatype.nexus.ruby.SpecsIndexType;
 public interface RubyLocalRepositoryStorage extends LocalRepositoryStorage
 {
     
-    StorageFileItem retrieveSpecsIndex( RubyRepository repository, SpecsIndexType type )
+    StorageFileItem retrieveSpecsIndex( RubyRepository repository, 
+                                        SpecsIndexType type )
             throws LocalStorageException, ItemNotFoundException;
     
-    void storeSpecsIndex( RubyRepository repository, SpecsIndexType type, InputStream content ) 
+    void storeSpecsIndex( RubyRepository repository, 
+                          SpecsIndexType type, 
+                          InputStream content ) 
             throws LocalStorageException, UnsupportedStorageOperationException;
 
-    void storeSpecsIndices( RubyGroupRepository repository, SpecsIndexType type, List<StorageItem> specsItems )
+    void storeSpecsIndices( RubyGroupRepository repository, 
+                            SpecsIndexType type, 
+                            List<StorageItem> specsItems )
             throws LocalStorageException, UnsupportedStorageOperationException;
 
-    StorageFileItem createBundlerDownloadable( RubyRepository repository, BundlerDependencies bundler )
-            throws LocalStorageException, ItemNotFoundException;
+    StorageFileItem createBundlerTempStorageFile( RubyRepository repository, 
+                                                  BundlerDependencies bundler )
+            throws LocalStorageException;
+    
+    StorageFileItem createTempStorageFile( RubyRepository repository,
+                                           InputStream in,
+                                           String mime ) 
+             throws LocalStorageException;
 }

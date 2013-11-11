@@ -371,9 +371,18 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
 	}
 
     @Override
-    public StorageFileItem createBundlerDownloadable( RubyRepository repository,
+    public StorageFileItem createBundlerTempStorageFile( RubyRepository repository,
             BundlerDependencies bundler) 
-                    throws LocalStorageException, ItemNotFoundException
+                    throws LocalStorageException
+    {
+        return createTempStorageFile( repository, bundler.dump(), null );
+    }
+    
+    @Override
+    public StorageFileItem createTempStorageFile( RubyRepository repository,
+                                                  InputStream in,
+                                                  String mime ) 
+                    throws LocalStorageException
     {
         File tmpDir = getFileFromBase( repository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX ) );
         File tmpFile;
@@ -381,20 +390,26 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         {
             tmpDir.mkdirs();
             tmpFile = File.createTempFile( "bundler-", ".json", tmpDir );
-            IOUtil.copy( bundler.dump(), new FileOutputStream( tmpFile ) );
+            IOUtil.copy( in, new FileOutputStream( tmpFile ) );
         } 
         catch (IOException e) {
             throw new LocalStorageException( "error creating temp file", e );
         }
+        if (mime == null ){
+            mime =  getMimeSupport().guessMimeTypeFromPath( repository.getMimeRulesSource(),
+                                                            tmpFile.getAbsolutePath() );
+        }
         ResourceStoreRequest request = new ResourceStoreRequest( NEXUS_TEMP_PREFIX + tmpFile.getName(), 
                 true, false );
         DefaultStorageFileItem file =
-                new DefaultStorageFileItem( repository, request, tmpFile.canRead(), tmpFile.canWrite(),
-                    new FileContentLocator( tmpFile, 
-                                            getMimeSupport().guessMimeTypeFromPath( repository.getMimeRulesSource(),
-                                                                                    tmpFile.getAbsolutePath() ),
-                                            // set delete after close to true
-                                            true ) );
+                new DefaultStorageFileItem( repository, 
+                                            request, 
+                                            tmpFile.canRead(),
+                                            tmpFile.canWrite(),
+                                            new FileContentLocator( tmpFile,
+                                                                    mime,
+                                                 // set delete after close to true
+                                                                    true ) );
         try
         {
             repository.getAttributesHandler().fetchAttributes( file );
@@ -409,6 +424,9 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         catch ( IOException e )
         {
             throw new LocalStorageException( "Exception during reading up an item from FS storage!", e );
+        }
+        finally {
+            IOUtil.close( in );
         }
         return file;
     }
