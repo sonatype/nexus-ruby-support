@@ -186,43 +186,26 @@ public class DefaultRubyProxyRepository
     public StorageItem retrieveItem(ResourceStoreRequest request)
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
-    {
+    {        
         SpecsIndexType type = SpecsIndexType.fromFilename(request.getRequestPath());
 
         if ( type != null && !request.getRequestPath().endsWith( ".gz" ) )
         {
             // make sure we have the gzipped file in place
             super.retrieveItem( new ResourceStoreRequest( type.filepathGzipped() ) );
+            return super.retrieveItem( request );
         }
-        else if ( request.getRequestPath().equals( "/api/v1/dependencies" )
-                  && request.getRequestUrl().contains( "gems=" ) )
-        {
-            BundlerDependencies bundler = facade.bundlerDependencies();
-            String[] gemnames = request.getRequestUrl().replaceFirst( ".*gems=", "" )
-                                                       .replaceAll(",,", ",")
-                                                       .replaceAll("\\s+", "")
-                                                       .split(",");
-            facade.prepareDependencies( bundler, gemnames );
-            
-            return ((RubyLocalRepositoryStorage) getLocalStorage()).createBundlerTempStorageFile( this, bundler );
-        }
-        else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" )
-                  && ! request.getRequestUrl().endsWith( "/" ) )
-        {
-            String file = request.getRequestPath().replaceFirst( "/api/v1/dependencies/", "" )
-                                                  .replaceFirst( "[^/]/", "" );
-            
-            if ( file.length() > 0 ){
-                
-                BundlerDependencies bundler = facade.bundlerDependencies();
-                return facade.prepareDependencies( bundler, file )[0];
-                
-            }                
-        }
-
-        return super.retrieveItem( request );
+        return facade.retrieveItem( (RubyLocalRepositoryStorage) getLocalStorage(),
+                                    request );
     }
 
+    public StorageItem superRetrieveItem(ResourceStoreRequest request)
+            throws AccessDeniedException, IllegalOperationException,
+            ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+    {        
+        return super.retrieveItem( request );
+    }
+    
     @Override
     @SuppressWarnings("deprecation")
     public StorageFileItem retrieveGemspec( String name ) 
@@ -239,7 +222,8 @@ public class DefaultRubyProxyRepository
         ResourceStoreRequest request = dependenciesRequest( gemname );
         if ( getLocalStorage().containsItem( this, request ) )
         {
-            return (StorageFileItem) getLocalStorage().retrieveItem( this, dependenciesRequest( gemname ) );
+            return (StorageFileItem) getLocalStorage().retrieveItem( this, 
+                                                                     dependenciesRequest( gemname ) );
         }
         else
         {

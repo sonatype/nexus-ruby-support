@@ -132,32 +132,8 @@ public class DefaultRubyHostedRepository
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
     {
 
-        if ( request.getRequestPath().equals( "/api/v1/dependencies" )
-                && request.getRequestUrl().contains( "gems=" ))
-        {
-            BundlerDependencies bundler = facade.bundlerDependencies();
-            String[] gemnames = request.getRequestUrl().replaceFirst( ".*gems=", "" )
-                                                       .replaceAll(",,", ",")
-                                                       .replaceAll("\\s+", "")
-                                                       .split(",");
-            facade.prepareDependencies( bundler, gemnames );
-            
-            return ((RubyLocalRepositoryStorage) getLocalStorage()).createBundlerTempStorageFile( this, bundler );
-        }
-        else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" )
-                && ! request.getRequestUrl().endsWith( "/" ) )
-        {
-            String file = request.getRequestPath().replaceFirst( "/api/v1/dependencies/", "" )
-                                                  .replaceFirst( "[^/]/", "" );
-            
-            if ( file.length() > 0 ){
-                    
-                BundlerDependencies bundler = facade.bundlerDependencies();
-                return facade.prepareDependencies( bundler, file )[0];
-
-            }
-        }
-        return super.retrieveItem( request );
+        return facade.retrieveItem( (RubyLocalRepositoryStorage) getLocalStorage(),
+                                    request );
     }
 
     @Override
@@ -168,6 +144,13 @@ public class DefaultRubyHostedRepository
         return (StorageFileItem) retrieveItem(new ResourceStoreRequest( "quick/Marshal.4.8/" + name + ".gemspec.rz" ) );
     }
 
+    public StorageItem superRetrieveItem(ResourceStoreRequest request)
+            throws AccessDeniedException, IllegalOperationException,
+            ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+    {        
+        return super.retrieveItem( request );
+    }
+    
     @Override
     public void storeDependencies(String gemname, String json)
             throws LocalStorageException, UnsupportedStorageOperationException {

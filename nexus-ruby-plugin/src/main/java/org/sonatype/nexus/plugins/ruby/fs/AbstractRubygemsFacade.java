@@ -12,6 +12,7 @@ import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
@@ -182,5 +183,46 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
                 }
             }
         }
+    }
+    
+    @SuppressWarnings( "deprecation" )
+    @Override
+    public StorageItem retrieveItem( RubyLocalRepositoryStorage storage, 
+                                                 ResourceStoreRequest request )
+             throws AccessDeniedException, org.sonatype.nexus.proxy.StorageException,
+                    ItemNotFoundException, IllegalOperationException {
+        if ( request.getRequestPath().equals( "/api/v1/dependencies" )
+                && request.getRequestUrl().contains( "gems=" ) )
+        {
+            BundlerDependencies bundler = bundlerDependencies();
+            String[] gemnames = request.getRequestUrl().replaceFirst( ".*gems=", "" )
+                                                       .replaceAll(",,", ",")
+                                                       .replaceAll("\\s+", "")
+                                                       .split(",");
+            prepareDependencies( bundler, gemnames );
+              
+            return storage.createBundlerTempStorageFile( this.repository, bundler );
+        }
+        else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" )
+                  && ! request.getRequestUrl().matches( ".*/[?]?[^/]*$" ) )
+        {
+            String file = request.getRequestPath().replaceFirst( "/api/v1/dependencies/", "" )
+                                                  .replaceFirst( "[^/]/", "" );
+              
+            if ( file.length() > 0 ){
+                  
+                return dependencyMap( storage, file );
+
+            }
+        }
+        return repository.superRetrieveItem( request );
+    }
+
+    protected StorageFileItem dependencyMap( RubyLocalRepositoryStorage storage, 
+                                             String gemname )
+            throws ItemNotFoundException, AccessDeniedException,
+            IllegalOperationException, StorageException
+    {
+        return prepareDependencies( bundlerDependencies(), gemname )[0];
     }
 }
