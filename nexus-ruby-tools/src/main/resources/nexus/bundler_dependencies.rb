@@ -17,6 +17,14 @@ module Nexus
       ( @versions[ gemname ] || [] ) + ( @preversions[ gemname ] || [] )
     end
 
+    def merge( *data )
+      result = {}
+      data.each do |d|
+        result.merge!( load_dependencies( d ) )
+      end
+      result.to_json
+    end
+
     def add( gemname, data )
       deps_map = load_dependencies( data )
       deps_map.each do |version, deps|

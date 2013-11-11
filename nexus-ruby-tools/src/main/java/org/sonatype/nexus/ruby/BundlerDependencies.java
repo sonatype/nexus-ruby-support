@@ -16,6 +16,24 @@ public class BundlerDependencies
         this.scriptingContainer = scriptingContainer;
         this.bundlerDeps = bundlerDeps;
     }
+
+    public String merge( InputStream[] data )
+    {
+        try
+        {
+            return scriptingContainer.callMethod( bundlerDeps,
+                "merge",
+                data,
+                String.class );
+        }
+        finally
+        {
+            for( InputStream d: data )
+            {
+                IOUtil.close( d );
+            }
+        }        
+    }
  
     public String[] add( String gemname, InputStream data )
     {
