@@ -131,6 +131,7 @@ public class DefaultRubyHostedRepository
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
     {
+
         if ( request.getRequestPath().equals( "/api/v1/dependencies" ) )
         {
             BundlerDependencies bundler = facade.bundlerDependencies();
@@ -141,9 +142,22 @@ public class DefaultRubyHostedRepository
         }
         else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" ) )
         {
-            BundlerDependencies bundler = facade.bundlerDependencies();
-            String gemname = request.getRequestPath().replaceFirst( "^.*/", "" );
-            return facade.prepareDependencies( bundler, gemname )[0];
+            if ( request.getRequestUrl().contains( "gems=" ) ) {
+                getLogger().error( "TODO should not be needed" );
+                BundlerDependencies bundler = facade.bundlerDependencies();
+                String gemname = request.getRequestPath().replaceFirst( "^.*/", "" );
+                return facade.prepareDependencies( bundler, gemname )[0];
+            }
+            else {
+                String file = request.getRequestPath().replaceFirst( "/api/v1/dependencies/", "" )
+                        .replaceFirst( "[^/]/", "" );
+                if ( file.length() > 0 ){
+                    
+                    BundlerDependencies bundler = facade.bundlerDependencies();
+                    return facade.prepareDependencies( bundler, file )[0];
+                    
+                }                
+            }
         }
         return super.retrieveItem( request );
     }

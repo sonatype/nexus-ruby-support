@@ -138,7 +138,7 @@ public class DefaultRubyGroupRepository
                 throw new RuntimeException( "BUG : you have permissions to retrieve data but can not write", e );
             }
         }
-        else if ( request.getRequestPath().equals( "/api/v1/dependencies" ) )
+        else if ( request.getRequestPath().equals( "/api/v1/dependencies" ) && request.getRequestUrl().contains( "gems=" ) )
         {
             
             BundlerDependencies bundler = facade.bundlerDependencies();
@@ -146,6 +146,18 @@ public class DefaultRubyGroupRepository
             prepareDependencies( bundler, gemnames );
             
             return ((RubyLocalRepositoryStorage) getLocalStorage()).createBundlerDownloadable( this, bundler );
+        }
+        else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" ) )
+        {
+            String file = request.getRequestPath().replaceFirst( "/api/v1/dependencies/", "" )
+                    .replaceFirst( "^[^/]/", "" );
+            if ( file.length() > 0 ){
+                    
+                BundlerDependencies bundler = facade.bundlerDependencies();
+                prepareDependencies( bundler, file );
+                
+                // TODO return a superimposed json file
+            }
         }
         return super.retrieveItem( request );
     }
