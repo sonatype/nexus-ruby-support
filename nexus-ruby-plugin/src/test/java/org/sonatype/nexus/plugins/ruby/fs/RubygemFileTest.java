@@ -20,6 +20,7 @@ public class RubygemFileTest
         assertFilename( "0xff-0.1" );
         assertFilename( "bla-0.1" );
         assertFilename( "BlaBla-1" );
+        assertFilename( "thread_safe-1" );
     }
 
     private void assertFilename( String filename )
