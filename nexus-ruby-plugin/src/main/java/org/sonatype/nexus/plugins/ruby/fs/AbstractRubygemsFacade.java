@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
@@ -145,13 +146,14 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
                         org.sonatype.nexus.proxy.StorageException
         {
         StorageFileItem dependencies = repository.retrieveDependenciesItem( gemname );
+        InputStream[] missingSpecs = null;
         try {
 
             String[] missing = bundler.add(gemname, 
                     dependencies == null ? null : dependencies.getInputStream());
             if ( missing.length > 0 || dependencies == null )
             {
-                InputStream[] missingSpecs = new InputStream[missing.length];
+                missingSpecs = new InputStream[missing.length];
                 int index = 0;
                 for (String version : missing)
                 {
@@ -172,6 +174,13 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
         catch ( UnsupportedStorageOperationException e )
         {
             throw new RuntimeException("BUG: must be able to store data" );
+        }
+        finally {
+            if ( missingSpecs != null ) {
+                for( InputStream is : missingSpecs ) {
+                    IOUtil.close( is );
+                }
+            }
         }
     }
 }
