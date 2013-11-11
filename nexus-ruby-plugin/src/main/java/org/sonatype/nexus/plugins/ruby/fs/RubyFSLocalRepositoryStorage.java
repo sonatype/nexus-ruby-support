@@ -90,20 +90,21 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             }
             if ( ! request.getRequestPath().startsWith( "/" + NEXUS_PREFIX ) )
             {
-            Collection<StorageItem> result = super.listItems( repository, request );
-            for( StorageItem file: result )
-            {
-                String url = file.getRemoteUrl();
-                if ( url != null && url.endsWith( ".gem" ) )
-                { 
-                    AbstractStorageItem item = (AbstractStorageItem) file;
-                    item.getResourceStoreRequest().setRequestUrl( url.replaceFirst( "/[a-z]/", "/" ) );
-                    item.getResourceStoreRequest().setRequestPath( item.getResourceStoreRequest().getRequestPath().replaceFirst( "/[a-z]/", "/" ) );
-                    item.setPath(item.getPath().replaceFirst( "/[a-z]/", "/" ) );
-                    item.setRemoteUrl(url.replaceFirst( "/[a-z]/", "/" ));
+                Collection<StorageItem> result = super.listItems( repository, request );
+                for( StorageItem file: result )
+                {
+                    String url = file.getRemoteUrl();
+                    if ( url != null && url.endsWith( ".gem" ) )
+                    { 
+                        AbstractStorageItem item = (AbstractStorageItem) file;
+                        // FIXME is the pattern right ? what does this do anyways ?
+                        item.getResourceStoreRequest().setRequestUrl( url.replaceFirst( "/[a-z]/", "/" ) );
+                        item.getResourceStoreRequest().setRequestPath( item.getResourceStoreRequest().getRequestPath().replaceFirst( "/[a-z]/", "/" ) );
+                        item.setPath(item.getPath().replaceFirst( "/[a-z]/", "/" ) );
+                        item.setRemoteUrl(url.replaceFirst( "/[a-z]/", "/" ));
+                    }
                 }
-            }
-            return result;
+                return result;
             }
         }
         return super.listItems( repository, request );
@@ -272,8 +273,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             SpecsIndexType type) throws LocalStorageException, ItemNotFoundException
 	{
 
-	// some old repos used the unzipped specs.4.8 files
-	// create a zipped version of it as the current implementation needs it
+        // some old repos used the unzipped specs.4.8 files
+        // create a zipped version of it as the current implementation needs it
         ResourceStoreRequest req = new ResourceStoreRequest( type.filepath() );
         ResourceStoreRequest request = new ResourceStoreRequest( type.filepathGzipped() );
         if ( !containsItem( repository, request) && containsItem( repository, req ) ){
@@ -389,9 +390,11 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
                 true, false );
         DefaultStorageFileItem file =
                 new DefaultStorageFileItem( repository, request, tmpFile.canRead(), tmpFile.canWrite(),
-                    new FileContentLocator( tmpFile, getMimeSupport().guessMimeTypeFromPath(
-                            // set delete after close to true
-                        repository.getMimeRulesSource(), tmpFile.getAbsolutePath() ), true ) );
+                    new FileContentLocator( tmpFile, 
+                                            getMimeSupport().guessMimeTypeFromPath( repository.getMimeRulesSource(),
+                                                                                    tmpFile.getAbsolutePath() ),
+                                            // set delete after close to true
+                                            true ) );
         try
         {
             repository.getAttributesHandler().fetchAttributes( file );

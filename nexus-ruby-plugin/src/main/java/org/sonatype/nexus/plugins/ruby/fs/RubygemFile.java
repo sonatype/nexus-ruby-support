@@ -2,7 +2,6 @@ package org.sonatype.nexus.plugins.ruby.fs;
 
 import java.io.File;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.Os;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.maven.gav.Gav;
