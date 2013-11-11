@@ -132,31 +132,29 @@ public class DefaultRubyHostedRepository
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
     {
 
-        if ( request.getRequestPath().equals( "/api/v1/dependencies" ) )
+        if ( request.getRequestPath().equals( "/api/v1/dependencies" )
+                && request.getRequestUrl().contains( "gems=" ))
         {
             BundlerDependencies bundler = facade.bundlerDependencies();
-            String[] gemnames = request.getRequestUrl().replaceFirst( ".*gems=", "" ).replaceAll(",,", ",").replace("\\s+", "").split(",");
+            String[] gemnames = request.getRequestUrl().replaceFirst( ".*gems=", "" )
+                                                       .replaceAll(",,", ",")
+                                                       .replaceAll("\\s+", "")
+                                                       .split(",");
             facade.prepareDependencies( bundler, gemnames );
             
-            return ((RubyLocalRepositoryStorage) getLocalStorage()).createBundlerDownloadable( this, bundler );
+            return ((RubyLocalRepositoryStorage) getLocalStorage()).createBundlerTempStorageFile( this, bundler );
         }
-        else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" ) )
+        else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" )
+                && ! request.getRequestUrl().endsWith( "/" ) )
         {
-            if ( request.getRequestUrl().contains( "gems=" ) ) {
-                getLogger().error( "TODO should not be needed" );
+            String file = request.getRequestPath().replaceFirst( "/api/v1/dependencies/", "" )
+                                                  .replaceFirst( "[^/]/", "" );
+            
+            if ( file.length() > 0 ){
+                    
                 BundlerDependencies bundler = facade.bundlerDependencies();
-                String gemname = request.getRequestPath().replaceFirst( "^.*/", "" );
-                return facade.prepareDependencies( bundler, gemname )[0];
-            }
-            else {
-                String file = request.getRequestPath().replaceFirst( "/api/v1/dependencies/", "" )
-                        .replaceFirst( "[^/]/", "" );
-                if ( file.length() > 0 ){
-                    
-                    BundlerDependencies bundler = facade.bundlerDependencies();
-                    return facade.prepareDependencies( bundler, file )[0];
-                    
-                }                
+                return facade.prepareDependencies( bundler, file )[0];
+
             }
         }
         return super.retrieveItem( request );

@@ -1,11 +1,14 @@
 package org.sonatype.nexus.plugins.ruby.group;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.component.annotations.Requirement;
+import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
@@ -22,6 +25,7 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.item.StorageLinkItem;
@@ -138,28 +142,43 @@ public class DefaultRubyGroupRepository
                 throw new RuntimeException( "BUG : you have permissions to retrieve data but can not write", e );
             }
         }
-        else if ( request.getRequestPath().equals( "/api/v1/dependencies" ) && request.getRequestUrl().contains( "gems=" ) )
+        else if ( request.getRequestPath().equals( "/api/v1/dependencies" )
+                  && request.getRequestUrl().contains( "gems=" ) )
         {
             
             BundlerDependencies bundler = facade.bundlerDependencies();
-            String[] gemnames = request.getRequestUrl().replaceFirst( ".*gems=", "" ).replaceAll(",,", ",").replace("\\s+", "").split(",");
+            String[] gemnames = request.getRequestUrl().replaceFirst( ".*gems=", "" )
+                                                       .replaceAll(",,", ",")
+                                                       .replaceAll("\\s+", "")
+                                                       .split(",");
             prepareDependencies( bundler, gemnames );
             
-            return ((RubyLocalRepositoryStorage) getLocalStorage()).createBundlerDownloadable( this, bundler );
+            return getRubyLocalStorage().createBundlerTempStorageFile( this, bundler );
         }
-        else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" ) )
+        else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" )
+                  && ! request.getRequestUrl().endsWith( "/" ) )
         {
             String file = request.getRequestPath().replaceFirst( "/api/v1/dependencies/", "" )
-                    .replaceFirst( "^[^/]/", "" );
+                                                  .replaceFirst( "^[^/]/", "" );
+            
             if ( file.length() > 0 ){
                     
                 BundlerDependencies bundler = facade.bundlerDependencies();
-                prepareDependencies( bundler, file );
-                
-                // TODO return a superimposed json file
+                String json = mergeDependencies( bundler, file );
+    
+                return getRubyLocalStorage()
+                        .createTempStorageFile( this, 
+                                                new ByteArrayInputStream( json.getBytes() ),
+                                                "application/json" );
             }
         }
+
         return super.retrieveItem( request );
+    }
+
+    protected RubyLocalRepositoryStorage getRubyLocalStorage()
+    {
+        return (RubyLocalRepositoryStorage) getLocalStorage();
     }
     
     @SuppressWarnings("deprecation")
@@ -199,6 +218,37 @@ public class DefaultRubyGroupRepository
                 {
                     throw new LocalStorageException( "errors adding dependencies: " + dep, e );
                 }
+            }
+        }
+    }
+    
+    @SuppressWarnings("deprecation")
+    private String mergeDependencies( BundlerDependencies bundlerDependencies, String gemname ) 
+                throws AccessDeniedException, StorageException, ItemNotFoundException, 
+                       IllegalOperationException
+    {
+        InputStream[] data = new InputStream[ getMemberRepositories().size() ];
+        try {
+            int index = 0;
+            for( Repository repository: getMemberRepositories() )
+            {
+                RubygemsFacade facade = ((RubyRepository) repository).getRubygemsFacade();
+                StorageFileItem[] deps = facade.prepareDependencies(facade.bundlerDependencies(), gemname);
+                try
+                {
+                    data[ index ] = deps[ 0 ].getInputStream();
+                } 
+                catch ( IOException e )
+                {
+                    throw new LocalStorageException( "errors merging json dependencies for: " + gemname, e );
+                }
+                index ++;
+            }
+            return bundlerDependencies.merge( data );
+        }
+        finally {
+            for( InputStream is : data ) {
+                IOUtil.close( is );
             }
         }
     }
