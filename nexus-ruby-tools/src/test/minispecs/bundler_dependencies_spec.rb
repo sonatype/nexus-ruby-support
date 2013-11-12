@@ -78,4 +78,15 @@ describe Nexus::BundlerDependencies do
     spec = Gem::Specification.from_yaml( File.read( file ) )
     subject.send( :deps_from, spec ).must_equal [["RubyInline", ">= 0"]]
   end
+
+  let( :expected ) do
+{ "0.33.0-ruby" => [], "0.33.1-ruby"=>[["virtus", "~> 0.5"]], "0.29.0-ruby"=>[], "0.29.1-ruby"=>[], "0.29.2-ruby"=>[], "0.29.3-ruby"=>[], "0.30.0-ruby"=>[], "0.31.0-ruby"=>[], "0.32.0-ruby"=>[], "0.32.1-ruby"=>[], "0.32.3-ruby"=>[], "0.32.4-ruby"=>[], "0.32.5-ruby"=>[], "0.33.2-ruby"=>[["virtus", "~> 0.5"]], "0.33.3-ruby"=>[["virtus", "~> 0.5"]], "0.33.4-ruby"=>[["virtus", "~> 0.5"]], "0.33.5-ruby"=>[["virtus", "~> 0.5"]]}
+  end
+
+  it 'should merge the dependencies map in the given order' do
+    files = Dir[ File.join( resources_dir, 'maven-tools*' ) ]
+    JSON.load( subject.merge( *files ) ).wont_equal expected
+    files.sort!
+    JSON.load( subject.merge( *files ) ).must_equal expected
+  end
 end
