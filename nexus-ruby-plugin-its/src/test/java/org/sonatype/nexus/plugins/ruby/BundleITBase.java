@@ -48,7 +48,12 @@ public class BundleITBase extends RubyNexusRunningITSupport
         // assure that bundle support is working
         assertThat( out, not( containsString( "Fetching full source index from http://localhost:4711" ) ) );
         
+        testAfterBundleComplete();
+        
         // TODO check storage to be empty
+    }
+    
+    protected void testAfterBundleComplete(){
     }
     
     @Override
