@@ -5,6 +5,8 @@ This repository contains components and Nexus plugins to enhance Nexus with Ruby
 
 This plugin is powered by JRuby.
 
+Note: This plugin is a (much appreciated) open source contribution.  However it is not officially supported by Sonatype.
+
 Prerequisites
 -----
 
