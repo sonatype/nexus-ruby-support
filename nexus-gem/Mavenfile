@@ -53,7 +53,7 @@ profile( :push ) do
     end
   end
 
-  plugin!( :gem, '${jruby.plugins.version}' ) do
+  jruby_plugin( :gem, '${jruby.plugins.version}' ) do
     execute_goals :id => 'default-push', :skip => false
   end
 end

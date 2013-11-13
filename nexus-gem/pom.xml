@@ -122,7 +122,8 @@
             </executions>
           </plugin>
           <plugin>
-            <artifactId>maven-gem-plugin</artifactId>
+            <groupId>de.saumya.mojo</groupId>
+            <artifactId>gem-maven-plugin</artifactId>
             <version>${jruby.plugins.version}</version>
             <executions>
               <execution>
