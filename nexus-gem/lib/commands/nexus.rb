@@ -31,7 +31,7 @@ class Gem::Commands::NexusCommand < Gem::AbstractCommand
       request.body = Gem.read_binary(path)
       request.add_field("Content-Length", request.body.size)
       request.add_field("Content-Type", "application/octet-stream")
-      request.add_field("Authorization", authorization.strip)
+      request.add_field("Authorization", authorization.strip) if authorization
     end
 
     case response.code

@@ -19,12 +19,10 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def url
-    unless options[:nexus_clear]
-      url = config[:url]
-      # no leadng slash
-      url.sub!(/\/$/,'') if url
-      url
-    end
+    url = config[:url]
+    # no leading slash
+    url.sub!(/\/$/,'') if url
+    url
   end
 
   def configure_url
@@ -38,9 +36,9 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def setup
-    configure_url unless url
+    configure_url if !config.key?( :url ) || options[:nexus_clear]
     use_proxy!( url ) if http_proxy( url )
-    sign_in unless authorization
+    sign_in if !config.key?( :authorization ) || options[:nexus_clear]
   end
 
   def sign_in
@@ -49,8 +47,13 @@ class Gem::AbstractCommand < Gem::Command
     password = ask_for_password("Password: ")
 
     # mimic strict_encode64 which is not there on ruby1.8
-    store_config(:authorization, 
-                 "Basic #{Base64.encode64(username + ':' + password).gsub(/\s+/, '')}")
+    token = "#{username}:#{password}"
+    if token != ':'
+      store_config(:authorization, 
+                   "Basic #{Base64.encode64(username + ':' + password).gsub(/\s+/, '')}")
+    else
+      store_config(:authorization, nil )
+    end
 
     say "Your Nexus credentials has been stored in ~/.gem/nexus"
   end
@@ -64,7 +67,7 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def authorization
-    config[:authorization] unless options[:nexus_clear]
+    config[:authorization]
   end
 
   def store_config(key, value)
@@ -110,6 +113,18 @@ class Gem::AbstractCommand < Gem::Command
     request.add_field "User-Agent", "Ruby" unless RUBY_VERSION =~ /^1.9/
 
     yield request if block_given?
+    
+    if Gem.configuration.verbose.to_s.to_i > 0
+      warn "#{request.method} #{url.to_s}"
+      if authorization
+        warn 'use authorization' 
+      else
+        warn 'no authorization'
+      end
+ 
+      warn "use proxy at #{http.proxy_address}" if http.proxy_address
+    end
+
     http.request(request)
   end
 
@@ -133,6 +148,7 @@ class Gem::AbstractCommand < Gem::Command
     key = uri.scheme == 'http' ? 'http_proxy' : 'https_proxy'
     proxy = Gem.configuration[ :http_proxy ] || ENV[ key ] || ENV[ key.upcase ]
     return nil if proxy.nil? || proxy == :no_proxy
+
     URI.parse( proxy )
   end
 

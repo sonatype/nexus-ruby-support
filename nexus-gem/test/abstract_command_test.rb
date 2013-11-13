@@ -18,6 +18,7 @@ class AbstractCommandTest < CommandTest
   context "with an fake command" do
     setup do
       @command = Gem::Commands::FakeCommand.new
+      Gem.configuration.verbose = false
       stub(@command).say
       ENV['http_proxy'] = nil
       ENV['HTTP_PROXY'] = nil
@@ -49,8 +50,9 @@ class AbstractCommandTest < CommandTest
       end
     end
 
-    should "sign in if authorization and no nexus url" do
+    should "sign in if no authorization and no nexus url in config" do
       stub(@command).authorization { nil }
+      stub(@command).config { { } }
       stub(@command).url { nil }
       stub(@command).sign_in
       stub(@command).configure_url
@@ -66,6 +68,14 @@ class AbstractCommandTest < CommandTest
       @command.setup
       assert_received(@command) { |command| command.sign_in }
       assert_received(@command) { |command| command.configure_url }
+    end
+
+    should "always return stored authorization and url" do
+      @command.config[ :url ] = 'something'
+      @command.config[ :authorization ] = 'something'
+      stub(@command).options { {:nexus_clear => true} }
+      assert_not_nil @command.authorization
+      assert_not_nil @command.url
     end
 
     should "not sign in nor configure if authorizaton and url exists" do
@@ -90,6 +100,21 @@ class AbstractCommandTest < CommandTest
         assert_equal @proxy_class, @command.proxy_class
       end
     end
+    
+    context "clear username + password" do
+
+      should "clear stored authorization" do
+        stub(@command).options { {:nexus_config => File.join( 'pkg', 
+                                                              'config') } }
+        stub(@command).say
+        stub(@command).ask { nil }
+        stub(@command).ask_for_password { nil }
+        @command.config[ :authorization ] = 'something'
+
+        @command.sign_in
+        assert_nil @command.authorization
+      end
+    end
 
     context "signing in" do
       setup do
@@ -102,7 +127,7 @@ class AbstractCommandTest < CommandTest
         stub(@command).ask_for_password { @password }
         stub(@command).store_config { {:authorization => @key} }
       end
-
+      
       should "ask for username and password" do
         @command.sign_in
         assert_received(@command) { |command| command.ask("Username: ") }
