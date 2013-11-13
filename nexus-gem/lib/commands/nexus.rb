@@ -18,8 +18,12 @@ class Gem::Commands::NexusCommand < Gem::AbstractCommand
   end
 
   def execute
+    name = get_one_gem_name rescue nil
     setup
-    send_gem
+    # if there is no gemname and no clear options then fail with send_gem
+    if !name.nil? || !options[ :nexus_clear ]
+      send_gem
+    end
   end
 
   def send_gem
