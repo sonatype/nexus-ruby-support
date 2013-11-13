@@ -18,7 +18,7 @@ name spec.summary
 
 #license( spec.license )
 
-plugin( 'de.saumya.mojo:gem-maven-plugin', '${jruby.plugins.version}',
+jruby_plugin( :gem, '${jruby.plugins.version}',
         :gemspec => 'nexus.gemspec' ) do
   execute_goals :id => 'default-push', :skip => true
 end
@@ -48,19 +48,19 @@ profile( :push ) do
   build.default_goal = :deploy
 
   phase :test do
-    plugin 'de.saumya.mojo:runit-maven-plugin', '${jruby.plugins.version}' do
+    jruby_plugin :runit, '${jruby.plugins.version}' do
       execute_goals( :test )
     end
   end
 
-  plugin( 'de.saumya.mojo:gem-maven-plugin', '${jruby.plugins.version}' ) do
+  plugin!( :gem, '${jruby.plugins.version}' ) do
     execute_goals :id => 'default-push', :skip => false
   end
 end
 
 # lock down versions
-properties( 'jruby.version' => '1.7.4',
-            'jruby.plugins.version' => '1.0.0-rc',
+properties( 'jruby.version' => '1.7.6',
+            'jruby.plugins.version' => '1.0.0-rc4',
             'tesla.dump.pom' => 'pom.xml',
             'tesla.dump.readonly' => true )
 
