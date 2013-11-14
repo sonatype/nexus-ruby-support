@@ -1,5 +1,10 @@
 require 'rubygems'
-require 'rubygems/format'
+begin
+  require 'rubygems/format'
+rescue LoadError
+  # newer versions of rubygems do not have that anymore
+  # just to stay backward compatible for a while
+end
 module Nexus
   class Check
 
