@@ -3,7 +3,6 @@ package org.sonatype.nexus.plugins.ruby.hosted;
 import java.util.List;
 
 import org.codehaus.plexus.component.annotations.Component;
-import org.sonatype.nexus.plugins.ruby.RubyHostedRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesTask;
@@ -32,9 +31,9 @@ public class RebuildRubygemsMetadataTask
             Repository repository = getRepositoryRegistry().getRepository( getRepositoryId() );
 
             // is this a hosted rubygems repository at all?
-            if ( repository.getRepositoryKind().isFacetAvailable( RubyHostedRepository.class ) )
+            if ( repository.getRepositoryKind().isFacetAvailable( HostedRubyRepository.class ) )
             {
-                RubyHostedRepository rubyRepository = repository.adaptToFacet( RubyHostedRepository.class );
+                HostedRubyRepository rubyRepository = repository.adaptToFacet( HostedRubyRepository.class );
     
                 rubyRepository.recreateMetadata();
                 
@@ -49,9 +48,9 @@ public class RebuildRubygemsMetadataTask
         }
         else
         {         
-            List<RubyHostedRepository> reposes = getRepositoryRegistry().getRepositoriesWithFacet( RubyHostedRepository.class );
+            List<HostedRubyRepository> reposes = getRepositoryRegistry().getRepositoriesWithFacet( HostedRubyRepository.class );
     
-            for ( RubyHostedRepository repo : reposes )
+            for ( HostedRubyRepository repo : reposes )
             {
                 repo.recreateMetadata();
             }

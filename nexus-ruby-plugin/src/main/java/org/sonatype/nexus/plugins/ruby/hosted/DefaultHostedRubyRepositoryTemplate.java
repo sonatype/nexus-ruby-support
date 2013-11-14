@@ -7,22 +7,21 @@ import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHo
 import org.sonatype.nexus.configuration.model.DefaultCRepository;
 import org.sonatype.nexus.plugins.ruby.AbstractRubyGemRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
-import org.sonatype.nexus.plugins.ruby.RubyHostedRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepositoryTemplateProvider;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryWritePolicy;
 
-public class DefaultRubyHostedRepositoryTemplate
+public class DefaultHostedRubyRepositoryTemplate
     extends AbstractRubyGemRepositoryTemplate
 {
-    public DefaultRubyHostedRepositoryTemplate( RubyRepositoryTemplateProvider provider, String id, String description )
+    public DefaultHostedRubyRepositoryTemplate( RubyRepositoryTemplateProvider provider, String id, String description )
     {
-        super( provider, id, description, new RubyContentClass(), RubyHostedRepository.class );
+        super( provider, id, description, new RubyContentClass(), HostedRubyRepository.class );
     }
 
-    public DefaultRubyHostedRepositoryConfiguration getExternalConfiguration( boolean forWrite )
+    public DefaultHostedRubyRepositoryConfiguration getExternalConfiguration( boolean forWrite )
     {
-        return (DefaultRubyHostedRepositoryConfiguration) getCoreConfiguration().getExternalConfiguration()
+        return (DefaultHostedRubyRepositoryConfiguration) getCoreConfiguration().getExternalConfiguration()
             .getConfiguration( forWrite );
     }
 
@@ -35,12 +34,12 @@ public class DefaultRubyHostedRepositoryTemplate
         repo.setName( "" );
 
         repo.setProviderRole( Repository.class.getName() );
-        repo.setProviderHint( DefaultRubyHostedRepository.ID );
+        repo.setProviderHint( DefaultHostedRubyRepository.ID );
 
         Xpp3Dom ex = new Xpp3Dom( DefaultCRepository.EXTERNAL_CONFIGURATION_NODE_NAME );
         repo.setExternalConfiguration( ex );
 
-        DefaultRubyHostedRepositoryConfiguration exConf = new DefaultRubyHostedRepositoryConfiguration( ex );
+        DefaultHostedRubyRepositoryConfiguration exConf = new DefaultHostedRubyRepositoryConfiguration( ex );
         repo.externalConfigurationImple = exConf;
 
         repo.setWritePolicy( RepositoryWritePolicy.ALLOW_WRITE_ONCE.name() );
@@ -50,12 +49,12 @@ public class DefaultRubyHostedRepositoryTemplate
 
         CRepositoryCoreConfiguration result =
             new CRepositoryCoreConfiguration( getTemplateProvider().getApplicationConfiguration(), repo,
-                new CRepositoryExternalConfigurationHolderFactory<DefaultRubyHostedRepositoryConfiguration>()
+                new CRepositoryExternalConfigurationHolderFactory<DefaultHostedRubyRepositoryConfiguration>()
                 {
-                    public DefaultRubyHostedRepositoryConfiguration createExternalConfigurationHolder(
+                    public DefaultHostedRubyRepositoryConfiguration createExternalConfigurationHolder(
                                                                                                        CRepository config )
                     {
-                        return new DefaultRubyHostedRepositoryConfiguration( (Xpp3Dom) config
+                        return new DefaultHostedRubyRepositoryConfiguration( (Xpp3Dom) config
                             .getExternalConfiguration() );
                     }
                 } );

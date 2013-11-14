@@ -1,10 +1,11 @@
-package org.sonatype.nexus.plugins.ruby;
+package org.sonatype.nexus.plugins.ruby.hosted;
 
+import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.repository.HostedRepository;
 
-public interface RubyHostedRepository
+public interface HostedRubyRepository
     extends RubyRepository, HostedRepository
 {
 

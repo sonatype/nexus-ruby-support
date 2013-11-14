@@ -13,7 +13,6 @@ import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
-import org.sonatype.nexus.plugins.ruby.RubyHostedRepository;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
@@ -37,17 +36,17 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
-@Component( role = Repository.class, hint = DefaultRubyHostedRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Hosted" )
-public class DefaultRubyHostedRepository
+@Component( role = Repository.class, hint = DefaultHostedRubyRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Hosted" )
+public class DefaultHostedRubyRepository
     extends AbstractRepository
-    implements RubyHostedRepository, Repository
+    implements HostedRubyRepository, Repository
 {
     public static final String ID = "rubygems-hosted";
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
     private ContentClass contentClass;
 
     @Requirement
-    private DefaultRubyHostedRepositoryConfigurator defaultRubyHostedRepositoryConfigurator;
+    private DefaultHostedRubyRepositoryConfigurator defaultRubyHostedRepositoryConfigurator;
 
     @Inject
     private RubygemsGateway gateway;
@@ -84,7 +83,7 @@ public class DefaultRubyHostedRepository
     /**
      * Repository kind.
      */
-    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( RubyHostedRepository.class,
+    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( HostedRubyRepository.class,
         Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
 
     @Override
@@ -96,11 +95,11 @@ public class DefaultRubyHostedRepository
     @Override
     protected CRepositoryExternalConfigurationHolderFactory<?> getExternalConfigurationHolderFactory()
     {
-        return new CRepositoryExternalConfigurationHolderFactory<DefaultRubyHostedRepositoryConfiguration>()
+        return new CRepositoryExternalConfigurationHolderFactory<DefaultHostedRubyRepositoryConfiguration>()
         {
-            public DefaultRubyHostedRepositoryConfiguration createExternalConfigurationHolder( CRepository config )
+            public DefaultHostedRubyRepositoryConfiguration createExternalConfigurationHolder( CRepository config )
             {
-                return new DefaultRubyHostedRepositoryConfiguration( (Xpp3Dom) config.getExternalConfiguration() );
+                return new DefaultHostedRubyRepositoryConfiguration( (Xpp3Dom) config.getExternalConfiguration() );
             }
         };
     }
@@ -118,9 +117,9 @@ public class DefaultRubyHostedRepository
     // ==
 
     @Override
-    protected DefaultRubyHostedRepositoryConfiguration getExternalConfiguration( boolean forWrite )
+    protected DefaultHostedRubyRepositoryConfiguration getExternalConfiguration( boolean forWrite )
     {
-        return (DefaultRubyHostedRepositoryConfiguration) super.getExternalConfiguration( forWrite );
+        return (DefaultHostedRubyRepositoryConfiguration) super.getExternalConfiguration( forWrite );
     }
 
     @SuppressWarnings("deprecation")
