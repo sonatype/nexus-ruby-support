@@ -6,6 +6,12 @@ import java.util.List;
 
 public interface RubygemsGateway {
 
+    void recreateRubygemsIndex( String directory );
+
+    void purgeBrokenDepencencyFiles( String directory );
+
+    void purgeBrokenGemspecFiles( String directory );
+    
     InputStream createGemspecRz( String gemname, InputStream gem ) throws IOException;
 
     InputStream emptyIndex();

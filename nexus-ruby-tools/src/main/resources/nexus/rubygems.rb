@@ -1,11 +1,61 @@
 require 'rubygems'
-require 'rubygems/format'
+begin
+  require 'rubygems/format'
+rescue LoadError
+  # newer versions of rubygems do not have that anymore
+  # just to stay backward compatible for a while
+end
 require 'maven/tools/minimal_project'
 require 'json'
 require 'nexus/bundler_dependencies'
+require 'nexus/indexer'
 
 module Nexus
   class Rubygems
+
+    def recreate_rubygems_index( directory )
+      indexer = Nexus::Indexer.new( directory )
+      indexer.generate_index
+      indexer.remove_tmp_dir
+
+      # delete obsolete files
+      FileUtils.rm_f( Dir[ File.join( directory, "*.#{Gem.marshal_version}" ) ] )
+      FileUtils.rm_f( Dir[ File.join( directory, "*.#{Gem.marshal_version}.Z" ) ] )
+
+      # fix permissions
+      begin
+        FileUtils.chmod_R( 'go-w', File.join( directory, 'quick' ) )
+      rescue
+        # well - let it as it is
+      end
+      nil
+    end
+
+    def purge_broken_depencency_files( directory )
+      Dir[ File.join( directory, 
+                      'api', 'v1', 'dependencies', 
+                      '*', '*' ) ].each do |file|
+        begin
+          JSON.parse( File.read( file ) )
+        rescue
+          FileUtils.rm_f( file )
+        end
+      end
+      nil
+    end
+
+    def purge_broken_gemspec_files( directory )
+      Dir[ File.join( directory, 
+                      'quick', 'Marshal.#{Gem.marshal_version}',
+                      '*', '*' ) ].each do |file|
+        begin
+            Marshal.load( Gem.inflate( Gem.read_binary( file ) ) )
+        rescue
+          FileUtils.rm_f( file )
+        end
+      end
+      nil
+    end
 
     def create_quick( gemname, gemfile )
       spec = spec_get( gemfile )

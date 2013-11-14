@@ -41,6 +41,18 @@ private JRubyScriptingContainer scriptingContainer;
         }
         return rubygems;
     }
+
+    private <T> T callMethod( String methodName, Object singleArg, Class<T> returnType ) {
+        return scriptingContainer.callMethod( rubygems(), methodName, singleArg, returnType );
+    }
+
+    private <T> T callMethod( String methodName, Object[] args, Class<T> returnType ) {
+        return scriptingContainer.callMethod( rubygems(), methodName, args, returnType );
+    }
+
+    private <T> T callMethod( String methodName, Class<T> returnType ) {
+        return scriptingContainer.callMethod( rubygems(), methodName, returnType );
+    }
     
     @Override
     public InputStream createGemspecRz( String gemname, InputStream gem )
@@ -48,13 +60,9 @@ private JRubyScriptingContainer scriptingContainer;
         try
         {
             @SuppressWarnings( "unchecked" )
-            List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(), 
-                "create_quick", 
-                new Object[] {
-                    gemname,
-                    gem 
-                },
-                List.class );
+            List<Long> array = (List<Long>) callMethod( "create_quick",
+                                                        new Object[] { gemname, gem },
+                                                        List.class );
         
             return new ByteArrayInputStream( array );
         }
@@ -68,9 +76,7 @@ private JRubyScriptingContainer scriptingContainer;
     public InputStream emptyIndex()
     {
         @SuppressWarnings( "unchecked" )
-        List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
-                "empty_specs", 
-                List.class );
+        List<Long> array = (List<Long>) callMethod( "empty_specs", List.class );
         
         return new ByteArrayInputStream( array );
     }
@@ -79,10 +85,7 @@ private JRubyScriptingContainer scriptingContainer;
     public Object spec( InputStream gem ) {
         try
         {
-            return scriptingContainer.callMethod( rubygems(), 
-                "spec_get",
-                gem,
-                Object.class );
+            return callMethod( "spec_get", gem, Object.class );
         }
         finally
         {
@@ -96,14 +99,11 @@ private JRubyScriptingContainer scriptingContainer;
         try
         {
             @SuppressWarnings( "unchecked" )
-            List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
-                "add_spec", 
-                new Object[] {
-                    spec,
-                    specsIndex,
-                    type.name().toLowerCase()
-                },
-                List.class );
+            List<Long> array = (List<Long>) callMethod( "add_spec", 
+                                                        new Object[] { spec,
+                                                                       specsIndex,
+                                                                       type.name().toLowerCase() },
+                                                        List.class );
         
             return array == null ? null : new ByteArrayInputStream( array );
         }
@@ -124,14 +124,11 @@ private JRubyScriptingContainer scriptingContainer;
         try
         {
             @SuppressWarnings( "unchecked" )
-            List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
-                "delete_spec", 
-                new Object[] {
-                    spec,
-                    specsIndex,
-                    refSpecs
-                },
-                List.class );
+            List<Long> array = (List<Long>) callMethod( "delete_spec",
+                                                        new Object[] { spec,
+                                                                       specsIndex,
+                                                                       refSpecs },
+                                                        List.class );
         
             return array == null ? null : new ByteArrayInputStream( array );
         }
@@ -148,14 +145,11 @@ private JRubyScriptingContainer scriptingContainer;
         try
         {
             @SuppressWarnings( "unchecked" )
-            List<Long> array = (List<Long>) scriptingContainer.callMethod( rubygems(),
-                "merge_specs", 
-                new Object[] {
-                    specs,
-                    streams,
-                    latest
-                },
-                List.class );
+            List<Long> array = (List<Long>) callMethod( "merge_specs",
+                                                        new Object[] { specs,
+                                                                       streams,
+                                                                       latest },
+                                                        List.class );
         
             return array == null ? null : new ByteArrayInputStream( array );
         }
@@ -174,10 +168,7 @@ private JRubyScriptingContainer scriptingContainer;
     {
         try
         {
-            return scriptingContainer.callMethod( rubygems(), 
-                "to_pom",
-                specRz,
-                String.class );
+            return callMethod( "to_pom", specRz, String.class );
         }
         finally
         {
@@ -191,12 +182,11 @@ private JRubyScriptingContainer scriptingContainer;
     {
         try
         {
-            return (List<String>) scriptingContainer.callMethod( rubygems(), 
-                "list_versions",
-                new Object[] { name,
-                               inputStream, 
-                               modified },
-                List.class );
+            return (List<String>) callMethod( "list_versions",
+                                              new Object[] { name,
+                                                             inputStream,
+                                                             modified },
+                                              List.class );
         }
         finally
         {
@@ -207,10 +197,9 @@ private JRubyScriptingContainer scriptingContainer;
     @Override
     public synchronized BundlerDependencies newBundlerDependencies()
     {
-        Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
-            "dependencies", 
-            new Object[] { null, 0, null, 0 },
-            Object.class );
+        Object bundlerDeps = callMethod( "dependencies",
+                                         new Object[] { null, 0, null, 0 },
+                                         Object.class );
 
         return new BundlerDependencies( scriptingContainer, bundlerDeps );
     }
@@ -221,10 +210,9 @@ private JRubyScriptingContainer scriptingContainer;
     {
         try
         {
-            Object bundlerDeps = scriptingContainer.callMethod( rubygems(),
-                    "dependencies", 
-                    new Object[] { specs, modified, prereleasedSpecs, prereleasedModified },
-                    Object.class );
+            Object bundlerDeps = callMethod( "dependencies",
+                                             new Object[] { specs, modified, prereleasedSpecs, prereleasedModified },
+                                             Object.class );
 
             return new BundlerDependencies(scriptingContainer, bundlerDeps);
         }
@@ -233,5 +221,23 @@ private JRubyScriptingContainer scriptingContainer;
             IOUtil.close( specs );
             IOUtil.close( prereleasedSpecs );
         }
+    }
+
+    @Override
+    public void recreateRubygemsIndex( String directory )
+    {
+        callMethod( "recreate_rubygems_index", directory, Void.class );
+    }
+
+    @Override
+    public void purgeBrokenDepencencyFiles( String directory )
+    {
+        callMethod( "purge_broken_depencency_files", directory, Void.class );        
+    }
+
+    @Override
+    public void purgeBrokenGemspecFiles( String directory )
+    {
+        callMethod( "purge_broken_gemspec_files", directory, Void.class );        
     }
 }
