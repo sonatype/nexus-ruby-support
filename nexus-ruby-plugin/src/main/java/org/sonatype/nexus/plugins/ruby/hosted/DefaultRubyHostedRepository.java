@@ -13,8 +13,8 @@ import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
-import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyHostedRepository;
+import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
@@ -34,7 +34,6 @@ import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
-import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -44,7 +43,6 @@ public class DefaultRubyHostedRepository
     implements RubyHostedRepository, Repository
 {
     public static final String ID = "rubygems-hosted";
-
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
     private ContentClass contentClass;
 
@@ -144,6 +142,7 @@ public class DefaultRubyHostedRepository
         return (StorageFileItem) retrieveItem(new ResourceStoreRequest( "quick/Marshal.4.8/" + name + ".gemspec.rz" ) );
     }
 
+    @SuppressWarnings( "deprecation" )
     public StorageItem superRetrieveItem(ResourceStoreRequest request)
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
@@ -181,5 +180,21 @@ public class DefaultRubyHostedRepository
         {
             return null;
         }
+    }
+
+    @Override
+    public void recreateMetadata() throws LocalStorageException, ItemNotFoundException
+    {
+        String directory = getBaseDirectory();
+        gateway.recreateRubygemsIndex( directory );
+        gateway.purgeBrokenDepencencyFiles( directory );
+    }
+
+    protected String getBaseDirectory() throws ItemNotFoundException,
+            LocalStorageException
+    {
+        String basedir = this.getLocalUrl().replace( "file:", "" );
+        getLogger().debug( "recreate rubygems metadata in " + basedir );
+        return basedir;
     }
 }

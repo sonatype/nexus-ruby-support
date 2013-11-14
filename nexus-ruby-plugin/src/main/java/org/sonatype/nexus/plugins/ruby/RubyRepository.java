@@ -7,7 +7,6 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
@@ -19,10 +18,11 @@ public interface RubyRepository
 
     RubygemsFacade getRubygemsFacade();
     
+    @SuppressWarnings( "deprecation" )
     public StorageItem superRetrieveItem( ResourceStoreRequest request ) 
             throws AccessDeniedException, IllegalOperationException, 
             ItemNotFoundException, RemoteAccessException, 
-            StorageException;
+            org.sonatype.nexus.proxy.StorageException;
     
     @SuppressWarnings("deprecation")
     StorageFileItem retrieveGemspec( String name ) 
