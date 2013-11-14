@@ -3,14 +3,14 @@ package org.sonatype.nexus.plugins.ruby.proxy;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.nexus.proxy.repository.AbstractProxyRepositoryConfiguration;
 
-public class DefaultRubyProxyRepositoryConfiguration
+public class DefaultProxyRubyRepositoryConfiguration
     extends AbstractProxyRepositoryConfiguration
 {
     public static final String ARTIFACT_MAX_AGE = "artifactMaxAge";
 
     public static final String METADATA_MAX_AGE = "metadataMaxAge";
     
-    public DefaultRubyProxyRepositoryConfiguration( Xpp3Dom configuration )
+    public DefaultProxyRubyRepositoryConfiguration( Xpp3Dom configuration )
     {
         super( configuration );
     }

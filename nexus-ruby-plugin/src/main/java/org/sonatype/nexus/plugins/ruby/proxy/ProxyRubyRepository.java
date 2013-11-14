@@ -1,9 +1,10 @@
-package org.sonatype.nexus.plugins.ruby;
+package org.sonatype.nexus.plugins.ruby.proxy;
 
+import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.repository.ProxyRepository;
 
 
-public interface RubyProxyRepository
+public interface ProxyRubyRepository
     extends RubyRepository, ProxyRepository
 {
 
@@ -14,4 +15,6 @@ public interface RubyProxyRepository
     int getMetadataMaxAge();
 
     void setMetadataMaxAge( int metadataMaxAge );
+    
+    void syncMetadata();
 }

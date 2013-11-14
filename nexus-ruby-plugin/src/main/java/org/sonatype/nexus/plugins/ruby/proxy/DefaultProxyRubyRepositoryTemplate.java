@@ -8,22 +8,21 @@ import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHo
 import org.sonatype.nexus.configuration.model.DefaultCRepository;
 import org.sonatype.nexus.plugins.ruby.AbstractRubyGemRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
-import org.sonatype.nexus.plugins.ruby.RubyProxyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepositoryTemplateProvider;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryWritePolicy;
 
-public class DefaultRubyProxyRepositoryTemplate
+public class DefaultProxyRubyRepositoryTemplate
     extends AbstractRubyGemRepositoryTemplate
 {
-    public DefaultRubyProxyRepositoryTemplate( RubyRepositoryTemplateProvider provider, String id, String description )
+    public DefaultProxyRubyRepositoryTemplate( RubyRepositoryTemplateProvider provider, String id, String description )
     {
-        super( provider, id, description, new RubyContentClass(), RubyProxyRepository.class );
+        super( provider, id, description, new RubyContentClass(), ProxyRubyRepository.class );
     }
 
-    public DefaultRubyProxyRepositoryConfiguration getExternalConfiguration( boolean forWrite )
+    public DefaultProxyRubyRepositoryConfiguration getExternalConfiguration( boolean forWrite )
     {
-        return (DefaultRubyProxyRepositoryConfiguration) getCoreConfiguration().getExternalConfiguration()
+        return (DefaultProxyRubyRepositoryConfiguration) getCoreConfiguration().getExternalConfiguration()
             .getConfiguration( forWrite );
     }
 
@@ -36,7 +35,7 @@ public class DefaultRubyProxyRepositoryTemplate
         repo.setName( "" );
 
         repo.setProviderRole( Repository.class.getName() );
-        repo.setProviderHint( DefaultRubyProxyRepository.ID );
+        repo.setProviderHint( DefaultProxyRubyRepository.ID );
 
         repo.setRemoteStorage( new CRemoteStorage() );
         repo.getRemoteStorage().setProvider(
@@ -46,7 +45,7 @@ public class DefaultRubyProxyRepositoryTemplate
         Xpp3Dom ex = new Xpp3Dom( DefaultCRepository.EXTERNAL_CONFIGURATION_NODE_NAME );
         repo.setExternalConfiguration( ex );
 
-        DefaultRubyProxyRepositoryConfiguration exConf = new DefaultRubyProxyRepositoryConfiguration( ex );
+        DefaultProxyRubyRepositoryConfiguration exConf = new DefaultProxyRubyRepositoryConfiguration( ex );
         repo.externalConfigurationImple = exConf;
 
         repo.setWritePolicy( RepositoryWritePolicy.READ_ONLY.name() );
@@ -58,12 +57,12 @@ public class DefaultRubyProxyRepositoryTemplate
 
         CRepositoryCoreConfiguration result =
             new CRepositoryCoreConfiguration( getTemplateProvider().getApplicationConfiguration(), repo,
-                new CRepositoryExternalConfigurationHolderFactory<DefaultRubyProxyRepositoryConfiguration>()
+                new CRepositoryExternalConfigurationHolderFactory<DefaultProxyRubyRepositoryConfiguration>()
                 {
-                    public DefaultRubyProxyRepositoryConfiguration createExternalConfigurationHolder(
+                    public DefaultProxyRubyRepositoryConfiguration createExternalConfigurationHolder(
                                                                                                        CRepository config )
                     {
-                        return new DefaultRubyProxyRepositoryConfiguration( (Xpp3Dom) config
+                        return new DefaultProxyRubyRepositoryConfiguration( (Xpp3Dom) config
                             .getExternalConfiguration() );
                     }
                 } );

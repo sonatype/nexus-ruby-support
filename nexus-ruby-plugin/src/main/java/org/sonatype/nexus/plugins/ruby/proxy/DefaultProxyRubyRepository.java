@@ -12,7 +12,6 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
-import org.sonatype.nexus.plugins.ruby.RubyProxyRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
@@ -34,14 +33,13 @@ import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
-import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
-@Component( role = Repository.class, hint = DefaultRubyProxyRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Proxy" )
-public class DefaultRubyProxyRepository
+@Component( role = Repository.class, hint = DefaultProxyRubyRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Proxy" )
+public class DefaultProxyRubyRepository
     extends AbstractProxyRepository
-    implements RubyProxyRepository, Repository
+    implements ProxyRubyRepository, Repository
 {
 
     public static final String ID = "rubygems-proxy";
@@ -49,8 +47,8 @@ public class DefaultRubyProxyRepository
     @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
     private ContentClass contentClass;
 
-    @Requirement( role = DefaultRubyProxyRepositoryConfigurator.class )
-    private DefaultRubyProxyRepositoryConfigurator defaultRubyProxyRepositoryConfigurator;
+    @Requirement( role = DefaultProxyRubyRepositoryConfigurator.class )
+    private DefaultProxyRubyRepositoryConfigurator defaultRubyProxyRepositoryConfigurator;
     
     @Requirement
     private RubygemsGateway gateway;
@@ -73,7 +71,7 @@ public class DefaultRubyProxyRepository
     /**
      * Repository kind.
      */
-    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( RubyProxyRepository.class,
+    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( ProxyRubyRepository.class,
         Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
 
     @Override
@@ -85,11 +83,11 @@ public class DefaultRubyProxyRepository
     @Override
     protected CRepositoryExternalConfigurationHolderFactory<?> getExternalConfigurationHolderFactory()
     {
-        return new CRepositoryExternalConfigurationHolderFactory<DefaultRubyProxyRepositoryConfiguration>()
+        return new CRepositoryExternalConfigurationHolderFactory<DefaultProxyRubyRepositoryConfiguration>()
         {
-            public DefaultRubyProxyRepositoryConfiguration createExternalConfigurationHolder( CRepository config )
+            public DefaultProxyRubyRepositoryConfiguration createExternalConfigurationHolder( CRepository config )
             {
-                return new DefaultRubyProxyRepositoryConfiguration( (Xpp3Dom) config.getExternalConfiguration() );
+                return new DefaultProxyRubyRepositoryConfiguration( (Xpp3Dom) config.getExternalConfiguration() );
             }
         };
     }
@@ -107,9 +105,9 @@ public class DefaultRubyProxyRepository
     // ==
 
     @Override
-    protected DefaultRubyProxyRepositoryConfiguration getExternalConfiguration( boolean forWrite )
+    protected DefaultProxyRubyRepositoryConfiguration getExternalConfiguration( boolean forWrite )
     {
-        return (DefaultRubyProxyRepositoryConfiguration) super.getExternalConfiguration( forWrite );
+        return (DefaultProxyRubyRepositoryConfiguration) super.getExternalConfiguration( forWrite );
     }
 
     @Override
@@ -199,6 +197,7 @@ public class DefaultRubyProxyRepository
                                     request );
     }
 
+    @SuppressWarnings( "deprecation" )
     public StorageItem superRetrieveItem(ResourceStoreRequest request)
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
@@ -247,5 +246,11 @@ public class DefaultRubyProxyRepository
     private ResourceStoreRequest dependenciesRequest( String gemname )
     {
         return new ResourceStoreRequest( "api/v1/dependencies/" + gemname.charAt(0) + "/" + gemname );
+    }
+
+    @Override
+    public void syncMetadata()
+    {
+        
     }
 }

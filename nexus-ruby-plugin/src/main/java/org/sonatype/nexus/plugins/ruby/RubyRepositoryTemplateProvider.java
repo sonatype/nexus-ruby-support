@@ -3,10 +3,10 @@ package org.sonatype.nexus.plugins.ruby;
 import org.codehaus.plexus.component.annotations.Component;
 import org.sonatype.nexus.plugins.ruby.group.DefaultRubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.group.DefaultRubyGroupRepositoryTemplate;
-import org.sonatype.nexus.plugins.ruby.hosted.DefaultRubyHostedRepository;
-import org.sonatype.nexus.plugins.ruby.hosted.DefaultRubyHostedRepositoryTemplate;
-import org.sonatype.nexus.plugins.ruby.proxy.DefaultRubyProxyRepository;
-import org.sonatype.nexus.plugins.ruby.proxy.DefaultRubyProxyRepositoryTemplate;
+import org.sonatype.nexus.plugins.ruby.hosted.DefaultHostedRubyRepository;
+import org.sonatype.nexus.plugins.ruby.hosted.DefaultHostedRubyRepositoryTemplate;
+import org.sonatype.nexus.plugins.ruby.proxy.DefaultProxyRubyRepository;
+import org.sonatype.nexus.plugins.ruby.proxy.DefaultProxyRubyRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.shadow.GemArtifactShadowRepository;
 import org.sonatype.nexus.plugins.ruby.shadow.GemArtifactShadowRepositoryTemplate;
 import org.sonatype.nexus.templates.TemplateProvider;
@@ -26,9 +26,9 @@ public class RubyRepositoryTemplateProvider
         try
         {
 
-            templates.add( new DefaultRubyHostedRepositoryTemplate( this, DefaultRubyHostedRepository.ID,
+            templates.add( new DefaultHostedRubyRepositoryTemplate( this, DefaultHostedRubyRepository.ID,
                     "Rubygems (hosted)" ) );
-            templates.add( new DefaultRubyProxyRepositoryTemplate( this, DefaultRubyProxyRepository.ID,
+            templates.add( new DefaultProxyRubyRepositoryTemplate( this, DefaultProxyRubyRepository.ID,
                     "Rubygems (proxy)" ) );
             templates.add( new DefaultRubyGroupRepositoryTemplate( this, DefaultRubyGroupRepository.ID,
                     "Rubygems (group)" ) );
