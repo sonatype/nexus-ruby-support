@@ -16,6 +16,10 @@ class Gem::AbstractCommand < Gem::Command
                'File location of nexus config') do |value, options|
       options[:nexus_config] = File.expand_path( value )
     end
+    add_option('--repo KEY',
+               'pick the config under that key') do |value, options|
+      options[:nexus_repo] = value
+    end
   end
 
   def url
@@ -66,8 +70,22 @@ class Gem::AbstractCommand < Gem::Command
     options[:nexus_config] || File.join( Gem.user_home, '.gem', 'nexus' )
   end
 
+  def all_configs
+    @all_configs ||= Gem.configuration.load_file(config_path)
+  end
+  private :all_configs
+
+  def this_config
+    if options[ :nexus_repo ]
+      all_configs[ options[ :nexus_repo ] ] ||= {}
+    else
+      all_configs
+    end
+  end
+  private :this_config
+  
   def config
-    @config ||= Gem.configuration.load_file(config_path)
+    @config ||= this_config
   end
 
   def authorization
@@ -75,12 +93,12 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def store_config(key, value)
-    config.merge!(key => value)
+    this_config.merge!(key => value)
     dirname = File.dirname(config_path)
     Dir.mkdir(dirname) unless File.exists?(dirname)
 
     File.open(config_path, 'w') do |f|
-      f.write config.to_yaml
+      f.write all_configs.to_yaml
     end
   end
 

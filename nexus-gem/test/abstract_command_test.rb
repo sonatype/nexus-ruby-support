@@ -100,7 +100,49 @@ class AbstractCommandTest < CommandTest
         assert_equal @proxy_class, @command.proxy_class
       end
     end
-    
+
+    context 'separeted config per repo key' do
+      should 'store the config on per key' do
+        config_path = File.join( 'pkg', 'configrepo')
+        @command.options[ :nexus_config ] = config_path
+        @command.options[ :nexus_repo ] = :first
+        @command.store_config( :some, :thing )
+        @command.options[ :nexus_repo ] = :second
+        @command.store_config( :some, :otherthing )
+        @command.options[ :nexus_repo ] = nil
+        @command.store_config( :some, :nothing )
+        
+        assert_equal( Gem.configuration.load_file(config_path),
+                      { :first=>{:some=>:thing}, 
+                        :second=>{:some=>:otherthing},
+                        :some=>:nothing } )
+      end
+
+      should 'use only the config for the given key' do
+        @command.options[ :nexus_repo ] = :first
+        @command.config[ :some ] = :thing
+        @command.options[ :nexus_repo ] = :second
+        @command.send :instance_variable_set, '@config'.to_sym, nil
+        assert_nil( @command.config[ :some ] )
+        @command.config[ :some ] = :otherthing
+        @command.options[ :nexus_repo ] = nil
+        @command.send :instance_variable_set, '@config'.to_sym, nil
+        assert_nil( @command.config[ :some ] )
+        @command.config[ :some ] = :nothing
+
+        @command.options[ :nexus_repo ] = :first
+        @command.send :instance_variable_set, '@config'.to_sym, nil
+        assert_equal( @command.config[ :some ], :thing )
+        @command.options[ :nexus_repo ] = :second
+        @command.send :instance_variable_set, '@config'.to_sym, nil
+        assert_equal( @command.config[ :some ], :otherthing )
+        @command.options[ :nexus_repo ] = nil
+        @command.send :instance_variable_set, '@config'.to_sym, nil
+        assert_equal( @command.config[ :some ], :nothing )
+      end
+
+    end
+
     context "clear username + password" do
 
       should "clear stored authorization" do
