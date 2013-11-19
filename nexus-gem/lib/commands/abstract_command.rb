@@ -30,9 +30,13 @@ class Gem::AbstractCommand < Gem::Command
 
     url = ask("URL: ")
 
-    store_config(:url, url)
+    if URI.parse( "#{url}" ).host != nil
+      store_config(:url, url)
 
-    say "The Nexus URL has been stored in ~/.gem/nexus"
+      say 'The Nexus URL has been stored in ~/.gem/nexus'
+    else
+      raise 'no URL given'
+    end
   end
 
   def setup
@@ -122,7 +126,7 @@ class Gem::AbstractCommand < Gem::Command
         warn 'no authorization'
       end
  
-      warn "use proxy at #{http.proxy_address}" if http.proxy_address
+      warn "use proxy at #{http.proxy_address}:#{http.proxy_port}" if http.proxy_address
     end
 
     http.request(request)
