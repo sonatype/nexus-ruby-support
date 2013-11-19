@@ -187,7 +187,7 @@ class AbstractCommandTest < CommandTest
 
     context "configure nexus url" do
       setup do
-        @url = "url"
+        @url = "http://url"
 
         stub(@command).say
         stub(@command).ask { @url }
@@ -197,14 +197,14 @@ class AbstractCommandTest < CommandTest
       should "ask for nexus url" do
         @command.configure_url
         assert_received(@command) { |command| command.ask("URL: ") }
-        assert_received(@command) { |command| command.store_config(:url, "url") }
+        assert_received(@command) { |command| command.store_config(:url, "http://url") }
       end
 
       should "say that we configured the url" do
         @command.configure_url
         assert_received(@command) { |command| command.say("Enter the URL of the rubygems repository on a Nexus server") }
         assert_received(@command) { |command| command.say("The Nexus URL has been stored in ~/.gem/nexus") }
-        assert_received(@command) { |command| command.store_config(:url, "url") }
+        assert_received(@command) { |command| command.store_config(:url, "http://url") }
       end
     end
   end
