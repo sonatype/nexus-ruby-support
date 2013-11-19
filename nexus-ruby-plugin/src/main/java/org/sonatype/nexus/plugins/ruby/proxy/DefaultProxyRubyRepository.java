@@ -19,12 +19,14 @@ import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
+import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
+import org.sonatype.nexus.proxy.item.StorageCollectionItem;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
@@ -33,6 +35,7 @@ import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -248,9 +251,52 @@ public class DefaultProxyRubyRepository
         return new ResourceStoreRequest( "api/v1/dependencies/" + gemname.charAt(0) + "/" + gemname );
     }
 
+    @SuppressWarnings( "deprecation" )
     @Override
-    public void syncMetadata()
+    public void syncMetadata() throws ItemNotFoundException, 
+        RemoteAccessException, AccessDeniedException, 
+        org.sonatype.nexus.proxy.StorageException, IllegalOperationException,
+        NoSuchResourceStoreException
     {
-        
+        for ( SpecsIndexType type : SpecsIndexType.values() )
+        {
+            ResourceStoreRequest request = new ResourceStoreRequest( type.filepathGzipped() );
+            request.setRequestRemoteOnly( true );
+            retrieveItem( true, request );
+        }
+        String directory = getBaseDirectory();
+        gateway.purgeBrokenDepencencyFiles( directory );
+        gateway.purgeBrokenGemspecFiles( directory );
+    }
+    
+    @SuppressWarnings( "deprecation" )
+    @Override
+    public void updateBundlerDependencies() throws LocalStorageException,
+        AccessDeniedException, org.sonatype.nexus.proxy.StorageException,
+        ItemNotFoundException, IllegalOperationException,
+        NoSuchResourceStoreException
+    {
+        gateway.purgeBrokenDepencencyFiles( getBaseDirectory() );
+        BundlerDependencies bundler = facade.bundlerDependencies();
+        StorageCollectionItem depsBasedir = (StorageCollectionItem) retrieveItem( new ResourceStoreRequest( "api/v1/dependencies" ) );
+        for( StorageItem dir : depsBasedir.list() ){
+            getLogger().error( dir.toString() );
+            getLogger().error( dir.getResourceStoreRequest().toString() );
+            StorageCollectionItem deps = (StorageCollectionItem) retrieveItem( dir.getResourceStoreRequest() );
+            for( StorageItem dep : deps.list() ){
+                getLogger().error( dep.toString() );
+                if ( dep instanceof StorageFileItem ){
+                    facade.prepareDependencies( bundler, dep.getName() );
+                }
+            }
+        }
+    }
+    
+    protected String getBaseDirectory() throws ItemNotFoundException,
+        LocalStorageException
+    {
+        String basedir = this.getLocalUrl().replace( "file:", "" );
+        getLogger().debug( "recreate rubygems metadata in " + basedir );
+        return basedir;
     }
 }
