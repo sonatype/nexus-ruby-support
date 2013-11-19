@@ -71,6 +71,9 @@ class AbstractCommandTest < CommandTest
     end
 
     should "always return stored authorization and url" do
+      config_path = File.join( 'pkg', 'configsomething')
+      FileUtils.rm_f( config_path )
+      @command.options[ :nexus_config ] = config_path
       @command.config[ :url ] = 'something'
       @command.config[ :authorization ] = 'something'
       stub(@command).options { {:nexus_clear => true} }
@@ -104,14 +107,17 @@ class AbstractCommandTest < CommandTest
     context 'separeted config per repo key' do
       should 'store the config on per key' do
         config_path = File.join( 'pkg', 'configrepo')
+        FileUtils.rm_f( config_path )
         @command.options[ :nexus_config ] = config_path
         @command.options[ :nexus_repo ] = :first
-        @command.store_config( :some, :thing )
+        @command.config[ :some ] = :thing
         @command.options[ :nexus_repo ] = :second
-        @command.store_config( :some, :otherthing )
+        @command.send :instance_variable_set, '@config'.to_sym, nil
+        @command.config[ :some ] = :otherthing
         @command.options[ :nexus_repo ] = nil
-        @command.store_config( :some, :nothing )
-        
+        @command.send :instance_variable_set, '@config'.to_sym, nil
+        @command.config[ :some ] = :nothing
+
         assert_equal( Gem.configuration.load_file(config_path),
                       { :first=>{:some=>:thing}, 
                         :second=>{:some=>:otherthing},
@@ -119,6 +125,9 @@ class AbstractCommandTest < CommandTest
       end
 
       should 'use only the config for the given key' do
+        config_path = File.join( 'pkg', 'configrepo')
+        FileUtils.rm_f( config_path )
+        @command.options[ :nexus_config ] = config_path
         @command.options[ :nexus_repo ] = :first
         @command.config[ :some ] = :thing
         @command.options[ :nexus_repo ] = :second
@@ -151,7 +160,7 @@ class AbstractCommandTest < CommandTest
         stub(@command).say
         stub(@command).ask { nil }
         stub(@command).ask_for_password { nil }
-        @command.config[ :authorization ] = 'something'
+        @command.config[ :authorization ] = 'some authentication'
 
         @command.sign_in
         assert_nil @command.authorization

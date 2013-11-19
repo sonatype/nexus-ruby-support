@@ -1,6 +1,7 @@
 require 'rubygems/local_remote_options'
 require 'net/http'
 require 'base64'
+require 'nexus/config'
 
 class Gem::AbstractCommand < Gem::Command
   include Gem::LocalRemoteOptions
@@ -12,13 +13,20 @@ class Gem::AbstractCommand < Gem::Command
                'Clears the nexus config') do |value, options|
       options[:nexus_clear] = value
     end
+
     add_option('--nexus-config FILE',
                'File location of nexus config') do |value, options|
       options[:nexus_config] = File.expand_path( value )
     end
+
     add_option('--repo KEY',
                'pick the config under that key') do |value, options|
       options[:nexus_repo] = value
+    end
+
+    add_option('--secrets FILE',
+               'use and store secrets in the given instead of local config file. file location will be stored in the local config file.') do |value, options|
+      options[:nexus_secrets] = File.expand_path( value )
     end
   end
 
@@ -70,17 +78,20 @@ class Gem::AbstractCommand < Gem::Command
     options[:nexus_config] || File.join( Gem.user_home, '.gem', 'nexus' )
   end
 
-  def all_configs
-    @all_configs ||= Gem.configuration.load_file(config_path)
-  end
-  private :all_configs
+  # def all_configs
+  #   @all_configs ||= Gem.configuration.load_file(config_path)
+  # end
+  # private :all_configs
 
   def this_config
-    if options[ :nexus_repo ]
-      all_configs[ options[ :nexus_repo ] ] ||= {}
-    else
-      all_configs
-    end
+    Nexus::Config.new( options[ :nexus_repo ],
+                       options[ :nexus_config ],
+                       options[ :nexus_secrets ] )
+    # if options[ :nexus_repo ]
+    #   all_configs[ options[ :nexus_repo ] ] ||= {}
+    # else
+    #   all_configs
+    # end
   end
   private :this_config
   
@@ -93,13 +104,16 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def store_config(key, value)
-    this_config.merge!(key => value)
-    dirname = File.dirname(config_path)
-    Dir.mkdir(dirname) unless File.exists?(dirname)
+    config[ key ] = value
+    #this_config.store
 
-    File.open(config_path, 'w') do |f|
-      f.write all_configs.to_yaml
-    end
+    # this_config.merge!(key => value)
+    # dirname = File.dirname(config_path)
+    # Dir.mkdir(dirname) unless File.exists?(dirname)
+
+    # File.open(config_path, 'w') do |f|
+    #   f.write all_configs.to_yaml
+    # end
   end
 
   def make_request(method, path)
