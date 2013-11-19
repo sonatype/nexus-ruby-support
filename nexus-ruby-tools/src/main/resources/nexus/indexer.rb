@@ -71,6 +71,8 @@ module Nexus
     end
     
     def gem_file_list
+p Dir[File.join(@dest_directory, "gems", '*', '*.gem')]
+p File.join(@dest_directory, "gems", '*', '*.gem')
       Dir[File.join(@dest_directory, "gems", '*', '*.gem')]
     end
 

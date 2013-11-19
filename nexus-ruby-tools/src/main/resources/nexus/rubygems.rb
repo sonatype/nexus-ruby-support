@@ -19,15 +19,27 @@ module Nexus
       indexer.remove_tmp_dir
 
       # delete obsolete files
-      FileUtils.rm_f( Dir[ File.join( directory, "*.#{Gem.marshal_version}" ) ] )
-      FileUtils.rm_f( Dir[ File.join( directory, "*.#{Gem.marshal_version}.Z" ) ] )
-
-      # fix permissions
-      begin
-        FileUtils.chmod_R( 'go-w', File.join( directory, 'quick' ) )
-      rescue
-        # well - let it as it is
+      Dir[ File.join( directory, '*' ) ].each do |f|
+        if !f.match( /.*specs.#{Gem.marshal_version}.gz/ ) && !File.directory?( f )
+          FileUtils.rm_f( f )
+        end
       end
+
+      # NOTE that code gave all kinds of result but the expected
+      #      could be jruby related or not.
+      #      just leave the permissions as they are
+      #
+      # fix permissions 
+      # mode = 16877 # File.new( directory ).stat.mode # does not work with jruby
+      # ( [ directory ] + Dir[ File.join( directory, '**', '*') ] ).each do |f|
+      #   begin
+      #     if File.directory? f
+      #       FileUtils.chmod( mode, f )
+      #     end
+      #   rescue
+      #     # well - let it as it is
+      #   end
+      # end
       nil
     end
 
@@ -47,12 +59,13 @@ module Nexus
 
     def purge_broken_gemspec_files( directory )
       Dir[ File.join( directory, 
-                      'quick', 'Marshal.#{Gem.marshal_version}',
+                      'quick', "Marshal.#{Gem.marshal_version}",
                       '*', '*' ) ].each do |file|
         begin
-            Marshal.load( Gem.inflate( Gem.read_binary( file ) ) )
+          Marshal.load( Gem.inflate( Gem.read_binary( file ) ) )
         rescue
-          FileUtils.rm_f( file )
+          # just in case the file is directory delete it as well
+          FileUtils.rm_rf( file )
         end
       end
       nil
