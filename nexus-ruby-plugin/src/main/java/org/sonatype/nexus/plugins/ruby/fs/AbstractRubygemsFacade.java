@@ -204,6 +204,7 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
             return storage.createBundlerTempStorageFile( this.repository, bundler );
         }
         else if ( request.getRequestPath().startsWith( "/api/v1/dependencies/" )
+                  && request.getRequestUrl() != null 
                   && ! request.getRequestUrl().matches( ".*/[?]?[^/]*$" ) )
         {
             String file = request.getRequestPath().replaceFirst( "/api/v1/dependencies/", "" )
