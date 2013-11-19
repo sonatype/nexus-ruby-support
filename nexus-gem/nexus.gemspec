@@ -29,12 +29,13 @@ Gem::Specification.new do |s|
 
     gem nexus          publish your gems onto Nexus server
 
-    nbundle            a bundler fork with mirror support. 
-                       just add a mirror with:
+    nbundle            a bundler fork with mirror support. for bundler before 1.5.0
+                       
+add a mirror with:
 
     bundle config mirror.http://rubygems.org http://localhost:8081/nexus/content/repositories/rubygems.org
 
-                       and use 'nbundle' instead of 'bundle'
+for bundler before 1.5.0 use 'nbundle' instead of 'bundle' to use the mirror
 
 ========================================================================
 
