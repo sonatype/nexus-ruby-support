@@ -38,7 +38,8 @@ module Nexus
         begin
           JSON.parse( File.read( file ) )
         rescue
-          FileUtils.rm_f( file )
+          # just in case the file is directory delete it as well
+          FileUtils.rm_rf( file )
         end
       end
       nil
