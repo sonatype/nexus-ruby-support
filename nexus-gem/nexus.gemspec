@@ -45,8 +45,8 @@ for bundler before 1.5.0 use 'nbundle' instead of 'bundle' to use the mirror
   s.add_development_dependency('rake', '~> 10.1')
   s.add_development_dependency('ruby-maven', '~> 3.1.0.0.0')
   s.add_development_dependency('shoulda', "~> 3.1")
+  s.add_development_dependency('rr', "~> 1.1")
   # to use a version which works
   s.add_development_dependency('activesupport', "~> 4.0.0")
-  s.add_development_dependency('webmock', "~> 1.8")
-  s.add_development_dependency('rr', "~> 1.1")
+  s.add_development_dependency('webmock', "~> 1.8", "< 1.16")
 end
