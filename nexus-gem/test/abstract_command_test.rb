@@ -176,44 +176,50 @@ class AbstractCommandTest < CommandTest
         stub(@command).say
         stub(@command).ask { @username }
         stub(@command).ask_for_password { @password }
-        stub(@command).store_config { {:authorization => @key} }
+        stub(@command).options { {:nexus_config => File.join( 'pkg', 
+                                                              'configsign') } }
+        @command.config[ :authorization ] = @key
       end
       
       should "ask for username and password" do
         @command.sign_in
         assert_received(@command) { |command| command.ask("Username: ") }
         assert_received(@command) { |command| command.ask_for_password("Password: ") }
-        assert_received(@command) { |command| command.store_config(:authorization, "Basic dXNlcm5hbWU6cGFzc3dvcmQgMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODk=") }
+        assert_equal( @command.config[ :authorization ], 
+                      "Basic dXNlcm5hbWU6cGFzc3dvcmQgMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODk=" )
       end
 
       should "say that we signed in" do
         @command.sign_in
         assert_received(@command) { |command| command.say("Enter your Nexus credentials") }
         assert_received(@command) { |command| command.say("Your Nexus credentials has been stored in ~/.gem/nexus") }
-        assert_received(@command) { |command| command.store_config(:authorization, "Basic dXNlcm5hbWU6cGFzc3dvcmQgMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODk=") }
+        assert_equal( @command.config[ :authorization ], 
+                      "Basic dXNlcm5hbWU6cGFzc3dvcmQgMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODk=" )
       end
     end
 
     context "configure nexus url" do
       setup do
         @url = "http://url"
-
+ 
         stub(@command).say
         stub(@command).ask { @url }
-        stub(@command).store_config { {:url => @url} }
+        stub(@command).options { {:nexus_config => File.join( 'pkg', 
+                                                              'configurl') } }
+        @command.config[ :url ] = @url
       end
 
       should "ask for nexus url" do
         @command.configure_url
         assert_received(@command) { |command| command.ask("URL: ") }
-        assert_received(@command) { |command| command.store_config(:url, "http://url") }
+        assert_equal( @command.config[ :url ], "http://url" )
       end
 
       should "say that we configured the url" do
         @command.configure_url
         assert_received(@command) { |command| command.say("Enter the URL of the rubygems repository on a Nexus server") }
         assert_received(@command) { |command| command.say("The Nexus URL has been stored in ~/.gem/nexus") }
-        assert_received(@command) { |command| command.store_config(:url, "http://url") }
+        assert_equal( @command.config[ :url ], "http://url" )
       end
     end
   end

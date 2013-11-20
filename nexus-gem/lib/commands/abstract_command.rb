@@ -9,29 +9,29 @@ class Gem::AbstractCommand < Gem::Command
   def initialize( name, summary )
     super
    
-    add_option('-c', '--nexus-clear',
-               'Clears the nexus config') do |value, options|
-      options[:nexus_clear] = value
+    add_option( '-c', '--nexus-clear',
+                'Clears the nexus config' ) do |value, options|
+      options[ :nexus_clear ] = value
     end
 
-    add_option('--nexus-config FILE',
-               'File location of nexus config') do |value, options|
-      options[:nexus_config] = File.expand_path( value )
+    add_option( '--nexus-config FILE',
+                'File location of nexus config' ) do |value, options|
+      options[ :nexus_config ] = File.expand_path( value )
     end
 
-    add_option('--repo KEY',
-               'pick the config under that key') do |value, options|
-      options[:nexus_repo] = value
+    add_option( '--repo KEY',
+                'pick the config under that key' ) do |value, options|
+      options[ :nexus_repo ] = value
     end
 
-    add_option('--secrets FILE',
-               'use and store secrets in the given instead of local config file. file location will be stored in the local config file.') do |value, options|
-      options[:nexus_secrets] = File.expand_path( value )
+    add_option( '--secrets FILE',
+                'use and store secrets in the given instead of local config file. file location will be stored in the local config file.' ) do |value, options|
+      options[ :nexus_secrets ] = File.expand_path( value )
     end
   end
 
   def url
-    url = config[:url]
+    url = config[ :url ]
     # no leading slash
     url.sub!(/\/$/,'') if url
     url
@@ -43,7 +43,7 @@ class Gem::AbstractCommand < Gem::Command
     url = ask("URL: ")
 
     if URI.parse( "#{url}" ).host != nil
-      store_config(:url, url)
+      config[ :url ] = url
 
       say 'The Nexus URL has been stored in ~/.gem/nexus'
     else
@@ -65,33 +65,19 @@ class Gem::AbstractCommand < Gem::Command
     # mimic strict_encode64 which is not there on ruby1.8
     token = "#{username}:#{password}"
     if token != ':'
-      store_config(:authorization, 
-                   "Basic #{Base64.encode64(username + ':' + password).gsub(/\s+/, '')}")
+      config[ :authorization ] =
+        "Basic #{Base64.encode64(username + ':' + password).gsub(/\s+/, '')}"
     else
-      store_config(:authorization, nil )
+      config[ :authorization ] = nil
     end
 
     say "Your Nexus credentials has been stored in ~/.gem/nexus"
   end
 
-  def config_path
-    options[:nexus_config] || File.join( Gem.user_home, '.gem', 'nexus' )
-  end
-
-  # def all_configs
-  #   @all_configs ||= Gem.configuration.load_file(config_path)
-  # end
-  # private :all_configs
-
   def this_config
     Nexus::Config.new( options[ :nexus_repo ],
                        options[ :nexus_config ],
                        options[ :nexus_secrets ] )
-    # if options[ :nexus_repo ]
-    #   all_configs[ options[ :nexus_repo ] ] ||= {}
-    # else
-    #   all_configs
-    # end
   end
   private :this_config
   
@@ -100,20 +86,7 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def authorization
-    config[:authorization]
-  end
-
-  def store_config(key, value)
-    config[ key ] = value
-    #this_config.store
-
-    # this_config.merge!(key => value)
-    # dirname = File.dirname(config_path)
-    # Dir.mkdir(dirname) unless File.exists?(dirname)
-
-    # File.open(config_path, 'w') do |f|
-    #   f.write all_configs.to_yaml
-    # end
+    config[ :authorization ]
   end
 
   def make_request(method, path)
