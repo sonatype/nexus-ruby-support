@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemFile.Type;
+import org.sonatype.nexus.proxy.maven.gav.Gav;
 
 public class RubygemFileTest
     extends TestCase
@@ -21,6 +22,14 @@ public class RubygemFileTest
         assertFilename( "bla-0.1" );
         assertFilename( "BlaBla-1" );
         assertFilename( "thread_safe-1" );
+    }
+    
+    public void testGAV()
+    {
+        RubygemFile file = new RubygemFile( new Gav( "rubygems", "aid", "123" ) );
+        assertThat( file.getGemnameWithVersion(), is( "aid-123-java" ) );
+        file = new RubygemFile( new Gav( "rubygems", "aid", "123-SNAPSHOT" ) );
+        assertThat( file.getGemnameWithVersion(), is( "aid-123-java" ) );
     }
 
     private void assertFilename( String filename )

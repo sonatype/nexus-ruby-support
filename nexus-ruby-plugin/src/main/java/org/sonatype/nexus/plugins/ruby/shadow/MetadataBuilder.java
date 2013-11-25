@@ -20,11 +20,15 @@ class MetadataBuilder {
         xml.append("    <versions>\n");
     }
 
-    public void appendVersions( List<String> versions )
+    public void appendVersions( List<String> versions, boolean isPrerelease )
     {
         for( String version : versions )
         {
-            xml.append("      <version>" ).append( version ).append( "</version>\n");
+            xml.append("      <version>" ).append( version );
+            if ( isPrerelease ){
+                xml.append( "-SNAPSHOT" );
+            }
+            xml.append( "</version>\n");
         }
     }
     

@@ -6,7 +6,6 @@ import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
@@ -23,8 +22,10 @@ final class GemArtifactStoreHelper extends ArtifactStoreHelper {
         super(repo);
     }
     
+    @SuppressWarnings( "deprecation" )
     public StorageFileItem retrieveArtifact( ArtifactStoreRequest gavRequest )
-        throws IllegalOperationException, ItemNotFoundException, StorageException, AccessDeniedException
+        throws IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException, 
+               AccessDeniedException
         {
             checkRequest( gavRequest );
 

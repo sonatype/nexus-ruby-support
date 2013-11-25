@@ -66,11 +66,12 @@ public class GemArtifactShadowRepository
     /**
      * The GAV Calculator.
      */
-    @Requirement( hint = "maven2" )
-    private GavCalculator m2GavCalculator;
+    @Requirement( hint = "rubygems" )
+    private GavCalculator gavCalculator;
     
     @Requirement( role = GemArtifactShadowRepositoryConfigurator.class )
     private GemArtifactShadowRepositoryConfigurator gemArtifactRepositoryConfigurator;
+    
     /**
      * Metadata manager.
      */
@@ -141,10 +142,20 @@ public class GemArtifactShadowRepository
         return (GemArtifactShadowRepositoryConfiguration) super.getExternalConfiguration( forWrite );
     }
 
+    public boolean isPrereleaseRepository()
+    {
+        return getExternalConfiguration( false ).isPreleaseRepository();
+    }
+
+    public void setPrereleaseRepository( final boolean val )
+    {
+        getExternalConfiguration( true ).setPreleaseRepository( val );
+    }
+    
     @Override
     public GavCalculator getGavCalculator()
     {
-        return m2GavCalculator;
+        return gavCalculator;
     }
 
     @Override
@@ -155,7 +166,7 @@ public class GemArtifactShadowRepository
 
     @Override
     public boolean isMavenMetadataPath(String path) {
-        return M2ArtifactRecognizer.isMetadata( path );
+        return path.matches( "/rubygems/[^/]+/maven-metadata.xml.*" );
     }
 
     protected StorageItem doRetrieveItemFromMaster( final ResourceStoreRequest request )
@@ -279,7 +290,8 @@ public class GemArtifactShadowRepository
     
     String transformMaster2Shadow( String path )
     {
-        if ( path.startsWith( "/quick" ) || path.endsWith( "specs.4.8" ) || path.endsWith( "specs.4.8.gz" ) ) {
+        if ( path.startsWith( "/api" ) || path.startsWith( "/quick" ) || 
+             path.endsWith( "specs.4.8" ) || path.endsWith( "specs.4.8.gz" ) ) {
             return null;
         }
         
@@ -293,14 +305,25 @@ public class GemArtifactShadowRepository
         }
         else
         {
-            return new StringBuilder( "/rubygems/" )
+            boolean isSnapshot = filename.substring( i + 1 ).matches( ".*[a-zA-Z].*" );
+
+            StringBuilder builder = new StringBuilder( "/rubygems/" )
                 .append( filename.substring( 0, i ) )
                 .append( "/" )
-                .append( filename.substring( i + 1 ) )
-                .append( "/" )
-                .append( filename )
-                .append( ".gem" )
-                .toString();
+                .append( filename.substring( i + 1 ) );
+            if ( isSnapshot )
+            {
+                builder.append( "-SNAPSHOT" );
+            }
+            builder.append( "/" ).append( filename );
+            if ( isSnapshot )
+            {
+                builder.append( "-SNAPSHOT" );
+            }
+            
+            builder.append( ".gem" );
+            
+            return builder.toString();
         }
     }
     
@@ -308,9 +331,8 @@ public class GemArtifactShadowRepository
     protected StorageLinkItem createLink(StorageItem item)
             throws UnsupportedStorageOperationException,
             IllegalOperationException, StorageException {
-        String shadowPath = null;
-
-        shadowPath = transformMaster2Shadow( item.getPath() );
+        
+        String shadowPath = transformMaster2Shadow( item.getPath() );
 
         if ( shadowPath != null )
         {
@@ -372,35 +394,23 @@ public class GemArtifactShadowRepository
             throws IllegalOperationException, ItemNotFoundException, StorageException
     {
         ResourceStoreRequest request = item.getResourceStoreRequest();
-        if ( isRubygemsMetadata( request ) ){
+        if ( isMavenMetadataPath( request.getRequestPath() ) ){
             
             StorageFileItem specsIndex = storageItemOfSpecsIndex();
-            getLogger().error( "metadata " + item.getModified());
-            getLogger().error( "specs.4.8 " + specsIndex.getModified());
             if (item.getModified() < specsIndex.getModified() )
             {
 
-                return recreateMetadata( request, gemname( request ), specsIndex );
+                return recreateMetadata( request, specsIndex );
                     
             }
         }
         return item;
     }
 
-    private String gemname(ResourceStoreRequest request) {
-        return request.getRequestPath().replaceFirst( "/rubygems/", "" ).replaceFirst( "/maven-metadata.xml$", "" );
-    }
-
-    private boolean isRubygemsMetadata(ResourceStoreRequest request) {
-        return isMavenMetadataPath( request.getRequestPath() ) && 
-                request.getRequestPath().startsWith( "/rubygems/" ) && 
-                request.getRequestPath().endsWith( ".xml" );
-    }
-    
     private StorageItem processMetadata( ResourceStoreRequest request ) 
             throws IllegalOperationException, ItemNotFoundException, StorageException
     {            
-        return recreateMetadata( request, gemname( request ), storageItemOfSpecsIndex() );
+        return recreateMetadata( request, storageItemOfSpecsIndex() );
     }
     
     public StorageItem retrieveItem( boolean fromTask, ResourceStoreRequest request ) 
@@ -412,7 +422,7 @@ public class GemArtifactShadowRepository
         }
         catch( ItemNotFoundException e )
         {
-            if ( isRubygemsMetadata( request ) )
+            if ( isMavenMetadataPath( request.getRequestPath() ) )
             {
                 return processMetadata( request );
             }
@@ -422,12 +432,11 @@ public class GemArtifactShadowRepository
     
     public StorageItem retrieveItem( ResourceStoreRequest request )
             throws IllegalOperationException, ItemNotFoundException, StorageException, AccessDeniedException
-    {
+    {          
+        
         // METADATA
-        if ( isRubygemsMetadata( request ) ){
+        if ( isMavenMetadataPath( request.getRequestPath() ) ){
             
-            String name = gemname( request );
-
             StorageFileItem specsIndex = storageItemOfSpecsIndex();
             
             try
@@ -436,7 +445,7 @@ public class GemArtifactShadowRepository
                 if (item.getModified() < specsIndex.getModified() )
                 {
 
-                    return recreateMetadata( request, name, specsIndex );
+                    return recreateMetadata( request, specsIndex );
                     
                 }
                 return item;
@@ -445,7 +454,7 @@ public class GemArtifactShadowRepository
             catch( ItemNotFoundException e )
             {
 
-                return recreateMetadata( request, name, specsIndex );
+                return recreateMetadata( request, specsIndex );
                 
             }
         }
@@ -454,7 +463,7 @@ public class GemArtifactShadowRepository
         Gav gav = getGavCalculator().pathToGav( request.getRequestPath() );
         if ( gav != null )
         {
-            if ( !"rubygems".equals( gav.getGroupId() ) )
+            if ( !"rubygems".equals( gav.getGroupId() ) || gav.isSnapshot() != isPrereleaseRepository() )
             {
                 throw new ItemNotFoundException( request, this ); 
             }
@@ -544,7 +553,8 @@ public class GemArtifactShadowRepository
                     try 
                     {
                     
-                        return storeXmlContentWithHashes( request, gateway.pom( ( (StorageFileItem) item ).getInputStream() ) );
+                        return storeXmlContentWithHashes( request, 
+                                                          gateway.pom( ( (StorageFileItem) item ).getInputStream() ) );
 
                     }
                     catch ( IOException ioe )
@@ -565,20 +575,28 @@ public class GemArtifactShadowRepository
     private StorageFileItem storageItemOfSpecsIndex()
             throws IllegalOperationException, ItemNotFoundException,
             StorageException {
-        return (StorageFileItem) super.doRetrieveItemFromMaster( new ResourceStoreRequest( SpecsIndexType.RELEASE.filepath() ) );
+        SpecsIndexType type = isPrereleaseRepository() ? SpecsIndexType.PRERELEASE : SpecsIndexType.RELEASE;  
+        return (StorageFileItem) super.doRetrieveItemFromMaster( new ResourceStoreRequest( type.filepath() ) );
     }
 
     private StorageItem recreateMetadata(ResourceStoreRequest request,
-            String name, StorageFileItem specsIndex)
+            StorageFileItem specsIndex)
             throws IllegalOperationException, ItemNotFoundException {
         try
         {
 
+            String name = request.getRequestPath().replaceFirst( "/rubygems/", "" ).replaceFirst( "/maven-metadata.xml$", "" );
             long modified = specsIndex.getModified();
             MetadataBuilder builder = new MetadataBuilder( name, modified );
 
             long start = System.currentTimeMillis();
-            builder.appendVersions( gateway.listVersions( name, specsIndex.getInputStream(), modified ) );
+
+            builder.appendVersions( gateway.listVersions( name, 
+                                                          specsIndex.getInputStream(), 
+                                                          modified, 
+                                                          isPrereleaseRepository() ),
+                                    isPrereleaseRepository() );
+            
             getLogger().warn( "versions " + (System.currentTimeMillis() - start ) + " " + modified + " " + gateway.hashCode());
                
             return storeXmlContentWithHashes( request, builder.toString() );
@@ -597,14 +615,13 @@ public class GemArtifactShadowRepository
     private StorageItem storeXmlContentWithHashes(ResourceStoreRequest request, String xml)
             throws UnsupportedStorageOperationException,
             IllegalOperationException, StorageException {
-        StorageFileItem item;
-        item = new DefaultStorageFileItem( this, request, true, true, new StringContentLocator(
+        StorageFileItem item = new DefaultStorageFileItem( this, request, true, true, new StringContentLocator(
                 xml, "application/xml" ) );
                 
         storeItem( false, item );
         
         storeHashes( item, request );
-        
+
         return item;
     }
 }

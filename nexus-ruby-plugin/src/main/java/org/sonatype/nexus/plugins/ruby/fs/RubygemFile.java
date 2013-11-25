@@ -102,9 +102,9 @@ public class RubygemFile extends File
     public RubygemFile( Gav gav )
     {
         super( RepositoryItemUid.PATH_SEPARATOR + "gems" + RepositoryItemUid.PATH_SEPARATOR +
-               gav.getArtifactId() + "-" + gav.getVersion() + "-java.gem" );
+               gav.getArtifactId() + "-" + gav.getVersion().replaceFirst( "-SNAPSHOT", "" ) + "-java.gem" );
         type = Type.GEM;
-        assert !"rubygems".equals( gav.getGroupId() );
+        assert "rubygems".equals( gav.getGroupId() );
     }
     
     private RubygemFile( String name, Type type )
