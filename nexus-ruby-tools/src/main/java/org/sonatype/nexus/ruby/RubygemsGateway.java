@@ -28,7 +28,7 @@ public interface RubygemsGateway {
 
     InputStream mergeSpecs( InputStream specs, List<InputStream> streams, boolean latest );
 
-    List<String> listVersions( String name, InputStream inputStream, long modified );
+    List<String> listVersions( String name, InputStream inputStream, long modified, boolean prerelease );
 
     BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
             InputStream prereleasedSpecs, long prereleasedModified );

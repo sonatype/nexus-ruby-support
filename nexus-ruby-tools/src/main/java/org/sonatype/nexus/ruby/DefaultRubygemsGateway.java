@@ -178,14 +178,18 @@ private JRubyScriptingContainer scriptingContainer;
 
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized List<String> listVersions(String name, InputStream inputStream, long modified )
+    public synchronized List<String> listVersions(String name, 
+                                                  InputStream inputStream, 
+                                                  long modified, 
+                                                  boolean prerelease )
     {
         try
         {
             return (List<String>) callMethod( "list_versions",
                                               new Object[] { name,
                                                              inputStream,
-                                                             modified },
+                                                             modified ,
+                                                             prerelease },
                                               List.class );
         }
         finally

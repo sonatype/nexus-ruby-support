@@ -5,7 +5,7 @@ rescue LoadError
   # newer versions of rubygems do not have that anymore
   # just to stay backward compatible for a while
 end
-require 'maven/tools/minimal_project'
+require 'maven/tools/pom'
 require 'json'
 require 'nexus/bundler_dependencies'
 require 'nexus/indexer'
@@ -89,8 +89,8 @@ module Nexus
 
     def to_pom( spec_source )
       spec = Marshal.load( Gem.inflate( read_binary( spec_source ) ) )
-      proj = Maven::Tools::MinimalProject.new( spec )
-      proj.to_xml
+      proj = Maven::Tools::POM.new( spec )
+      proj.to_s
     end
 
     %W(name_preversions_map name_versions_map).each do |method|
@@ -122,8 +122,9 @@ module Nexus
       end
     end
 
-    def list_versions( name, source, modified )
-      versions = name_versions_map( source, modified )[ name.to_s ] || []
+    def list_versions( name, source, modified, prerelease = false )
+      map_method = prerelease ? :name_preversions_map : :name_versions_map
+      versions = send( map_method, source, modified )[ name.to_s ] || []
       versions = versions.select { |v| v =~ /(-|-ruby|-java|-jruby)$/ }.collect { |v| v.sub( /-.*$/, '' ) }
       versions.uniq!
       versions
