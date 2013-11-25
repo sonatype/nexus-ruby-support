@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
+import org.sonatype.nexus.client.core.exception.NexusClientNotFoundException;
 import org.sonatype.nexus.client.core.subsystem.artifact.ArtifactMaven;
 import org.sonatype.nexus.client.core.subsystem.artifact.ResolveRequest;
 import org.sonatype.nexus.client.core.subsystem.artifact.ResolveResponse;
@@ -66,6 +67,14 @@ public class GemArtifactIT extends RubyNexusRunningITSupport
         assertThat( response.getRepositoryPath(), is( "/rubygems/zip/2.0.2/zip-2.0.2.gem" ) );
     }
 
+
+    @Test( expected = NexusClientNotFoundException.class )
+    public void notFoundArtifact()
+    {
+        client().getSubsystem( ArtifactMaven.class ).resolve(
+                new ResolveRequest( GARTIFACTS, "rubygems", "pre", "0.1.0.beta-SNAPSHOT", "gem", null, "gem", false )
+        );
+    }
     @Override
     protected NexusBundleConfiguration configureNexus( NexusBundleConfiguration configuration ) {
         configuration = super.configureNexus( configuration );
