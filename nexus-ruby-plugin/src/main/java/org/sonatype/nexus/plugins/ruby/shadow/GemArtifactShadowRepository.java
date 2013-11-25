@@ -463,7 +463,9 @@ public class GemArtifactShadowRepository
         Gav gav = getGavCalculator().pathToGav( request.getRequestPath() );
         if ( gav != null )
         {
-            if ( !"rubygems".equals( gav.getGroupId() ) || gav.isSnapshot() != isPrereleaseRepository() )
+            if ( !"rubygems".equals( gav.getGroupId() ) || 
+                 gav.isSnapshot() != isPrereleaseRepository() || 
+                 gav.getVersion().matches( ".*[a-zA-Z].*"  ) != isPrereleaseRepository() )
             {
                 throw new ItemNotFoundException( request, this ); 
             }
