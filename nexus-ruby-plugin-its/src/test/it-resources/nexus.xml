@@ -147,6 +147,29 @@
         <synchronizeAtStartup>false</synchronizeAtStartup>
       </externalConfiguration>
     </repository>
+    <repository>
+      <id>pregartifacts</id>
+      <name>pregartifacts</name>
+      <providerRole>org.sonatype.nexus.proxy.repository.ShadowRepository</providerRole>
+      <providerHint>gem-artifacts</providerHint>
+      <localStatus>IN_SERVICE</localStatus>
+      <notFoundCacheTTL>15</notFoundCacheTTL>
+      <userManaged>true</userManaged>
+      <exposed>true</exposed>
+      <browseable>true</browseable>
+      <writePolicy>READ_ONLY</writePolicy>
+      <searchable>true</searchable>
+      <localStorage>
+        <provider>file</provider>
+      </localStorage>
+      <externalConfiguration>
+        <repositoryPolicy>MIXED</repositoryPolicy>
+        <masterRepositoryId>gemshost</masterRepositoryId>
+        <synchronizeAtStartup>false</synchronizeAtStartup>
+        <synchronizeAtStartup>false</synchronizeAtStartup> 
+	<prerelease>true</prerelease>
+      </externalConfiguration>
+    </repository>
   </repositories>
   <repositoryTargets>
     <repositoryTarget>

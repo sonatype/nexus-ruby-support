@@ -29,12 +29,28 @@ public class GemArtifactIT extends RubyNexusRunningITSupport
     public void downloadMavenMetadata() throws IOException
     {
         assertFileDownload( "rubygems/zip/maven-metadata.xml", is( true ) );
+        assertFileDownload( "rubygems/zip/maven-metadata.xml.asc", is( true ) );
+        assertFileDownload( "rubygems/zip/maven-metadata.xml.sha1", is( true ) );
+        assertFileDownload( "rubygems/zip/maven-metadata.xml.md5", is( true ) );
     }
     
     @Test
     public void downloadGemArtifact() throws IOException
     {
         assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.gem", is( true ) );
+        assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.gem.asc", is( true ) );
+        assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.gem.md5", is( true ) );
+        assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.gem.sha1", is( true ) );
+        assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.pom", is( true ) );
+        assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.pom.asc", is( true ) );
+        assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.pom.md5", is( true ) );
+        assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.pom.sha1", is( true ) );
+
+        assertFileDownload( "rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem", is( false ) );
+        assertFileDownload( "rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom", is( false ) );
+        
+        assertFileDownload( "rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-SNAPSHOT.gem", is( false ) );
+        assertFileDownload( "rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-SNAPSHOT.pom", is( false ) );
     }
 
     @Test
