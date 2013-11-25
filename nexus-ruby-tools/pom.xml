@@ -23,7 +23,7 @@
     <dependency>
       <groupId>de.saumya.mojo</groupId>
       <artifactId>maven-tools</artifactId>
-      <version>0.33.5</version>
+      <version>0.34.0</version>
     </dependency>
 
     <dependency>
