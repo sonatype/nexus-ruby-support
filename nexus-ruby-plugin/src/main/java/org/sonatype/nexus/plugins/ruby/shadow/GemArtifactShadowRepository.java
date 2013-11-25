@@ -66,7 +66,7 @@ public class GemArtifactShadowRepository
     /**
      * The GAV Calculator.
      */
-    @Requirement( hint = "rubygems" )
+    @Requirement( hint = "maven2" )
     private GavCalculator gavCalculator;
     
     @Requirement( role = GemArtifactShadowRepositoryConfigurator.class )
