@@ -6,6 +6,8 @@ require 'nexus/config'
 class Gem::AbstractCommand < Gem::Command
   include Gem::LocalRemoteOptions
 
+  ALWAYS_PROMPT = 'A11w@ysPr0mpt'
+
   def initialize( name, summary )
     super
    
@@ -27,6 +29,16 @@ class Gem::AbstractCommand < Gem::Command
     add_option( '--secrets FILE',
                 'use and store secrets in the given instead of local config file. file location will be stored in the local config file.' ) do |value, options|
       options[ :nexus_secrets ] = File.expand_path( value )
+    end
+
+    add_option( '--password',
+                'always prompt password and delete stored password if it exists.' ) do |value, options|
+      options[ :nexus_password ] = value
+    end
+
+    add_option( '--encrypt',
+                'prompt encryption password and uses it (using pkcs5 and AES) to encrypt passwords for repository access. once the encryption is set up the option is not needed but the prompt for the password will come anyways. the encryption password will NOT be stored in the configuration file !' ) do |value, options|
+      options[ :nexus_encrypt ] = value
     end
   end
 
@@ -52,9 +64,25 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def setup
+    prompt_encryption if options[ :nexus_encrypt ] || config.encrypted?
     configure_url if !config.key?( :url ) || options[:nexus_clear]
     use_proxy!( url ) if http_proxy( url )
-    sign_in if !config.key?( :authorization ) || options[:nexus_clear]
+    if( !config.key?( :authorization ) || 
+        options[:nexus_clear] || 
+        always_prompt_password? )
+      sign_in
+    end
+  end
+
+  def prompt_encryption
+    password = ask_for_password( "Enter your Nexus encryption credentials (no prompt)" )
+ 
+    # recreate config with password
+    config( password )
+  end
+
+  def always_prompt_password?
+    authorization == ALWAYS_PROMPT || options[ :nexus_password ]
   end
 
   def sign_in
@@ -67,21 +95,26 @@ class Gem::AbstractCommand < Gem::Command
     if token != ':'
       config[ :authorization ] =
         "Basic #{Base64.encode64(username + ':' + password).gsub(/\s+/, '')}"
+      say "Your Nexus credentials has been stored in ~/.gem/nexus"
+    elsif always_prompt_password?
+      config[ :authorization ] = ALWAYS_PROMPT if options[ :nexus_password ]
     else
       config[ :authorization ] = nil
+      say "Your Nexus credentials has been deleted from ~/.gem/nexus"
     end
 
-    say "Your Nexus credentials has been stored in ~/.gem/nexus"
   end
 
-  def this_config
+  def this_config( pass = nil )
     Nexus::Config.new( options[ :nexus_repo ],
                        options[ :nexus_config ],
-                       options[ :nexus_secrets ] )
+                       options[ :nexus_secrets ],
+                       pass )
   end
   private :this_config
   
-  def config
+  def config( pass = nil )
+    @config = this_config( pass ) if pass
     @config ||= this_config
   end
 

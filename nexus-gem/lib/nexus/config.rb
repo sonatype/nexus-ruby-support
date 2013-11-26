@@ -1,6 +1,8 @@
 require 'rubygems/local_remote_options'
 require 'net/http'
 require 'base64'
+require 'nexus/cipher'
+require 'yaml'
 
 module Nexus
   class Config
@@ -62,40 +64,96 @@ module Nexus
       ::File.join( Gem.user_home, '.gem', 'nexus' )
     end
 
-    def initialize( repo = nil, config = nil, secrets = nil )
+    def initialize( repo = nil, config = nil, 
+                    secrets = nil, pass = nil )
       config ||= self.class.default_file
       conf = File.new( config, nil )
       if secrets
         conf[ :secrets ] = secrets
         conf.store
       end
+      secr = File.new( conf[ :secrets ], nil )# if conf[ :secrets ]
+      token = conf[ :token ] || secr[ :token ]
+      if pass && token
+        @cipher = Cipher.new( pass, token )
+      elsif pass
+        @cipher = Cipher.new( pass )
+        token = @cipher.token
+      end
+      @encrypted = token != nil
+
+      if token
+        secr[ :token ] = token
+        token = nil if secr.store
+        conf[ :token ] = token
+        conf.store
+      end
+
       @conf = File.new( conf, repo )
       @secr = File.new( secrets || conf[ :secrets ], repo )
     end
 
+    def encrypted?
+      @encrypted
+    end
     def key?( key )
       @conf.key?( key ) || @secr.key?( key )
     end
 
     def []( key )
-      if key == :authorization && @conf[ key ]
-        copy_authorization
+      if key == :authorization 
+        move( :authorization, :iv ) if @conf[ key ]
+        decrypt( @conf[ key ] || @secr[ key ] )
+      else
+        @conf[ key ] || @secr[ key ]
       end
-      @conf[ key ] || @secr[ key ]
     end
+    
+    def decrypt( auth )
+      if @cipher && auth && self[ :iv ]
+        @cipher.iv = self[ :iv ]
+        @cipher.decrypt( auth )
+      elsif @cipher && auth
+        self[ :authorization ] = auth
+        auth
+      else
+        auth
+      end
+    end
+    private :decrypt
 
-    def copy_authorization
-      @secr[ :authorization ] = @conf[ :authorization ]
+    def move( *keys )
+      keys.each do |key|
+        @secr[ key ] = @conf[ key ]
+      end
       if @secr.store
-        @conf[ :authorization ] = nil
+        keys.each do |key|
+          @conf[ key ] = nil
+        end
         @conf.store
       end
     end
-    private :copy_authorization
+    private :move
+
+    def encrypt( auth )
+      if @cipher && auth
+        result = @cipher.encrypt( auth )
+        self[ :iv ] = @cipher.iv
+        result
+      else
+        auth
+      end
+    end
+    private :encrypt
 
     def []=( key, value )
       stored = false
       if key == :authorization
+        value = encrypt( value )
+        @secr[ key ] = value
+        stored = @secr.store
+      end
+      if key == :iv
         @secr[ key ] = value
         stored = @secr.store
       end
