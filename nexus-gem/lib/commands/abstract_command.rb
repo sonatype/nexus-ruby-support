@@ -6,44 +6,32 @@ require 'nexus/config'
 class Gem::AbstractCommand < Gem::Command
   include Gem::LocalRemoteOptions
 
-  ALWAYS_PROMPT = 'A11w@ysPr0mpt'
-
   def initialize( name, summary )
     super
    
-    add_option( '-c', '--nexus-clear',
-                'Clears the nexus config' ) do |value, options|
+    add_option( '-r', '--repo KEY',
+                "pick the configuration under that key.\n                                     can be used in conjuction with --clear-repo and the upload itself." ) do |value, options|
+      options[ :nexus_repo ] = value
+    end
+
+    add_option( '-c', '--clear-repo',
+                'Clears the nexus config for the given repo or the default repo' ) do |value, options|
+      options[ :nexus_clear ] = value
+    end
+
+    # backward compatibility
+    add_option( '--nexus-clear', 'DEPRECATED' ) do |value, options|
       options[ :nexus_clear ] = value
     end
 
     add_option( '--nexus-config FILE',
-                'File location of nexus config' ) do |value, options|
+                "File location of nexus config to use.\n                                     default #{Nexus::Config.default_file}" ) do |value, options|
       options[ :nexus_config ] = File.expand_path( value )
-    end
-
-    add_option( '--repo KEY',
-                'pick the config under that key' ) do |value, options|
-      options[ :nexus_repo ] = value
-    end
-
-    add_option( '--secrets FILE',
-                'use and store secrets in the given instead of local config file. file location will be stored in the local config file.' ) do |value, options|
-      options[ :nexus_secrets ] = File.expand_path( value )
-    end
-
-    add_option( '--password',
-                'always prompt password and delete stored password if it exists.' ) do |value, options|
-      options[ :nexus_password ] = value
-    end
-
-    add_option( '--encrypt',
-                'prompt encryption password and uses it (using pkcs5 and AES) to encrypt passwords for repository access. once the encryption is set up the option is not needed but the prompt for the password will come anyways. the encryption password will NOT be stored in the configuration file !' ) do |value, options|
-      options[ :nexus_encrypt ] = value
     end
   end
 
   def url
-    url = config[ :url ]
+    url = config.url
     # no leading slash
     url.sub!(/\/$/,'') if url
     url
@@ -55,7 +43,7 @@ class Gem::AbstractCommand < Gem::Command
     url = ask("URL: ")
 
     if URI.parse( "#{url}" ).host != nil
-      config[ :url ] = url
+      config.url = url
 
       say 'The Nexus URL has been stored in ~/.gem/nexus'
     else
@@ -64,12 +52,12 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def setup
-    prompt_encryption if options[ :nexus_encrypt ] || config.encrypted?
-    configure_url if !config.key?( :url ) || options[:nexus_clear]
+    prompt_encryption if config.encrypted?
+    configure_url if config.url.nil? || options[ :nexus_clear ]
     use_proxy!( url ) if http_proxy( url )
-    if( !config.key?( :authorization ) || 
-        options[:nexus_clear] || 
-        always_prompt_password? )
+    if( authorization.nil? || 
+        config.always_prompt? || 
+        options[:nexus_clear] )
       sign_in
     end
   end
@@ -78,11 +66,13 @@ class Gem::AbstractCommand < Gem::Command
     password = ask_for_password( "Enter your Nexus encryption credentials (no prompt)" )
  
     # recreate config with password
-    config( password )
-  end
+    config.password = password
 
-  def always_prompt_password?
-    authorization == ALWAYS_PROMPT || options[ :nexus_password ]
+#    if options[ :nexus_encrypt ] && !config.encrypted?
+#      config.encrypt_credentials
+#    elsif options[ :nexus_encrypt ] == false && config.encrypted?
+#      config.decrypt_credentials      
+#    end
   end
 
   def sign_in
@@ -92,24 +82,22 @@ class Gem::AbstractCommand < Gem::Command
 
     # mimic strict_encode64 which is not there on ruby1.8
     token = "#{username}:#{password}"
-    if token != ':'
-      config[ :authorization ] =
-        "Basic #{Base64.encode64(username + ':' + password).gsub(/\s+/, '')}"
-      say "Your Nexus credentials has been stored in ~/.gem/nexus"
-    elsif always_prompt_password?
-      config[ :authorization ] = ALWAYS_PROMPT if options[ :nexus_password ]
-    else
-      config[ :authorization ] = nil
-      say "Your Nexus credentials has been deleted from ~/.gem/nexus"
+    auth = "Basic #{Base64.encode64(token).gsub(/\s+/, '')}"
+    @authorization = token == ':' ? nil : auth
+     
+    unless config.always_prompt?
+      config.authorization = @authorization
+      if @authorization
+        say "Your Nexus credentials has been stored in #{config}"
+      else
+        say "Your Nexus credentials has been deleted from #{config}"
+      end
     end
-
   end
 
   def this_config( pass = nil )
-    Nexus::Config.new( options[ :nexus_repo ],
-                       options[ :nexus_config ],
-                       options[ :nexus_secrets ],
-                       pass )
+    Nexus::Config.new( options[ :nexus_config ],
+                       options[ :nexus_repo ] )
   end
   private :this_config
   
@@ -119,7 +107,7 @@ class Gem::AbstractCommand < Gem::Command
   end
 
   def authorization
-    config[ :authorization ]
+    @authorization || config.authorization
   end
 
   def make_request(method, path)
@@ -158,13 +146,15 @@ class Gem::AbstractCommand < Gem::Command
     
     if Gem.configuration.verbose.to_s.to_i > 0
       warn "#{request.method} #{url.to_s}"
-      if authorization
+      if config.authorization
         warn 'use authorization' 
       else
         warn 'no authorization'
       end
- 
-      warn "use proxy at #{http.proxy_address}:#{http.proxy_port}" if http.proxy_address
+
+      if http.proxy_address
+        warn "use proxy at #{http.proxy_address}:#{http.proxy_port}"
+      end
     end
 
     http.request(request)
@@ -172,7 +162,10 @@ class Gem::AbstractCommand < Gem::Command
 
   def use_proxy!( url )
     proxy_uri = http_proxy( url )
-    @proxy_class = Net::HTTP::Proxy(proxy_uri.host, proxy_uri.port, proxy_uri.user, proxy_uri.password)
+    @proxy_class = Net::HTTP::Proxy( proxy_uri.host,
+                                     proxy_uri.port,
+                                     proxy_uri.user,
+                                     proxy_uri.password )
   end
 
   def proxy_class
