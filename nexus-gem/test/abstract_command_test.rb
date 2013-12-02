@@ -54,13 +54,6 @@ class AbstractCommandTest < CommandTest
       config_path = File.join( 'pkg', 'configsomething')
       FileUtils.rm_f( config_path )
       @command.options[ :nexus_config ] = config_path
-      stub(@command).authorization { nil }
-      stub(@command).config do
-        h = Hash.new
-        def h.encrypted?; false; end
-        h 
-      end
-      stub(@command).url { nil }
       stub(@command).sign_in
       stub(@command).configure_url
       @command.setup
@@ -69,7 +62,7 @@ class AbstractCommandTest < CommandTest
     end
 
     should "sign in if --clear-config is set" do
-      config_path = File.join( 'pkg', 'configsomething')
+      config_path = File.join( 'pkg', 'config_clear')
       FileUtils.rm_f( config_path )
       @command.options[ :nexus_config ] = config_path
       stub(@command).sign_in
@@ -85,58 +78,26 @@ class AbstractCommandTest < CommandTest
     end
 
     should "sign in if --password is set" do
-      config_path = File.join( 'pkg', 'configsomething')
-      FileUtils.rm_f( config_path )
-      @command.options[ :nexus_config ] = config_path
-      @command.options[ :nexus_password ] = true
-      stub(@command).sign_in
-      stub(@command).config  do
-        h = Hash.new
-        h[ :url ] = 'http://example.com'
-        def h.encrypted?; false; end
-        h 
+      config_path = File.join( 'pkg', 'config_password')
+      File.open( config_path, 'w') do |f|
+        h = { :url => 'http://example.com' }
+        f.write h.to_yaml
       end
+      @command.options[ :nexus_config ] = config_path
+      @command.options[ :nexus_prompt ] = true
+      stub(@command).sign_in
       @command.setup
       assert_received(@command) { |command| command.sign_in }
     end
 
-    should "sign in if 'always password prompt' is configured" do
-      config_path = File.join( 'pkg', 'configsomething')
-      FileUtils.rm_f( config_path )
-      @command.options[ :nexus_config ] = config_path
-      stub(@command).sign_in
-      stub(@command).config  do
-        h = Hash.new
-        h[ :url ] = 'http://example.com'
-        h[ :authorization ] = Gem::AbstractCommand::ALWAYS_PROMPT
-        def h.encrypted?; false; end
-        h 
-      end
-      @command.setup
-      assert_received(@command) { |command| command.sign_in }
-    end
-
-    should "interpret 'always password prompt' as such" do
-      config_path = File.join( 'pkg', 'configsomething')
-      FileUtils.rm_f( config_path )
-
-      assert_equal( @command.always_prompt_password?, nil )
-
-      @command.config[ :authorization ] = Gem::AbstractCommand::ALWAYS_PROMPT
-
-      assert_equal( @command.always_prompt_password?, true )
-    end
 
     should "always return stored authorization and url" do
       config_path = File.join( 'pkg', 'configsomething')
       FileUtils.rm_f( config_path )
-      @command.config[ :url ] = 'something'
-      @command.config[ :authorization ] = 'something'
-      stub(@command).options do
-        { :nexus_clear => true,
-          :nexus_config => config_path
-        }
-      end
+      @command.options[ :nexus_config ] = config_path
+      @command.options[ :nexus_prompt ] = true
+      @command.config.url = 'something'
+      @command.config.authorization = 'something'
       assert_not_nil @command.authorization
       assert_not_nil @command.url
     end
@@ -173,46 +134,18 @@ class AbstractCommandTest < CommandTest
         FileUtils.rm_f( config_path )
         @command.options[ :nexus_config ] = config_path
         @command.options[ :nexus_repo ] = :first
-        @command.config[ :some ] = :thing
+        @command.config.url = :thing
         @command.options[ :nexus_repo ] = :second
         @command.send :instance_variable_set, '@config'.to_sym, nil
-        @command.config[ :some ] = :otherthing
+        @command.config.url = :otherthing
         @command.options[ :nexus_repo ] = nil
         @command.send :instance_variable_set, '@config'.to_sym, nil
-        @command.config[ :some ] = :nothing
-
+        @command.config.url = :nothing
         assert_equal( Gem.configuration.load_file(config_path),
-                      { :first=>{:some=>:thing}, 
-                        :second=>{:some=>:otherthing},
-                        :some=>:nothing } )
+                      { :first => {:url => :thing}, 
+                        :second => {:url => :otherthing},
+                        :url => :nothing } )
       end
-
-      should 'use only the config for the given key' do
-        config_path = File.join( 'pkg', 'configrepo')
-        FileUtils.rm_f( config_path )
-        @command.options[ :nexus_config ] = config_path
-        @command.options[ :nexus_repo ] = :first
-        @command.config[ :some ] = :thing
-        @command.options[ :nexus_repo ] = :second
-        @command.send :instance_variable_set, '@config'.to_sym, nil
-        assert_nil( @command.config[ :some ] )
-        @command.config[ :some ] = :otherthing
-        @command.options[ :nexus_repo ] = nil
-        @command.send :instance_variable_set, '@config'.to_sym, nil
-        assert_nil( @command.config[ :some ] )
-        @command.config[ :some ] = :nothing
-
-        @command.options[ :nexus_repo ] = :first
-        @command.send :instance_variable_set, '@config'.to_sym, nil
-        assert_equal( @command.config[ :some ], :thing )
-        @command.options[ :nexus_repo ] = :second
-        @command.send :instance_variable_set, '@config'.to_sym, nil
-        assert_equal( @command.config[ :some ], :otherthing )
-        @command.options[ :nexus_repo ] = nil
-        @command.send :instance_variable_set, '@config'.to_sym, nil
-        assert_equal( @command.config[ :some ], :nothing )
-      end
-
     end
 
     context "clear username + password" do
@@ -223,7 +156,7 @@ class AbstractCommandTest < CommandTest
         stub(@command).say
         stub(@command).ask { nil }
         stub(@command).ask_for_password { nil }
-        @command.config[ :authorization ] = 'some authentication'
+        @command.config.authorization = 'some authentication'
 
         @command.sign_in
         assert_nil @command.authorization
@@ -232,39 +165,6 @@ class AbstractCommandTest < CommandTest
 
     context "encryption" do
 
-      should "setup" do
-        file = File.join( 'pkg', 'encconfig')
-        FileUtils.rm_f( file )
-        stub(@command).options { {:nexus_config => file,
-          :nexus_encrypt => true } }
-
-        @command.config[ :url ] = 'http://asd'
-        @command.config[ :authorization ] = 'something'
-
-        assert_equal @command.config.encrypted?, false
-
-        stub(@command).ask_for_password { "behappy" }
-
-        @command.setup
-        assert_equal @command.config.encrypted?, true
-      end
-
-      should "prompt when configured" do
-        file = File.join( 'pkg', 'encconfig')
-        FileUtils.rm_f( file )
-        stub(@command).options { {:nexus_config => file } }
-        stub(@command).config  do
-          h = Hash.new
-          h[ :url ] = 'http://example.com'
-          h[ :authorization ] = 'something'
-          def h.encrypted?; true; end
-          h 
-        end
-        stub(@command).ask_for_password { "behappy" }
-
-        @command.setup
-        assert_equal @command.config.encrypted?, true
-      end
     end
 
     context "signing in" do
@@ -278,22 +178,22 @@ class AbstractCommandTest < CommandTest
         stub(@command).ask_for_password { @password }
         stub(@command).options { {:nexus_config => File.join( 'pkg', 
                                                               'configsign') } }
-        @command.config[ :authorization ] = @key
+        @command.config.authorization = @key
       end
       
       should "ask for username and password" do
         @command.sign_in
         assert_received(@command) { |command| command.ask("Username: ") }
         assert_received(@command) { |command| command.ask_for_password("Password: ") }
-        assert_equal( @command.config[ :authorization ], 
+        assert_equal( @command.config.authorization, 
                       "Basic dXNlcm5hbWU6cGFzc3dvcmQgMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODk=" )
       end
 
       should "say that we signed in" do
         @command.sign_in
         assert_received(@command) { |command| command.say("Enter your Nexus credentials") }
-        assert_received(@command) { |command| command.say("Your Nexus credentials has been stored in ~/.gem/nexus") }
-        assert_equal( @command.config[ :authorization ], 
+        assert_received(@command) { |command| command.say("Your Nexus credentials has been stored in pkg/configsign") }
+        assert_equal( @command.config.authorization, 
                       "Basic dXNlcm5hbWU6cGFzc3dvcmQgMDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODk=" )
       end
     end
@@ -306,20 +206,20 @@ class AbstractCommandTest < CommandTest
         stub(@command).ask { @url }
         stub(@command).options { {:nexus_config => File.join( 'pkg', 
                                                               'configurl') } }
-        @command.config[ :url ] = @url
+        @command.config.url = @url
       end
 
       should "ask for nexus url" do
         @command.configure_url
         assert_received(@command) { |command| command.ask("URL: ") }
-        assert_equal( @command.config[ :url ], "http://url" )
+        assert_equal( @command.config.url, "http://url" )
       end
 
       should "say that we configured the url" do
         @command.configure_url
         assert_received(@command) { |command| command.say("Enter the URL of the rubygems repository on a Nexus server") }
         assert_received(@command) { |command| command.say("The Nexus URL has been stored in ~/.gem/nexus") }
-        assert_equal( @command.config[ :url ], "http://url" )
+        assert_equal( @command.config.url, "http://url" )
       end
     end
   end

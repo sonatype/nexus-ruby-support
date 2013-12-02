@@ -1,168 +1,197 @@
-require 'rubygems/local_remote_options'
-require 'net/http'
-require 'base64'
 require 'nexus/cipher'
-require 'yaml'
+require 'nexus/config_file'
 
 module Nexus
   class Config
 
-    class File
-      def initialize( file, repo )
-        if file.is_a?( String )
-          @file = file
-
-          if file && ::File.exists?( file )
-            @all = YAML.load( ::File.read( file ) )
-          end
-        elsif file
-          @file = file.instance_variable_get( '@file'.to_sym )
-          @all = file.instance_variable_get( '@all'.to_sym )
-        end
-        @all ||= {}
-
-        @data = ( @all[ repo ] ||= {} ) if repo
-        @data ||= @all
-      end
-
-      def key?( key )
-        @data.key? key
-      end
-
-      def []( key )
-        @data[ key ]
-      end
-
-      def []=( key, value )
-        if value
-          @data[ key ] = value
-        else
-          @data.delete( key )
-        end
-      end
-      
-      def store
-        if @file
-          dirname = ::File.dirname( @file )
-          Dir.mkdir( dirname ) unless ::File.exists?( dirname )
-          new = !::File.exists?( @file )
-
-          ::File.open( @file, 'w') do |f|
-            f.write @all.to_yaml
-          end
-          if new
-            ::File.chmod( 0100600, @file ) rescue nil
-          end
-          true
-        else
-          false
-        end
-      end
-    end
-
     def self.default_file
-      ::File.join( Gem.user_home, '.gem', 'nexus' )
+      File.join( Gem.user_home, '.gem', 'nexus' )
     end
 
-    def initialize( repo = nil, config = nil, 
-                    secrets = nil, pass = nil )
-      config ||= self.class.default_file
-      conf = File.new( config, nil )
-      if secrets
-        conf[ :secrets ] = secrets
-        conf.store
-      end
-      secr = File.new( conf[ :secrets ], nil )# if conf[ :secrets ]
-      token = conf[ :token ] || secr[ :token ]
-      if pass && token
-        @cipher = Cipher.new( pass, token )
-      elsif pass
-        @cipher = Cipher.new( pass )
-        token = @cipher.token
-      end
-      @encrypted = token != nil
-
-      if token
-        secr[ :token ] = token
-        token = nil if secr.store
-        conf[ :token ] = token
-        conf.store
-      end
-
-      @conf = File.new( conf, repo )
-      @secr = File.new( secrets || conf[ :secrets ], repo )
+    def initialize( file = nil, repo = nil )
+      @repo = repo
+      @conf = ConfigFile.new( file || self.class.default_file )
+      @secr = ConfigFile.new( @conf[ :secrets ] ) if @conf.key? :secrets
     end
 
-    def encrypted?
-      @encrypted
+    private
+
+    def encrypt_or_decrypt_credentials
+      map = config.all
+      yield map if map[ :authorization ]
+      map.each do |k, v|
+        yield v if v.is_a?( Hash ) && v[ :authorization ]
+      end
     end
+
+    def move_credentials( from, to )
+      keys = [ :secrets, :token, :iv, :authorization ]
+      ([ nil ] + from.repos ).each do |repo|
+        keys.each do |k|
+          to[ k, repo ] = from[ k, repo ]
+          from[ k, repo ] = nil
+        end
+      end
+    end
+
+    def config
+      @map ||= @secr ? @secr : @conf
+    end
+
     def key?( key )
-      @conf.key?( key ) || @secr.key?( key )
+      config.key?( key, @repo )
     end
 
     def []( key )
-      if key == :authorization 
-        move( :authorization, :iv ) if @conf[ key ]
-        decrypt( @conf[ key ] || @secr[ key ] )
+      config[ key, @repo ]
+    end
+
+    def []=( key, value )
+      config[ key, @repo ] = value
+    end
+
+    public
+
+    def encrypted?
+      config.key?( :token )
+    end
+
+    def password=( pass )
+      @cipher = Cipher.new( pass, config[ :token ] )
+    end
+
+    def always_prompt?
+      @conf[ :always_prompt ]
+    end
+
+    def clear_always_prompt
+      @conf.delete( :always_prompt )
+      @conf.store
+    end
+
+    def clear_credentials( store = true )
+      secrets = @conf[ :secrets ]
+      if secrets && !config.key?( :token )
+        FileUtils.rm_f( secrets )
+        @map = @conf
       else
-        @conf[ key ] || @secr[ key ]
+        config.delete :iv, :authorization
       end
+      @conf.delete( :secrets )
+      @conf.store if store
+    end
+
+    def always_prompt
+      @conf[ :always_prompt, nil ] = true
+      
+      config.delete( :token )
+
+      clear_credentials( false )
+
+      @conf.store
+    end
+
+    def decrypt_credentials
+      unless encrypted?
+        warn 'not encrypted - nothing to do'
+        return
+      end
+      encrypt_or_decrypt_credentials do |c|
+        @cipher.iv = c[ :iv ]
+        c[ :authorization ] = @cipher.decrypt( c[ :authorization ] )
+        c.delete( :iv )
+      end
+      config.all.delete( :token )
+      config.store
+      @cipher = nil
     end
     
-    def decrypt( auth )
+    def encrypt_credentials
+       if encrypted?
+         warn 'already encrypted - nothing to do'
+         return
+       end
+      encrypt_or_decrypt_credentials do |c|
+        c[ :authorization ] = @cipher.encrypt( c[ :authorization ] )
+        c[ :iv ] = @cipher.iv
+      end
+      config.all[ :token ] = @cipher.token
+      config.store
+    end
+        
+    def new_secrets( new )
+      old = @conf.all[ :secrets ]
+      if old and new
+        FileUtils.mv( old, new )
+      end
+      if new
+        @secr = ConfigFile.new( new )
+      end
+        
+      if new.nil? && old
+        @conf.merge!( @secr )
+        FileUtils.rm_f( old )
+        @secr = nil
+      end
+
+      if old.nil? and new
+        move_credentials( @conf, @secr )
+
+        @secr.store
+      end
+
+      # store the new location
+      @conf[ :secrets, nil ] = new
+      @conf.store
+    end
+
+    def repos
+      result = @conf.section( :url )
+      if url = result.delete( :url )
+        result[ 'DEFAULT' ] = url
+      end
+      result.keys.each do |key|
+        if key != 'DEFAULT'
+          result[ key ] = result[ key ][ :url ]
+        end
+      end
+      result
+    end
+
+    def authorization
+      auth = self[ :authorization ]
       if @cipher && auth && self[ :iv ]
         @cipher.iv = self[ :iv ]
         @cipher.decrypt( auth )
       elsif @cipher && auth
-        self[ :authorization ] = auth
-        auth
+        authorization = auth
       else
         auth
       end
     end
-    private :decrypt
 
-    def move( *keys )
-      keys.each do |key|
-        @secr[ key ] = @conf[ key ]
-      end
-      if @secr.store
-        keys.each do |key|
-          @conf[ key ] = nil
-        end
-        @conf.store
-      end
-    end
-    private :move
-
-    def encrypt( auth )
+    def authorization=( auth )
       if @cipher && auth
-        result = @cipher.encrypt( auth )
+        self[ :authorization ] = @cipher.encrypt( auth )
         self[ :iv ] = @cipher.iv
-        result
       else
-        auth
+        self[ :authorization ] = auth
       end
-    end
-    private :encrypt
-
-    def []=( key, value )
-      stored = false
-      if key == :authorization
-        value = encrypt( value )
-        @secr[ key ] = value
-        stored = @secr.store
-      end
-      if key == :iv
-        @secr[ key ] = value
-        stored = @secr.store
-      end
-
-      unless stored
-        @conf[ key ] = value
-        @conf.store
-      end
+      config.store
+      auth
     end
 
+    def url
+      @conf[ :url, @repo ]
+    end
+
+    def url=( u )
+      @conf[ :url, @repo ] = u
+      @conf.store
+    end
+
+    def to_s
+      config.file
+    end
   end
 end
