@@ -9,7 +9,7 @@
   </parent>
   <groupId>rubygems</groupId>
   <artifactId>nexus</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <packaging>gem</packaging>
   <name>Gem Command to interact with Nexus server</name>
   <description>Adds a command to RubyGems for uploading gems to a nexus server.</description>
@@ -164,6 +164,13 @@
         </dependency>
         <dependency>
           <groupId>rubygems</groupId>
+          <artifactId>rr</artifactId>
+          <version>[1.1,1.99999]</version>
+          <type>gem</type>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>rubygems</groupId>
           <artifactId>activesupport</artifactId>
           <version>[4.0.0,4.0.99999]</version>
           <type>gem</type>
@@ -173,13 +180,6 @@
           <groupId>rubygems</groupId>
           <artifactId>webmock</artifactId>
           <version>[1.8,1.16)</version>
-          <type>gem</type>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>rubygems</groupId>
-          <artifactId>rr</artifactId>
-          <version>[1.1,1.99999]</version>
           <type>gem</type>
           <scope>test</scope>
         </dependency>
