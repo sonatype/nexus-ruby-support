@@ -2,7 +2,7 @@
 
 spec = Gem::Specification.load( 'nexus.gemspec' )
 
-parent 'org.sonatype.nexus.ruby:nexus-ruby-support', '1.0.1-SNAPSHOT'
+parent 'org.sonatype.nexus.ruby:nexus-ruby-support', '1.1.0'
 
 group_id 'rubygems'
 artifact_id spec.name
