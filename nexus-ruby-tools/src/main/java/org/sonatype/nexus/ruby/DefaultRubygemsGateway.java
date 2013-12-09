@@ -55,7 +55,7 @@ private JRubyScriptingContainer scriptingContainer;
     }
     
     @Override
-    public InputStream createGemspecRz( String gemname, InputStream gem )
+    public ByteArrayInputStream createGemspecRz( String gemname, InputStream gem )
     {
         try
         {

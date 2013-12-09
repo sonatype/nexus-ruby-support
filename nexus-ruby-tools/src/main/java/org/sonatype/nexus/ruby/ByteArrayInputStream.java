@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-class ByteArrayInputStream extends InputStream {
+public class ByteArrayInputStream extends InputStream {
 
     private List<Long> bytes;
     private int cursor = 0;
@@ -33,5 +33,10 @@ class ByteArrayInputStream extends InputStream {
         {
             return -1;
         }
+    }
+
+    public long length()
+    {
+        return bytes.size();
     }
 }
