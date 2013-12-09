@@ -34,9 +34,10 @@ public class GzipContentGenerator implements ContentGenerator {
             IOUtil.copy( item.getInputStream(), out );
             out.close();
             gzipped.close();
-            item.setLength( gzipped.toByteArray().length );
 
-            return new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ), "application/x-gzip" );
+            return new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ),
+                                               "application/x-gzip",
+                                               gzipped.toByteArray().length );
         } catch (IOException e) {
             throw new ItemNotFoundException(item.getResourceStoreRequest(), e);
         }

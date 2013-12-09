@@ -34,9 +34,10 @@ public class GunzipContentGenerator implements ContentGenerator {
             IOUtil.copy( in, out );
             out.close();
             in.close();
-            item.setLength( out.toByteArray().length );
 
-            return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), "application/x-marshal-ruby" );
+            return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), 
+                                               "application/x-marshal-ruby",
+                                               out.toByteArray().length );
         } catch (IOException e) {
             throw new ItemNotFoundException(item.getResourceStoreRequest(), e);
         }

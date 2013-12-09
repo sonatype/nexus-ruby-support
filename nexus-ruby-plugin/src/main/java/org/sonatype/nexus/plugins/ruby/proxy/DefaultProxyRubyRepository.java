@@ -237,11 +237,15 @@ public class DefaultProxyRubyRepository
     public void storeDependencies( String gemname, String json )
                 throws LocalStorageException, UnsupportedStorageOperationException
     {
-        StorageFileItem result = new DefaultStorageFileItem( this,
-              dependenciesRequest( gemname ), true, true,
-              new PreparedContentLocator(
-                      new ByteArrayInputStream( json.getBytes( Charset.forName( "UTF-8" ) ) ),
-                      "application/json" ) );
+        byte[] bytes = json.getBytes( Charset.forName( "UTF-8" ) );
+        StorageFileItem result =
+                new DefaultStorageFileItem( this,
+                                            dependenciesRequest( gemname ),
+                                            true, 
+                                            true,
+                                            new PreparedContentLocator( new ByteArrayInputStream( bytes ),
+                                                                        "application/json", 
+                                                                        bytes.length ) );
 
         getLocalStorage().storeItem( this, result );
     }
