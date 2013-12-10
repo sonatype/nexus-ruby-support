@@ -24,24 +24,26 @@ public interface RubygemsFacade {
             throws UnsupportedStorageOperationException, LocalStorageException;
 
     void mergeSpecsIndex( RubyLocalRepositoryStorage storage,
-            SpecsIndexType type, StorageItem localSpecs, List<StorageItem> specsItems )
+                          SpecsIndexType type,
+                          StorageItem localSpecs,
+                          List<StorageItem> specsItems )
                     throws UnsupportedStorageOperationException, 
                     LocalStorageException, IOException;
 
     RubygemFile deletableFile( String path );
 
     StorageItem retrieveItem( RubyLocalRepositoryStorage storage, 
-                                  ResourceStoreRequest request ) 
+                              ResourceStoreRequest request ) 
         throws AccessDeniedException, StorageException, ItemNotFoundException, IllegalOperationException;
     
     @SuppressWarnings("deprecation")
     BundlerDependencies bundlerDependencies() 
             throws LocalStorageException, AccessDeniedException, ItemNotFoundException, 
-                    IllegalOperationException, org.sonatype.nexus.proxy.StorageException;
+                   IllegalOperationException, org.sonatype.nexus.proxy.StorageException;
 
     @SuppressWarnings("deprecation")
     StorageFileItem[] prepareDependencies(BundlerDependencies bundler, String... gemnames)
             throws ItemNotFoundException, AccessDeniedException,
-            IllegalOperationException, org.sonatype.nexus.proxy.StorageException;
+                   IllegalOperationException, org.sonatype.nexus.proxy.StorageException;
 
 }

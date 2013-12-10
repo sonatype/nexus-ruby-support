@@ -170,7 +170,8 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
         } 
         catch ( IOException e )
         {
-            throw new ItemNotFoundException( dependencies.getResourceStoreRequest(), e );
+            throw new ItemNotFoundException( dependencies.getResourceStoreRequest(), 
+                                             repository, e );
         }
         catch ( UnsupportedStorageOperationException e )
         {
@@ -188,7 +189,7 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
     @SuppressWarnings( "deprecation" )
     @Override
     public StorageItem retrieveItem( RubyLocalRepositoryStorage storage, 
-                                                 ResourceStoreRequest request )
+                                     ResourceStoreRequest request )
              throws AccessDeniedException, org.sonatype.nexus.proxy.StorageException,
                     ItemNotFoundException, IllegalOperationException {
         if ( request.getRequestPath().equals( "/api/v1/dependencies" )

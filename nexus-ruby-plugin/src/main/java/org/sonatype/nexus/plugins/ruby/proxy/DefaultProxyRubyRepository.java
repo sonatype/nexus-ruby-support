@@ -120,7 +120,10 @@ public class DefaultProxyRubyRepository
         {
             if (item.getName().endsWith( ".gz" ) )
             {
-                getLogger().debug( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item ) );
+                if ( log.isDebugEnabled() ){
+                    log.debug( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(),
+                                                                        item ) );
+                }
                 return isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item );
             }
             else
@@ -284,11 +287,8 @@ public class DefaultProxyRubyRepository
         BundlerDependencies bundler = facade.bundlerDependencies();
         StorageCollectionItem depsBasedir = (StorageCollectionItem) retrieveItem( new ResourceStoreRequest( "api/v1/dependencies" ) );
         for( StorageItem dir : depsBasedir.list() ){
-            getLogger().error( dir.toString() );
-            getLogger().error( dir.getResourceStoreRequest().toString() );
             StorageCollectionItem deps = (StorageCollectionItem) retrieveItem( dir.getResourceStoreRequest() );
             for( StorageItem dep : deps.list() ){
-                getLogger().error( dep.toString() );
                 if ( dep instanceof StorageFileItem ){
                     facade.prepareDependencies( bundler, dep.getName() );
                 }
@@ -300,7 +300,9 @@ public class DefaultProxyRubyRepository
         LocalStorageException
     {
         String basedir = this.getLocalUrl().replace( "file:", "" );
-        getLogger().debug( "recreate rubygems metadata in " + basedir );
+        if (log.isDebugEnabled() ){
+            log.debug( "recreate rubygems metadata in " + basedir );
+        }
         return basedir;
     }
 }
