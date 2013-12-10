@@ -128,7 +128,6 @@ public class DefaultHostedRubyRepository
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
     {
-
         return facade.retrieveItem( (RubyLocalRepositoryStorage) getLocalStorage(),
                                     request );
     }
@@ -197,7 +196,9 @@ public class DefaultHostedRubyRepository
             LocalStorageException
     {
         String basedir = this.getLocalUrl().replace( "file:", "" );
-        getLogger().debug( "recreate rubygems metadata in " + basedir );
+        if (log.isDebugEnabled()){
+            log.debug( "recreate rubygems metadata in " + basedir );
+        }
         return basedir;
     }
 }

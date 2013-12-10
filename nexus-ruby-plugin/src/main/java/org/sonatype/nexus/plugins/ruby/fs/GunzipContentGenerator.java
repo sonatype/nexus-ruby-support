@@ -39,7 +39,7 @@ public class GunzipContentGenerator implements ContentGenerator {
                                                "application/x-marshal-ruby",
                                                out.toByteArray().length );
         } catch (IOException e) {
-            throw new ItemNotFoundException(item.getResourceStoreRequest(), e);
+            throw new ItemNotFoundException(item.getResourceStoreRequest(), repository, e);
         }
     }
 }

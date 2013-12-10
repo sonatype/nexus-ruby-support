@@ -251,7 +251,6 @@ public class GemArtifactShadowRepository
             InputStream is, Map<String, String> userAttributes)
             throws UnsupportedStorageOperationException, ItemNotFoundException,
             IllegalOperationException, StorageException, AccessDeniedException {
-        getLogger().error( "shadow " + request + " with checksum");
         getArtifactStoreHelper().storeItemWithChecksums( request, is, userAttributes );
     }
 
@@ -267,7 +266,6 @@ public class GemArtifactShadowRepository
             AbstractStorageItem item)
             throws UnsupportedStorageOperationException,
             IllegalOperationException, StorageException {
-        getLogger().error( "shadow " + item + " with checksum");
         getArtifactStoreHelper().storeItemWithChecksums( fromTask, item );
     }
 
@@ -300,7 +298,9 @@ public class GemArtifactShadowRepository
         int i = filename.lastIndexOf('-');
         if ( i < 1 )
         {
-            getLogger().error("bad path - ignored: " + path );
+            if (log.isErrorEnabled()){
+                log.error("bad path - ignored: " + path );
+            }
             return null;
         }
         else
@@ -338,7 +338,7 @@ public class GemArtifactShadowRepository
         {
             ResourceStoreRequest req = new ResourceStoreRequest( shadowPath );
 
-            req.getRequestContext().putAll( item.getItemContext() );
+            req.getRequestContext().setParentContext( item.getItemContext() );
 
             DefaultStorageLinkItem link =
                 new DefaultStorageLinkItem( this, req, true, true, item.getRepositoryItemUid() );
@@ -591,15 +591,21 @@ public class GemArtifactShadowRepository
             long modified = specsIndex.getModified();
             MetadataBuilder builder = new MetadataBuilder( name, modified );
 
-            long start = System.currentTimeMillis();
-
+            long start = 0;
+            if ( log.isWarnEnabled() ){
+                start = System.currentTimeMillis();
+            }
+            
             builder.appendVersions( gateway.listVersions( name, 
                                                           specsIndex.getInputStream(), 
                                                           modified, 
                                                           isPrereleaseRepository() ),
                                     isPrereleaseRepository() );
             
-            getLogger().warn( "versions " + (System.currentTimeMillis() - start ) + " " + modified + " " + gateway.hashCode());
+            if ( log.isWarnEnabled() ){
+                log.warn( "versions " + (System.currentTimeMillis() - start ) + " " + 
+                          modified + " " + gateway.hashCode());
+            }
                
             return storeXmlContentWithHashes( request, builder.toString() );
 

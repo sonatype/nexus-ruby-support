@@ -112,7 +112,32 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
 
     private StorageItem newItem( Repository repository, String name )
     {
-        return new DefaultStorageFileItem( repository, new ResourceStoreRequest( name ), true, false, null );
+        return new DefaultStorageFileItem( repository, new ResourceStoreRequest( name ), true, false, new ContentLocator() {
+            
+            @Override
+            public boolean isReusable()
+            {
+                return false;
+            }
+            
+            @Override
+            public String getMimeType()
+            {
+                return null;
+            }
+            
+            @Override
+            public long getLength()
+            {
+                return 0;
+            }
+            
+            @Override
+            public InputStream getContent() throws IOException
+            {
+                return null;
+            }
+        } );
     }
 
     private StorageItem newCollection( Repository repository, String name )
