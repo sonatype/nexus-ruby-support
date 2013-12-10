@@ -1,10 +1,12 @@
 package org.sonatype.nexus.plugins.ruby;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.sonatype.nexus.proxy.registry.AbstractIdContentClass;
-import org.sonatype.nexus.proxy.registry.ContentClass;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
-@Component( role = ContentClass.class, hint = RubyContentClass.ID )
+import org.sonatype.nexus.proxy.registry.AbstractIdContentClass;
+
+@Singleton
+@Named( RubyContentClass.ID )
 public class RubyContentClass
     extends AbstractIdContentClass
 {

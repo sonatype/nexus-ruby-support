@@ -1,9 +1,10 @@
 package org.sonatype.nexus.plugins.ruby.group;
 
-import org.codehaus.plexus.component.annotations.Component;
+import javax.inject.Singleton;
+
 import org.sonatype.nexus.proxy.repository.AbstractGroupRepositoryConfigurator;
 
-@Component( role = DefaultRubyGroupRepositoryConfigurator.class )
+@Singleton
 public class DefaultRubyGroupRepositoryConfigurator
     extends AbstractGroupRepositoryConfigurator
 {

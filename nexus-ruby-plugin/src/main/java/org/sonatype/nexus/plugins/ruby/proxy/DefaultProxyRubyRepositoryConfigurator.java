@@ -1,9 +1,10 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
-import org.codehaus.plexus.component.annotations.Component;
+import javax.inject.Singleton;
+
 import org.sonatype.nexus.proxy.repository.AbstractProxyRepositoryConfigurator;
 
-@Component( role = DefaultProxyRubyRepositoryConfigurator.class )
+@Singleton
 public class DefaultProxyRubyRepositoryConfigurator
     extends AbstractProxyRepositoryConfigurator
 {

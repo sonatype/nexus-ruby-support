@@ -8,7 +8,6 @@ import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
@@ -32,9 +31,10 @@ public interface RubygemsFacade {
 
     RubygemFile deletableFile( String path );
 
+    @SuppressWarnings( "deprecation" )
     StorageItem retrieveItem( RubyLocalRepositoryStorage storage, 
                               ResourceStoreRequest request ) 
-        throws AccessDeniedException, StorageException, ItemNotFoundException, IllegalOperationException;
+        throws AccessDeniedException, org.sonatype.nexus.proxy.StorageException, ItemNotFoundException, IllegalOperationException;
     
     @SuppressWarnings("deprecation")
     BundlerDependencies bundlerDependencies() 

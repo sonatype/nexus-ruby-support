@@ -5,17 +5,17 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
+import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
+import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
@@ -36,60 +36,55 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
-@Component( role = Repository.class, hint = DefaultHostedRubyRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Hosted" )
+@Named( DefaultHostedRubyRepository.ID )
 public class DefaultHostedRubyRepository
     extends AbstractRepository
     implements HostedRubyRepository, Repository
 {
     public static final String ID = "rubygems-hosted";
-    @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
-    private ContentClass contentClass;
 
-    @Requirement
-    private DefaultHostedRubyRepositoryConfigurator defaultRubyHostedRepositoryConfigurator;
+    private final ContentClass contentClass;
+
+    private final DefaultHostedRubyRepositoryConfigurator configurator;
+
+    private final RubygemsGateway gateway;
+        
+    private final HostedRubygemsFacade facade;
+
+    private final RepositoryKind repositoryKind;    
 
     @Inject
-    private RubygemsGateway gateway;
-        
-    private HostedRubygemsFacade facade;
+    public DefaultHostedRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
+                                        DefaultHostedRubyRepositoryConfigurator configurator,
+                                        RubygemsGateway gateway )
+             throws LocalStorageException, ItemNotFoundException{
+        this.contentClass = contentClass;
+        this.configurator = configurator;
+        this.gateway = gateway;
+        this.facade = new HostedRubygemsFacade( gateway, this );
+        this.repositoryKind = new DefaultRepositoryKind( HostedRubyRepository.class,
+                                                         Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
+    }
     
     @Override
     public RubygemsFacade getRubygemsFacade()
     {
         return facade;
     }
-    
-    @Override
-    public void doConfigure() throws ConfigurationException
+     
+    private void createEmptySpecsIndex() throws LocalStorageException, ItemNotFoundException
     {
-        super.doConfigure();
-        this.facade = new HostedRubygemsFacade( gateway, this );
         for( SpecsIndexType type: SpecsIndexType.values() )
         {
-            try {
-                this.facade.retrieveSpecsIndex( this, (RubyLocalRepositoryStorage) getLocalStorage(), type );
-            }
-            catch ( LocalStorageException e )
-            {
-                throw new ConfigurationException( "error creating empty spec indeces",  e );
-            }
-            catch ( ItemNotFoundException e )
-            {
-                throw new ConfigurationException( "error creating empty spec indeces",  e );
-            }
+            this.facade.retrieveSpecsIndex( this, (RubyLocalRepositoryStorage) getLocalStorage(), type );
         }
     }
     
-    /**
-     * Repository kind.
-     */
-    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( HostedRubyRepository.class,
-        Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
 
     @Override
-    protected Configurator getConfigurator()
+    protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator()
     {
-        return defaultRubyHostedRepositoryConfigurator;
+        return configurator;
     }
 
     @Override
@@ -128,6 +123,9 @@ public class DefaultHostedRubyRepository
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
     {
+        if( RubygemFile.fromFilename( request.getRequestPath() ).getType() == RubygemFile.Type.SPECS_INDEX ){
+            createEmptySpecsIndex();
+        }
         return facade.retrieveItem( (RubyLocalRepositoryStorage) getLocalStorage(),
                                     request );
     }
@@ -161,7 +159,7 @@ public class DefaultHostedRubyRepository
                                                                         "application/json", 
                                                                         bytes.length ) );
 
-          getLocalStorage().storeItem( this, result );
+        getLocalStorage().storeItem( this, result );
     }
 
     private ResourceStoreRequest dependenciesRequest( String gemname )

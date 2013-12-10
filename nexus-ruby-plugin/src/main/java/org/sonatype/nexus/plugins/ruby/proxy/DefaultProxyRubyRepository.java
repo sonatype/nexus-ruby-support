@@ -4,12 +4,13 @@ import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
+import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
@@ -39,7 +40,7 @@ import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
-@Component( role = Repository.class, hint = DefaultProxyRubyRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Proxy" )
+@Named( DefaultProxyRubyRepository.ID )
 public class DefaultProxyRubyRepository
     extends AbstractProxyRepository
     implements ProxyRubyRepository, Repository
@@ -47,17 +48,29 @@ public class DefaultProxyRubyRepository
 
     public static final String ID = "rubygems-proxy";
 
-    @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
-    private ContentClass contentClass;
+    private final ContentClass contentClass;
 
-    @Requirement( role = DefaultProxyRubyRepositoryConfigurator.class )
-    private DefaultProxyRubyRepositoryConfigurator defaultRubyProxyRepositoryConfigurator;
+    private final DefaultProxyRubyRepositoryConfigurator configurator;
     
-    @Requirement
-    private RubygemsGateway gateway;
+    private final RubygemsGateway gateway;
 
-    private RubygemsFacade facade;
+    private final RepositoryKind repositoryKind;
+
+    private final RubygemsFacade facade;
     
+    @Inject
+    public DefaultProxyRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
+                                       DefaultProxyRubyRepositoryConfigurator configurator,
+                                       RubygemsGateway gateway )
+             throws LocalStorageException, ItemNotFoundException{
+        this.contentClass = contentClass;
+        this.configurator = configurator;
+        this.gateway = gateway;
+        this.facade = new ProxyRubygemsFacade( gateway, this );
+        this.repositoryKind = new DefaultRepositoryKind( ProxyRubyRepository.class,
+                                                         Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
+    }
+
     @Override
     public RubygemsFacade getRubygemsFacade()
     {
@@ -65,22 +78,9 @@ public class DefaultProxyRubyRepository
     }
 
     @Override
-    public void doConfigure() throws ConfigurationException
+    protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator()
     {
-        super.doConfigure();
-        this.facade = new ProxyRubygemsFacade( gateway, this );
-    }
-
-    /**
-     * Repository kind.
-     */
-    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( ProxyRubyRepository.class,
-        Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
-
-    @Override
-    protected Configurator getConfigurator()
-    {
-        return defaultRubyProxyRepositoryConfigurator;
+        return configurator;
     }
 
     @Override
@@ -128,7 +128,7 @@ public class DefaultProxyRubyRepository
             }
             else
             {
-                // whenever there is retrieve call to unzipped version it will be preceeded by call to zipped file
+                // whenever there is retrieve call to a unzipped file it will be forwarded to call for the zipped file
                 return false;
             }
         }

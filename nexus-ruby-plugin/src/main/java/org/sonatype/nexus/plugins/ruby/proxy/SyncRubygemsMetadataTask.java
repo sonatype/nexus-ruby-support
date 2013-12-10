@@ -1,9 +1,8 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.sonatype.scheduling.SchedulerTask;
+import javax.inject.Named;
 
-@Component( role = SchedulerTask.class, hint = SyncRubygemsMetadataTaskDescriptor.ID, instantiationStrategy = "per-lookup" )
+@Named( SyncRubygemsMetadataTaskDescriptor.ID )
 public class SyncRubygemsMetadataTask
     extends AbstractProxyScheduledTask
 {

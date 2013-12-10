@@ -5,13 +5,15 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
+import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.GemArtifactRepository;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
@@ -20,6 +22,7 @@ import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.attributes.inspectors.DigestCalculatingInspector;
@@ -37,19 +40,19 @@ import org.sonatype.nexus.proxy.maven.MetadataManager;
 import org.sonatype.nexus.proxy.maven.RepositoryPolicy;
 import org.sonatype.nexus.proxy.maven.gav.Gav;
 import org.sonatype.nexus.proxy.maven.gav.GavCalculator;
-import org.sonatype.nexus.proxy.maven.gav.M2ArtifactRecognizer;
 import org.sonatype.nexus.proxy.maven.maven2.Maven2ContentClass;
 import org.sonatype.nexus.proxy.maven.packaging.ArtifactPackagingMapper;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractShadowRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
+import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.repository.ShadowRepository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
-@Component( role = ShadowRepository.class, hint = GemArtifactShadowRepository.ID, instantiationStrategy = "per-lookup", description = "Rubygems as MavenArtifacts" )
+@Named( GemArtifactShadowRepository.ID )
 public class GemArtifactShadowRepository
     extends AbstractShadowRepository
     implements GemArtifactRepository, ShadowRepository
@@ -57,48 +60,45 @@ public class GemArtifactShadowRepository
 
     public static final String ID = "gem-artifacts";
 
-    @Requirement( hint = Maven2ContentClass.ID )
-    private ContentClass contentClass;
+    private final ContentClass contentClass;
 
-    @Requirement( hint = RubyContentClass.ID )
-    private ContentClass masterContentClass;
+    private final ContentClass masterContentClass;
 
-    /**
-     * The GAV Calculator.
-     */
-    @Requirement( hint = "maven2" )
-    private GavCalculator gavCalculator;
+    private final GavCalculator gavCalculator;    
+
+    private final GemArtifactShadowRepositoryConfigurator configurator;
     
-    @Requirement( role = GemArtifactShadowRepositoryConfigurator.class )
-    private GemArtifactShadowRepositoryConfigurator gemArtifactRepositoryConfigurator;
-    
-    /**
-     * Metadata manager.
-     */
-    @Requirement
-    private MetadataManager metadataManager;
+    private final MetadataManager metadataManager;
 
-    /**
-     * The artifact packaging mapper.
-     */
-    @Requirement
     private ArtifactPackagingMapper artifactPackagingMapper;
 
-    /**
-     * Repository kind.
-     */
-    private RepositoryKind repositoryKind = new DefaultRepositoryKind( MavenShadowRepository.class,
-        Arrays.asList( new Class<?>[] { MavenRepository.class } ) );
+    private final RepositoryKind repositoryKind;
+    
+    private final RubygemsGateway gateway;
 
-    /**
-     * ArtifactStoreHelper.
-     */
     private ArtifactStoreHelper artifactStoreHelper;
 
+    @Inject
+    public GemArtifactShadowRepository( @Named( RubyContentClass.ID ) ContentClass masterContentClass,
+                                        @Named( Maven2ContentClass.ID ) ContentClass contentClass,
+                                        @Named("maven2" ) GavCalculator gavCalculator,
+                                        GemArtifactShadowRepositoryConfigurator configurator,
+                                        MetadataManager metadataManager,
+                                        ArtifactPackagingMapper artifactPackagingMapper,
+                                        RubygemsGateway gateway )
+             throws LocalStorageException, ItemNotFoundException{
+        this.masterContentClass = masterContentClass;
+        this.contentClass = contentClass;
+        this.gavCalculator = gavCalculator;
+        this.configurator = configurator;
+        this.metadataManager = metadataManager;
+        this.artifactPackagingMapper = artifactPackagingMapper;
+        this.gateway = gateway;
+        this.repositoryKind = new DefaultRepositoryKind( MavenShadowRepository.class,
+                                                         Arrays.asList( new Class<?>[] { MavenRepository.class } ) );
 
-    @Requirement
-    private RubygemsGateway gateway;
-    
+    }
+
     @Override
     public RepositoryKind getRepositoryKind()
     {
@@ -112,9 +112,9 @@ public class GemArtifactShadowRepository
     }
 
     @Override
-    protected Configurator getConfigurator()
+    protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator()
     {
-        return gemArtifactRepositoryConfigurator;
+        return configurator;
     }
 
     @Override

@@ -1,6 +1,8 @@
 package org.sonatype.nexus.plugins.ruby;
 
-import org.codehaus.plexus.component.annotations.Component;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.sonatype.nexus.plugins.ruby.group.DefaultRubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.group.DefaultRubyGroupRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.hosted.DefaultHostedRubyRepository;
@@ -9,11 +11,11 @@ import org.sonatype.nexus.plugins.ruby.proxy.DefaultProxyRubyRepository;
 import org.sonatype.nexus.plugins.ruby.proxy.DefaultProxyRubyRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.shadow.GemArtifactShadowRepository;
 import org.sonatype.nexus.plugins.ruby.shadow.GemArtifactShadowRepositoryTemplate;
-import org.sonatype.nexus.templates.TemplateProvider;
 import org.sonatype.nexus.templates.TemplateSet;
 import org.sonatype.nexus.templates.repository.AbstractRepositoryTemplateProvider;
 
-@Component( role = TemplateProvider.class, hint = RubyRepositoryTemplateProvider.PROVIDER_ID )
+@Singleton
+@Named( RubyRepositoryTemplateProvider.PROVIDER_ID )
 public class RubyRepositoryTemplateProvider
     extends AbstractRepositoryTemplateProvider
 {

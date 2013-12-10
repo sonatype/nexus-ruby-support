@@ -11,7 +11,8 @@ import org.jruby.runtime.builtin.IRubyObject;
 public class DefaultRubygemsGateway
     implements RubygemsGateway
 {
-private JRubyScriptingContainer scriptingContainer;
+
+    private final JRubyScriptingContainer scriptingContainer;
 
     private final IRubyObject nexusRubygemsClass;
 
@@ -19,7 +20,8 @@ private JRubyScriptingContainer scriptingContainer;
     
     public DefaultRubygemsGateway()
     {
-        scriptingContainer = new JRubyScriptingContainer( LocalContextScope.THREADSAFE, LocalVariableBehavior.PERSISTENT );
+        scriptingContainer = new JRubyScriptingContainer( LocalContextScope.THREADSAFE, 
+                                                          LocalVariableBehavior.PERSISTENT );
 
         try
         {
