@@ -1,10 +1,9 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.sonatype.scheduling.SchedulerTask;
+import javax.inject.Named;
 
-@Component( role = SchedulerTask.class, hint = UpdateBundlerAPIDependenciesTaskDescriptor.ID, instantiationStrategy = "per-lookup" )
+@Named( UpdateBundlerAPIDependenciesTaskDescriptor.ID )
 public class UpdateBundlerAPIDependenciesTask
     extends AbstractProxyScheduledTask
 {

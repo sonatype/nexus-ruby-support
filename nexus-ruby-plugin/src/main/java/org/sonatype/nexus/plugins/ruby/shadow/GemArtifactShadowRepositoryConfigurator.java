@@ -1,9 +1,10 @@
 package org.sonatype.nexus.plugins.ruby.shadow;
 
-import org.codehaus.plexus.component.annotations.Component;
+import javax.inject.Singleton;
+
 import org.sonatype.nexus.proxy.repository.AbstractShadowRepositoryConfigurator;
 
-@Component( role = GemArtifactShadowRepositoryConfigurator.class )
+@Singleton
 public class GemArtifactShadowRepositoryConfigurator
     extends AbstractShadowRepositoryConfigurator
 {
