@@ -11,7 +11,6 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
-import org.sonatype.nexus.plugins.ruby.DefaultRubyRepositoryConfigurator;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
@@ -45,7 +44,7 @@ public class DefaultRubyGroupRepository
 
     private final ContentClass contentClass;
 
-    private final DefaultRubyRepositoryConfigurator configurator;
+    private final GroupRubyRepositoryConfigurator configurator;
     
     private final RepositoryKind repositoryKind;
     
@@ -53,7 +52,7 @@ public class DefaultRubyGroupRepository
 
     @Inject
     public DefaultRubyGroupRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
-                                       DefaultRubyRepositoryConfigurator configurator,
+                                       GroupRubyRepositoryConfigurator configurator,
                                        RubygemsGateway gateway )
              throws LocalStorageException, ItemNotFoundException{
         this.contentClass = contentClass;

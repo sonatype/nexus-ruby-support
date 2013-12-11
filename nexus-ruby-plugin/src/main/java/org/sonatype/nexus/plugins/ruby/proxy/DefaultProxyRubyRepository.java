@@ -1,6 +1,7 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -12,7 +13,6 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
-import org.sonatype.nexus.plugins.ruby.DefaultRubyRepositoryConfigurator;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
@@ -24,6 +24,7 @@ import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.events.NexusStartedEvent;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
@@ -40,6 +41,9 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
+import org.sonatype.sisu.goodies.eventbus.EventBus;
+
+import com.google.common.eventbus.Subscribe;
 
 @Named( DefaultProxyRubyRepository.ID )
 public class DefaultProxyRubyRepository
@@ -51,7 +55,7 @@ public class DefaultProxyRubyRepository
 
     private final ContentClass contentClass;
 
-    private final DefaultRubyRepositoryConfigurator configurator;
+    private final ProxyRubyRepositoryConfigurator configurator;
     
     private final RubygemsGateway gateway;
 
@@ -61,8 +65,9 @@ public class DefaultProxyRubyRepository
     
     @Inject
     public DefaultProxyRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
-                                       DefaultRubyRepositoryConfigurator configurator,
-                                       RubygemsGateway gateway )
+                                       ProxyRubyRepositoryConfigurator configurator,
+                                       RubygemsGateway gateway,
+                                       EventBus eventBus )
              throws LocalStorageException, ItemNotFoundException{
         this.contentClass = contentClass;
         this.configurator = configurator;
@@ -70,6 +75,11 @@ public class DefaultProxyRubyRepository
         this.facade = new ProxyRubygemsFacade( gateway, this );
         this.repositoryKind = new DefaultRepositoryKind( ProxyRubyRepository.class,
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
+    }
+
+    @Subscribe
+    public void on( NexusStartedEvent event ) throws Exception {
+        this.facade.setupNewRepo( new File( getBaseDirectory() ) );
     }
 
     @Override

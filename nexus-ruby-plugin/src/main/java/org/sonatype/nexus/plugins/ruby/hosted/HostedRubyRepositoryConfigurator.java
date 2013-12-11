@@ -1,4 +1,4 @@
-package org.sonatype.nexus.plugins.ruby;
+package org.sonatype.nexus.plugins.ruby.hosted;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -13,14 +13,14 @@ import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 
 @Singleton
-public class DefaultRubyRepositoryConfigurator
+public class HostedRubyRepositoryConfigurator
     extends AbstractRepositoryConfigurator
 {
     
     private final LocalRepositoryStorage storage;
 
     @Inject
-    public DefaultRubyRepositoryConfigurator( @Named( "rubyfile" ) LocalRepositoryStorage storage ){
+    public HostedRubyRepositoryConfigurator( @Named( "rubyfile" ) LocalRepositoryStorage storage ){
         this.storage = storage;
     }
     
