@@ -1,5 +1,6 @@
 package org.sonatype.nexus.plugins.ruby.hosted;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -26,6 +27,17 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
     public HostedRubygemsFacade( RubygemsGateway gateway, RubyRepository repository )
     {
         super( gateway, repository );
+    }
+
+    @Override
+    public void setupNewRepo( File basedir ) throws LocalStorageException, ItemNotFoundException
+    {
+        super.setupNewRepo( basedir );
+        for( SpecsIndexType type: SpecsIndexType.values() )
+        {
+            retrieveSpecsIndex( repository, (RubyLocalRepositoryStorage) repository.getLocalStorage(), type );
+        }
+
     }
 
     @Override

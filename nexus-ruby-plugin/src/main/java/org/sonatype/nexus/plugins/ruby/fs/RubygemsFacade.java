@@ -1,5 +1,6 @@
 package org.sonatype.nexus.plugins.ruby.fs;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -45,5 +46,7 @@ public interface RubygemsFacade {
     StorageFileItem[] prepareDependencies(BundlerDependencies bundler, String... gemnames)
             throws ItemNotFoundException, AccessDeniedException,
                    IllegalOperationException, org.sonatype.nexus.proxy.StorageException;
+
+    void setupNewRepo( File basedir ) throws LocalStorageException, ItemNotFoundException;
 
 }

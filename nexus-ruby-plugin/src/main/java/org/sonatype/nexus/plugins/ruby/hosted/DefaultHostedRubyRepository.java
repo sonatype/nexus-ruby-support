@@ -1,6 +1,7 @@
 package org.sonatype.nexus.plugins.ruby.hosted;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -12,11 +13,9 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
-import org.sonatype.nexus.plugins.ruby.DefaultRubyRepositoryConfigurator;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
-import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
@@ -24,6 +23,7 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.events.NexusStartedEvent;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
@@ -35,7 +35,8 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.RubygemsGateway;
-import org.sonatype.nexus.ruby.SpecsIndexType;
+
+import com.google.common.eventbus.Subscribe;
 
 @Named( DefaultHostedRubyRepository.ID )
 public class DefaultHostedRubyRepository
@@ -46,17 +47,17 @@ public class DefaultHostedRubyRepository
 
     private final ContentClass contentClass;
 
-    private final DefaultRubyRepositoryConfigurator configurator;
+    private final HostedRubyRepositoryConfigurator configurator;
 
     private final RubygemsGateway gateway;
         
     private final HostedRubygemsFacade facade;
 
-    private final RepositoryKind repositoryKind;    
+    private final RepositoryKind repositoryKind;
 
     @Inject
     public DefaultHostedRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
-                                        DefaultRubyRepositoryConfigurator configurator,
+                                        HostedRubyRepositoryConfigurator configurator,
                                         RubygemsGateway gateway )
              throws LocalStorageException, ItemNotFoundException{
         this.contentClass = contentClass;
@@ -66,21 +67,17 @@ public class DefaultHostedRubyRepository
         this.repositoryKind = new DefaultRepositoryKind( HostedRubyRepository.class,
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
     }
-    
+
+    @Subscribe
+    public void on( NexusStartedEvent event ) throws Exception {
+        this.facade.setupNewRepo( new File( getBaseDirectory() ) );
+    }
+
     @Override
     public RubygemsFacade getRubygemsFacade()
     {
         return facade;
     }
-     
-    private void createEmptySpecsIndex() throws LocalStorageException, ItemNotFoundException
-    {
-        for( SpecsIndexType type: SpecsIndexType.values() )
-        {
-            this.facade.retrieveSpecsIndex( this, (RubyLocalRepositoryStorage) getLocalStorage(), type );
-        }
-    }
-    
 
     @Override
     protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator()
@@ -124,9 +121,6 @@ public class DefaultHostedRubyRepository
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
     {
-        if( RubygemFile.fromFilename( request.getRequestPath() ).getType() == RubygemFile.Type.SPECS_INDEX ){
-            createEmptySpecsIndex();
-        }
         return facade.retrieveItem( (RubyLocalRepositoryStorage) getLocalStorage(),
                                     request );
     }
@@ -187,6 +181,9 @@ public class DefaultHostedRubyRepository
     public void recreateMetadata() throws LocalStorageException, ItemNotFoundException
     {
         String directory = getBaseDirectory();
+        if (log.isDebugEnabled()){
+            log.debug( "recreate rubygems metadata in " + directory );
+        }
         gateway.recreateRubygemsIndex( directory );
         gateway.purgeBrokenDepencencyFiles( directory );
     }
@@ -194,10 +191,6 @@ public class DefaultHostedRubyRepository
     protected String getBaseDirectory() throws ItemNotFoundException,
             LocalStorageException
     {
-        String basedir = this.getLocalUrl().replace( "file:", "" );
-        if (log.isDebugEnabled()){
-            log.debug( "recreate rubygems metadata in " + basedir );
-        }
-        return basedir;
+        return this.getLocalUrl().replace( "file:", "" );
     }
 }

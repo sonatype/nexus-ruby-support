@@ -1,5 +1,6 @@
 package org.sonatype.nexus.plugins.ruby.fs;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -12,7 +13,6 @@ import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
@@ -29,6 +29,15 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
     {
         this.gateway = gateway;
         this.repository = repository;
+    }
+
+    @Override
+    public void setupNewRepo( File basedir ) throws LocalStorageException, ItemNotFoundException 
+    {   
+        // nice to have on newly create repo
+        new File( basedir, "gems" ).mkdirs();
+        new File( basedir, "quick/Marshal.4.8" ).mkdirs();
+        new File( basedir, "api/v1.0/dependencies" ).mkdirs();
     }
     
     @Override
@@ -220,10 +229,11 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
         return repository.superRetrieveItem( request );
     }
 
+    @SuppressWarnings( "deprecation" )
     protected StorageFileItem dependencyMap( RubyLocalRepositoryStorage storage, 
                                              String gemname )
             throws ItemNotFoundException, AccessDeniedException,
-            IllegalOperationException, StorageException
+            IllegalOperationException, org.sonatype.nexus.proxy.StorageException
     {
         return prepareDependencies( bundlerDependencies(), gemname )[0];
     }
