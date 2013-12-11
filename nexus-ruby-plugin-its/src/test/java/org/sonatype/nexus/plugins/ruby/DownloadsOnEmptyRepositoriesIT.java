@@ -29,11 +29,13 @@ public class DownloadsOnEmptyRepositoriesIT extends RubyNexusRunningITSupport
     public void download() throws Exception
     {
         assertAllSpecsIndexDownload();
-        // on an empty repo these directories are not there (yet)
-        assertFileDownload( "/gems", is( false ) );
-        assertFileDownload( "/quick", is( false ) );
-        assertFileDownload( "/quick/", is( false ) );
-        assertFileDownload( "/gems/", is( false ) );
+        // on an empty repo these directories are already there
+        assertFileDownload( "/gems", is( true ) );
+        assertFileDownload( "/quick", is( true ) );
+        assertFileDownload( "/api", is( true ) );
+        assertFileDownload( "/gems/", is( true ) );
+        assertFileDownload( "/quick/Marshal.4.8", is( true ) );
+        assertFileDownload( "/api/v1.0/dependencies", is( true ) );
     }
 
     private void assertAllSpecsIndexDownload( )

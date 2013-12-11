@@ -28,7 +28,8 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
 
     @Parameters
     public static Collection<String[]> data() {
-	String[][] data = new String[][] { { "gemshost" },
+	String[][] data = new String[][] { 
+	                 { "gemshost" },
 					 { "gemsproxy" },
 					 { "gemshostgroup" },
 					 { "gemsproxygroup" },
