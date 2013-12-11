@@ -16,10 +16,8 @@ import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
-import org.sonatype.nexus.proxy.repository.GroupRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.BundlerDependencies;
@@ -55,11 +53,12 @@ public class GroupRubygemsFacade extends AbstractRubygemsFacade {
         return gateway.newBundlerDependencies();
     }
     
+    @SuppressWarnings( "deprecation" )
     @Override
     protected StorageFileItem dependencyMap( RubyLocalRepositoryStorage storage, 
                                              String gemname )
             throws ItemNotFoundException, AccessDeniedException,
-            IllegalOperationException, StorageException {
+            IllegalOperationException, org.sonatype.nexus.proxy.StorageException {
 
         String json = mergeDependencies( bundlerDependencies(), gemname );
         
@@ -68,8 +67,9 @@ public class GroupRubygemsFacade extends AbstractRubygemsFacade {
                                               "application/json" );
     }
 
+    @SuppressWarnings( "deprecation" )
     private String mergeDependencies( BundlerDependencies bundlerDependencies, String gemname ) 
-            throws AccessDeniedException, StorageException, ItemNotFoundException, 
+            throws AccessDeniedException, org.sonatype.nexus.proxy.StorageException, ItemNotFoundException, 
             IllegalOperationException
     {
         InputStream[] data = new InputStream[ getRubyGroupRepository().getMemberRepositories().size() ];

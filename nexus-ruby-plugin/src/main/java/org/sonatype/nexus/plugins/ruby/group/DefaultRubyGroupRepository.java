@@ -11,6 +11,7 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
+import org.sonatype.nexus.plugins.ruby.DefaultRubyRepositoryConfigurator;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
@@ -44,7 +45,7 @@ public class DefaultRubyGroupRepository
 
     private final ContentClass contentClass;
 
-    private final DefaultRubyGroupRepositoryConfigurator configurator;
+    private final DefaultRubyRepositoryConfigurator configurator;
     
     private final RepositoryKind repositoryKind;
     
@@ -52,7 +53,7 @@ public class DefaultRubyGroupRepository
 
     @Inject
     public DefaultRubyGroupRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
-                                       DefaultRubyGroupRepositoryConfigurator configurator,
+                                       DefaultRubyRepositoryConfigurator configurator,
                                        RubygemsGateway gateway )
              throws LocalStorageException, ItemNotFoundException{
         this.contentClass = contentClass;
@@ -141,6 +142,7 @@ public class DefaultRubyGroupRepository
     
     }   
     
+    @SuppressWarnings( "deprecation" )
     public StorageItem superRetrieveItem(ResourceStoreRequest request)
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
