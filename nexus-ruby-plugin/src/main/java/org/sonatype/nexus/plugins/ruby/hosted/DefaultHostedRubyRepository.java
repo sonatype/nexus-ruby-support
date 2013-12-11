@@ -12,6 +12,7 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
+import org.sonatype.nexus.plugins.ruby.DefaultRubyRepositoryConfigurator;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
@@ -45,7 +46,7 @@ public class DefaultHostedRubyRepository
 
     private final ContentClass contentClass;
 
-    private final DefaultHostedRubyRepositoryConfigurator configurator;
+    private final DefaultRubyRepositoryConfigurator configurator;
 
     private final RubygemsGateway gateway;
         
@@ -55,7 +56,7 @@ public class DefaultHostedRubyRepository
 
     @Inject
     public DefaultHostedRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
-                                        DefaultHostedRubyRepositoryConfigurator configurator,
+                                        DefaultRubyRepositoryConfigurator configurator,
                                         RubygemsGateway gateway )
              throws LocalStorageException, ItemNotFoundException{
         this.contentClass = contentClass;

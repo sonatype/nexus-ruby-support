@@ -26,24 +26,6 @@ public class DefaultRubyGroupRepositoryTemplate
             .getConfiguration( forWrite );
     }
     
-//    public boolean targetFits( Object clazz )
-//    {
-//        System.err.println();
-//        System.err.println(clazz + "\nclass " + getClass() + "\nmain " + getMainFacet() + "\ncontent " + getContentClass().getClass());
-//        System.err.println(targetIsClassAndFitsClass( clazz, getClass() ));
-//        System.err.println(targetIsClassAndFitsClass( clazz, getMainFacet() ));
-//        System.err.println(targetIsClassAndFitsClass( clazz, getContentClass().getClass() ));
-//        System.err.println(getContentClass().equals( clazz ));
-//
-//        return 
-//             targetIsClassAndFitsClass( clazz, getClass() ) || 
-//             targetIsClassAndFitsClass( clazz, getMainFacet() ) ||
-//            //targetIsClassAndFitsClass( clazz, getContentClass().getClass() ) || 
-//            //getContentClass().equals( clazz ) ||
-//             false;
-////return super.targetFits( clazz );            
-//    }
-    
     @Override
     protected CRepositoryCoreConfiguration initCoreConfiguration()
     {
