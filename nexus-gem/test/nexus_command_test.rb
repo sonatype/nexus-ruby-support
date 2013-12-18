@@ -303,7 +303,7 @@ class NexusCommandTest < CommandTest
           def obj.url; 'http://localhost:8081/nexus/content/repositories/localgems'; end
           obj
         end
-        stub_request(:post, @url).to_return(:status => 201)
+        stub_request(:put, @url).to_return(:status => 201)
         
         @command.send_gem
       end
@@ -314,11 +314,11 @@ class NexusCommandTest < CommandTest
         assert_received(@command) { |command| command.say("") }
       end
 
-      should "post to api" do
+      should "put to api" do
         # webmock doesn't pass body params on correctly :[
-        assert_requested(:post, @url,
+        assert_requested(:put, @url,
                          :times => 1)
-        assert_requested(:post, @url,
+        assert_requested(:put, @url,
                          :body => @gem_binary,
                          :headers => {
                            'Authorization' => 'key', 
