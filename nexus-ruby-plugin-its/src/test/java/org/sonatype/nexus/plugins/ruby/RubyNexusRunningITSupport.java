@@ -139,7 +139,7 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
                     .file( file( testData().resolveFile( "nexus.xml" ) ) )
                     .to().directory( path( "sonatype-work/nexus/conf" ) )
             )
-            .setStartTimeout( Time.minutes( 2 ).toSecondsI() )
+            .setStartTimeout( Time.minutes( 3 ).toSecondsI() )
             .setLogLevel( "DEBUG" )
             .setPort( 4711 );
     }
