@@ -108,7 +108,7 @@ class Gem::Commands::NexusCommand < Gem::AbstractCommand
 
     path = get_one_gem_name
 
-    response = make_request(:post, "gems/#{File.basename(path)}") do |request|
+    response = make_request(:put, "gems/#{File.basename(path)}") do |request|
       request.body = Gem.read_binary(path)
       request.add_field("Content-Length", request.body.size)
       request.add_field("Content-Type", "application/octet-stream")

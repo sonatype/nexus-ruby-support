@@ -67,12 +67,6 @@ class Gem::AbstractCommand < Gem::Command
  
     # recreate config with password
     config.password = password
-
-#    if options[ :nexus_encrypt ] && !config.encrypted?
-#      config.encrypt_credentials
-#    elsif options[ :nexus_encrypt ] == false && config.encrypted?
-#      config.decrypt_credentials      
-#    end
   end
 
   def sign_in

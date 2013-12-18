@@ -41,7 +41,7 @@
         <groupId>rubygems</groupId>
         <artifactId>nexus</artifactId>
         <type>gem</type>
-        <version>1.0.0</version>
+        <version>1.2.1</version>
       </dependency>
 
       <!-- INTERNAL -->
