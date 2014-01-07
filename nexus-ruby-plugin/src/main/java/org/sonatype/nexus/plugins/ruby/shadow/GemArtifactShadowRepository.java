@@ -59,6 +59,19 @@ public class GemArtifactShadowRepository
 {
 
     public static final String ID = "gem-artifacts";
+    public static final String[] PLATFORMS = { "-universal-java-1.5",
+                                               "-universal-java-1.6",
+                                               "-universal-java-1.7",
+                                               "-universal-java-1.8",
+                                               "-universal-java",
+                                               "-universal-jruby-1.2",
+                                               "-jruby",
+                                               "-java",
+                                               "-universal-ruby-1.8.7",
+                                               "-universal-ruby-1.9.2",
+                                               "-universal-ruby-1.9.3",
+                                               "-universal-ruby",
+                                               "" };
 
     private final ContentClass contentClass;
 
@@ -167,27 +180,6 @@ public class GemArtifactShadowRepository
     @Override
     public boolean isMavenMetadataPath(String path) {
         return path.matches( "/rubygems/[^/]+/maven-metadata.xml.*" );
-    }
-
-    protected StorageItem doRetrieveItemFromMaster( final ResourceStoreRequest request )
-        throws IllegalOperationException, ItemNotFoundException, StorageException
-    {
-        try
-        { 
-            return super.doRetrieveItemFromMaster( request );
-        }
-        catch( ItemNotFoundException e )
-        {
-            if ( request.getRequestPath().contains( "-java.gem") )
-            {
-                request.setRequestPath( request.getRequestPath().replace("-java.gem", ".gem") );
-                return super.doRetrieveItemFromMaster( request );
-            }
-            else
-            {
-                throw e;
-            }
-        }
     }
 
     @Override
@@ -484,38 +476,31 @@ public class GemArtifactShadowRepository
                 if ( "gem".equals( gav.getExtension() ) )
                 {
                 
+                    StorageItem item = null;
                     try {
-                        
-                        StorageItem item;
-                        try
+                        ItemNotFoundException last = null;
+                        // first try to get version the java platform
+                        // bit tricky since that gem could be uploaded last and then race conditions
+                        // can take place.                    
+                        for( String marker : PLATFORMS )
                         {
-
-                            // first try to get version the java platform
-                            // bit tricky since that gem could be uploaded last and then race conditions
-                            // can take place.
-                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( gem.getPath() ) );
-
+                            try
+                            {
+    
+                                String path = gem.getPath().replaceFirst( "-java.gem$", marker + ".gem" );
+                                item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
+                                break;
+                            }
+                            catch( ItemNotFoundException ee )
+                            {
+                                last = ee;
+                            }
                         }
-                        catch( ItemNotFoundException ee )
+                        if ( item == null )
                         {
-                            
-                            try 
-                            {
-
-                                String path = gem.getPath().replaceFirst( "-java.gem$", ".gem" ); 
-                                item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-
-                            }
-                            catch( ItemNotFoundException eee )
-                            {
-                                // like https://rubygems.org/quick/Marshal.4.8/therubyrhino-1.72.4-jruby.gem
-                                String path = gem.getPath().replaceFirst( "-java.gem$", "-jruby.gem" );       
-                                item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-                            }
-                            
+                            throw last;
                         }
-                        return createLink( item );
-                        
+                        return createLink( item );                        
                     }
                     catch ( UnsupportedStorageOperationException ee )
                     {
@@ -526,31 +511,28 @@ public class GemArtifactShadowRepository
                 // POM ARTIFACT
                 if ( "pom".equals( gav.getExtension() ) )
                 {
-                    StorageItem item; 
-                    try
+                    StorageItem item = null;
+                    ItemNotFoundException last = null;
+                    // first try to get version the java platform
+                    // bit tricky since that gem could be uploaded last and then race conditions
+                    // can take place.                    
+                    for( String marker : PLATFORMS )
                     {
+                        try
+                        {
 
-                        item = (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( gem.getGemspecRz() ) );
-                        
-
+                            String path = gem.getGemspecRz().replaceFirst( "-java.gemspec.rz$", marker + ".gemspec.rz" ); 
+                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
+                            break;
+                        }
+                        catch( ItemNotFoundException ee )
+                        {
+                            last = ee;
+                        }
                     }
-                    catch( ItemNotFoundException ee )
+                    if ( item == null )
                     {
-                        
-                        try 
-                        {
-                            
-                            String path = gem.getGemspecRz().replaceFirst( "-java.gemspec.rz$", ".gemspec.rz" ); 
-                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-
-                        }
-                        catch( ItemNotFoundException eee )
-                        {
-                            // like https://rubygems.org/quick/Marshal.4.8/therubyrhino-1.72.4-jruby.gemspec.rz
-                            String path = gem.getGemspecRz().replaceFirst( "-java.gemspec.rz$", "-jruby.gemspec.rz" );       
-                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-                        }
-                      
+                        throw last;
                     }
                     try 
                     {
@@ -566,7 +548,7 @@ public class GemArtifactShadowRepository
                     catch ( UnsupportedStorageOperationException usoe )
                     {
                         throw new ItemNotFoundException( request, this, usoe );
-                    } 
+                    }
                 }
             }
         }
@@ -578,7 +560,7 @@ public class GemArtifactShadowRepository
             throws IllegalOperationException, ItemNotFoundException,
             StorageException {
         SpecsIndexType type = isPrereleaseRepository() ? SpecsIndexType.PRERELEASE : SpecsIndexType.RELEASE;  
-        return (StorageFileItem) super.doRetrieveItemFromMaster( new ResourceStoreRequest( type.filepath() ) );
+        return (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( type.filepath() ) );
     }
 
     private StorageItem recreateMetadata(ResourceStoreRequest request,
