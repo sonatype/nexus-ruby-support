@@ -22,13 +22,13 @@ Having these repositories, you should be able to run the build as it is describe
 Build
 -----
 
-**IMPORTANT** the plugin is build for a particular nexus version. so make sure the nexus version you build the plugin matches the version of the nexus server !!!
+**IMPORTANT** for nexus version before 2.7.x the plugin is build for a particular nexus version. so make sure the nexus version you build the plugin matches the version of the nexus server !!! for this adjust the version in the root **pom.xml** and then build it:
 
-    mvn clean install -Dmaven.test.skip -Dnexus.version=2.4.0-1
+    mvn clean install -Dmaven.test.skip
 
 after that you will find the nexus plugin in **nexus-ruby-plugin/target/nexus-ruby-plugin-*-bundle.zip** and the gem with the nexus rubygems command in **nexus-gem/target/nexus-*.gem**.
 
-install the nexus gem for your local ruby environment with
+to upload gems to hosted gem repository on nexus you need to install the nexus gem for your local ruby environment with
 
     gem install -l nexus-gem/target/nexus-*.gem
 
@@ -41,6 +41,8 @@ install the nexus plugin into your nexus server with
 ```
 wrapper.java.additional.3=-XX:MaxPermSize=128m
 ```
+
+use bundler 1.5.x or newer which comes with mirror support, i.e. you can configure bundler to use nexus proxy to rubygems.org without touching your **Gemfile**s.
 
 nexus command
 -------------
@@ -64,5 +66,9 @@ you can use nexus repo without configuring it with rubygems, i.e. list the lates
 
     gem list --remote --clear-sources --source http://localhost:8081/nexus/content/repositories/my-repo/
 
+for bundler (>= 1.5.0) you can configure your proxy to rubygems.org as mirror with:
+
+    bundle config mirror.http://rubygems.org http://localhost:8081/nexus/content/repositories/rubygems
+    bundle config mirror.https://rubygems.org http://localhost:8081/nexus/content/repositories/rubygems
 
 enjoy !
