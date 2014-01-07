@@ -125,7 +125,7 @@ module Nexus
     def list_versions( name, source, modified, prerelease = false )
       map_method = prerelease ? :name_preversions_map : :name_versions_map
       versions = send( map_method, source, modified )[ name.to_s ] || []
-      versions = versions.select { |v| v =~ /(-|-ruby|-java|-jruby)$/ }.collect { |v| v.sub( /-.*$/, '' ) }
+      versions = versions.select { |v| v.downcase =~ /(-|-ruby|-java|-jruby|-universal-ruby|-universal-java|-universal-jruby)$/ }.collect { |v| v.sub( /-.*$/, '' ) }
       versions.uniq!
       versions
     end
