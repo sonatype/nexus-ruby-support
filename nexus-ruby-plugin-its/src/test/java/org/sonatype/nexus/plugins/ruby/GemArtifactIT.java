@@ -5,8 +5,12 @@ import static org.hamcrest.Matchers.is;
 import static org.sonatype.sisu.filetasks.builder.FileRef.file;
 import static org.sonatype.sisu.filetasks.builder.FileRef.path;
 
+import java.io.File;
 import java.io.IOException;
 
+import javax.validation.constraints.AssertFalse;
+
+import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
 import org.sonatype.nexus.client.core.exception.NexusClientNotFoundException;
@@ -33,6 +37,13 @@ public class GemArtifactIT extends RubyNexusRunningITSupport
         assertFileDownload( "rubygems/zip/maven-metadata.xml.asc", is( true ) );
         assertFileDownload( "rubygems/zip/maven-metadata.xml.sha1", is( true ) );
         assertFileDownload( "rubygems/zip/maven-metadata.xml.md5", is( true ) );
+        File f = assertFileDownload( "rubygems/pre/maven-metadata.xml", is( true ) );
+        boolean found = false;
+        for( String line : FileUtils.loadFile( f ) )
+        {
+            found = line.contains( "pre-0.1.0.beta" );
+        }
+        assertThat( found, is( false ) );
     }
     
     @Test
@@ -47,8 +58,8 @@ public class GemArtifactIT extends RubyNexusRunningITSupport
         assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.pom.md5", is( true ) );
         assertFileDownload( "rubygems/zip/2.0.2/zip-2.0.2.pom.sha1", is( true ) );
 
-        assertFileDownload( "rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem", is( false ) );
-        assertFileDownload( "rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom", is( false ) );
+        assertFileDownload( "rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem", is( true ) );
+        assertFileDownload( "rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom", is( true ) );
         
         assertFileDownload( "rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-SNAPSHOT.gem", is( false ) );
         assertFileDownload( "rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-SNAPSHOT.pom", is( false ) );
