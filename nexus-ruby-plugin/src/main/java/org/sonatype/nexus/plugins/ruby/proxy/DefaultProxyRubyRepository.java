@@ -1,15 +1,17 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
+import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
@@ -22,6 +24,7 @@ import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.events.NexusStartedEvent;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
@@ -38,8 +41,11 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
+import org.sonatype.sisu.goodies.eventbus.EventBus;
 
-@Component( role = Repository.class, hint = DefaultProxyRubyRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Proxy" )
+import com.google.common.eventbus.Subscribe;
+
+@Named( DefaultProxyRubyRepository.ID )
 public class DefaultProxyRubyRepository
     extends AbstractProxyRepository
     implements ProxyRubyRepository, Repository
@@ -47,17 +53,35 @@ public class DefaultProxyRubyRepository
 
     public static final String ID = "rubygems-proxy";
 
-    @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
-    private ContentClass contentClass;
+    private final ContentClass contentClass;
 
-    @Requirement( role = DefaultProxyRubyRepositoryConfigurator.class )
-    private DefaultProxyRubyRepositoryConfigurator defaultRubyProxyRepositoryConfigurator;
+    private final ProxyRubyRepositoryConfigurator configurator;
     
-    @Requirement
-    private RubygemsGateway gateway;
+    private final RubygemsGateway gateway;
 
-    private RubygemsFacade facade;
+    private final RepositoryKind repositoryKind;
+
+    private final RubygemsFacade facade;
     
+    @Inject
+    public DefaultProxyRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
+                                       ProxyRubyRepositoryConfigurator configurator,
+                                       RubygemsGateway gateway,
+                                       EventBus eventBus )
+             throws LocalStorageException, ItemNotFoundException{
+        this.contentClass = contentClass;
+        this.configurator = configurator;
+        this.gateway = gateway;
+        this.facade = new ProxyRubygemsFacade( gateway, this );
+        this.repositoryKind = new DefaultRepositoryKind( ProxyRubyRepository.class,
+                                                         Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
+    }
+
+    @Subscribe
+    public void on( NexusStartedEvent event ) throws Exception {
+        this.facade.setupNewRepo( new File( getBaseDirectory() ) );
+    }
+
     @Override
     public RubygemsFacade getRubygemsFacade()
     {
@@ -65,22 +89,9 @@ public class DefaultProxyRubyRepository
     }
 
     @Override
-    public void doConfigure() throws ConfigurationException
+    protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator()
     {
-        super.doConfigure();
-        this.facade = new ProxyRubygemsFacade( gateway, this );
-    }
-
-    /**
-     * Repository kind.
-     */
-    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( ProxyRubyRepository.class,
-        Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
-
-    @Override
-    protected Configurator getConfigurator()
-    {
-        return defaultRubyProxyRepositoryConfigurator;
+        return configurator;
     }
 
     @Override
@@ -120,12 +131,15 @@ public class DefaultProxyRubyRepository
         {
             if (item.getName().endsWith( ".gz" ) )
             {
-                getLogger().debug( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item ) );
+                if ( log.isDebugEnabled() ){
+                    log.debug( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(),
+                                                                        item ) );
+                }
                 return isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item );
             }
             else
             {
-                // whenever there is retrieve call to unzipped version it will be preceeded by call to zipped file
+                // whenever there is retrieve call to a unzipped file it will be forwarded to call for the zipped file
                 return false;
             }
         }
@@ -237,11 +251,15 @@ public class DefaultProxyRubyRepository
     public void storeDependencies( String gemname, String json )
                 throws LocalStorageException, UnsupportedStorageOperationException
     {
-        StorageFileItem result = new DefaultStorageFileItem( this,
-              dependenciesRequest( gemname ), true, true,
-              new PreparedContentLocator(
-                      new ByteArrayInputStream( json.getBytes( Charset.forName( "UTF-8" ) ) ),
-                      "application/json" ) );
+        byte[] bytes = json.getBytes( Charset.forName( "UTF-8" ) );
+        StorageFileItem result =
+                new DefaultStorageFileItem( this,
+                                            dependenciesRequest( gemname ),
+                                            true, 
+                                            true,
+                                            new PreparedContentLocator( new ByteArrayInputStream( bytes ),
+                                                                        "application/json", 
+                                                                        bytes.length ) );
 
         getLocalStorage().storeItem( this, result );
     }
@@ -280,11 +298,8 @@ public class DefaultProxyRubyRepository
         BundlerDependencies bundler = facade.bundlerDependencies();
         StorageCollectionItem depsBasedir = (StorageCollectionItem) retrieveItem( new ResourceStoreRequest( "api/v1/dependencies" ) );
         for( StorageItem dir : depsBasedir.list() ){
-            getLogger().error( dir.toString() );
-            getLogger().error( dir.getResourceStoreRequest().toString() );
             StorageCollectionItem deps = (StorageCollectionItem) retrieveItem( dir.getResourceStoreRequest() );
             for( StorageItem dep : deps.list() ){
-                getLogger().error( dep.toString() );
                 if ( dep instanceof StorageFileItem ){
                     facade.prepareDependencies( bundler, dep.getName() );
                 }
@@ -296,7 +311,9 @@ public class DefaultProxyRubyRepository
         LocalStorageException
     {
         String basedir = this.getLocalUrl().replace( "file:", "" );
-        getLogger().debug( "recreate rubygems metadata in " + basedir );
+        if (log.isDebugEnabled() ){
+            log.debug( "recreate rubygems metadata in " + basedir );
+        }
         return basedir;
     }
 }

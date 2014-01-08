@@ -7,9 +7,9 @@ import java.util.Collection;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.DefaultStorageCollectionItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
+import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
-import org.sonatype.nexus.proxy.storage.local.fs.FileContentLocator;
 
 class RubygemsStorageCollectionItem extends DefaultStorageCollectionItem
 {
@@ -48,8 +48,7 @@ class RubygemsStorageCollectionItem extends DefaultStorageCollectionItem
         {
             String gemPath = "/gems/" + path.getName();
             DefaultStorageFileItem item = new DefaultStorageFileItem( repository, new ResourceStoreRequest( gemPath, true, false ), 
-                    true, false, new FileContentLocator( path, "binary/octet-stream" ) );
-            item.setLength( path.length() );
+                    true, false, new FileContentLocator( path, "binary/octet-stream", false ) );
             item.setModified( path.lastModified() );
             list.add( item );
         }

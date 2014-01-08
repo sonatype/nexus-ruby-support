@@ -1,11 +1,11 @@
 package org.sonatype.nexus.plugins.ruby;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
-import org.sonatype.nexus.ruby.RubygemsGateway;
+import javax.inject.Named;
 
-// just make Plexus component out of the DefaultRubygemsGateway
-@Component( role = RubygemsGateway.class, instantiationStrategy = "per-lookup" )
+import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
+
+// just make a "component" out of the DefaultRubygemsGateway
+@Named
 public class NexusRubygemsGateway extends DefaultRubygemsGateway
-{    
+{
 }

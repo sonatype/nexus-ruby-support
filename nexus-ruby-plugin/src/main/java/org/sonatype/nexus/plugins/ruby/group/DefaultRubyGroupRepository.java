@@ -3,12 +3,13 @@ package org.sonatype.nexus.plugins.ruby.group;
 import java.util.Arrays;
 import java.util.List;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.sonatype.configuration.ConfigurationException;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
+import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
@@ -34,47 +35,43 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
-@Component( role = GroupRepository.class, hint = DefaultRubyGroupRepository.ID, instantiationStrategy = "per-lookup", description = "RubyGem Group" )
+@Named( DefaultRubyGroupRepository.ID )
 public class DefaultRubyGroupRepository
     extends AbstractGroupRepository
     implements RubyGroupRepository, GroupRepository
 {
     public static final String ID = "rubygems-group";
 
-    @Requirement( role = ContentClass.class, hint = RubyContentClass.ID )
-    private ContentClass contentClass;
+    private final ContentClass contentClass;
 
-    @Requirement
-    private DefaultRubyGroupRepositoryConfigurator defaultRubyGroupRepositoryConfigurator;
+    private final GroupRubyRepositoryConfigurator configurator;
     
-    @Requirement
-    private RubygemsGateway gateway;
-        
-    private RubygemsFacade facade;
+    private final RepositoryKind repositoryKind;
     
+    private final RubygemsFacade facade;
+
+    @Inject
+    public DefaultRubyGroupRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
+                                       GroupRubyRepositoryConfigurator configurator,
+                                       RubygemsGateway gateway )
+             throws LocalStorageException, ItemNotFoundException{
+        this.contentClass = contentClass;
+        this.configurator = configurator;
+        this.facade = new GroupRubygemsFacade( gateway, this );
+        this.repositoryKind = new DefaultRepositoryKind( RubyGroupRepository.class,
+                                                         Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
+    }
+
     @Override
     public RubygemsFacade getRubygemsFacade()
     {
         return facade;
     }
-    
-    @Override
-    public void doConfigure() throws ConfigurationException
-    {
-        super.doConfigure();
-        this.facade = new GroupRubygemsFacade( gateway, this );
-    }
-    
-    /**
-     * Repository kind.
-     */
-    private final RepositoryKind repositoryKind = new DefaultRepositoryKind( RubyGroupRepository.class,
-        Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
 
     @Override
-    protected Configurator getConfigurator()
+    protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator()
     {
-        return defaultRubyGroupRepositoryConfigurator;
+        return configurator;
     }
 
     @Override
@@ -144,6 +141,7 @@ public class DefaultRubyGroupRepository
     
     }   
     
+    @SuppressWarnings( "deprecation" )
     public StorageItem superRetrieveItem(ResourceStoreRequest request)
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException

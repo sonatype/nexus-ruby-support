@@ -1,5 +1,6 @@
 package org.sonatype.nexus.plugins.ruby.hosted;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -16,6 +17,7 @@ import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.ByteArrayInputStream;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
@@ -25,6 +27,17 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
     public HostedRubygemsFacade( RubygemsGateway gateway, RubyRepository repository )
     {
         super( gateway, repository );
+    }
+
+    @Override
+    public void setupNewRepo( File basedir ) throws LocalStorageException, ItemNotFoundException
+    {
+        super.setupNewRepo( basedir );
+        for( SpecsIndexType type: SpecsIndexType.values() )
+        {
+            retrieveSpecsIndex( repository, (RubyLocalRepositoryStorage) repository.getLocalStorage(), type );
+        }
+
     }
 
     @Override
@@ -49,7 +62,7 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
         // first create the gemspec.rz file for the given gem
         RubygemFile file = RubygemFile.fromFilename( gem.getPath() );
         ResourceStoreRequest request = new ResourceStoreRequest( file.getGemspecRz() );
-        InputStream is;
+        ByteArrayInputStream is;
         try
         {
             is = gateway.createGemspecRz( file.getName(), gem.getInputStream() );
@@ -59,7 +72,9 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
             throw new LocalStorageException( "error writing gemspec file", e );
         }
         
-        ContentLocator contentLocator = new PreparedContentLocator( is, "application/x-ruby-marshal" );
+        ContentLocator contentLocator = new PreparedContentLocator( is, 
+                                                                    "application/x-ruby-marshal", 
+                                                                    is.length() );
         
         DefaultStorageFileItem gemspecFile = new DefaultStorageFileItem( repository, request, true, true,
                contentLocator );

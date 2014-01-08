@@ -5,13 +5,15 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
+import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.GemArtifactRepository;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
@@ -20,8 +22,9 @@ import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.ItemNotFoundException.ItemNotFoundInRepositoryReason;
+import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.attributes.inspectors.DigestCalculatingInspector;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
@@ -37,68 +40,80 @@ import org.sonatype.nexus.proxy.maven.MetadataManager;
 import org.sonatype.nexus.proxy.maven.RepositoryPolicy;
 import org.sonatype.nexus.proxy.maven.gav.Gav;
 import org.sonatype.nexus.proxy.maven.gav.GavCalculator;
-import org.sonatype.nexus.proxy.maven.gav.M2ArtifactRecognizer;
 import org.sonatype.nexus.proxy.maven.maven2.Maven2ContentClass;
 import org.sonatype.nexus.proxy.maven.packaging.ArtifactPackagingMapper;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractShadowRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
+import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.repository.ShadowRepository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
+import org.sonatype.sisu.goodies.common.SimpleFormat;
 
-@Component( role = ShadowRepository.class, hint = GemArtifactShadowRepository.ID, instantiationStrategy = "per-lookup", description = "Rubygems as MavenArtifacts" )
+@Named( GemArtifactShadowRepository.ID )
 public class GemArtifactShadowRepository
     extends AbstractShadowRepository
     implements GemArtifactRepository, ShadowRepository
 {
 
     public static final String ID = "gem-artifacts";
+    public static final String[] PLATFORMS = { "-universal-java-1.5",
+                                               "-universal-java-1.6",
+                                               "-universal-java-1.7",
+                                               "-universal-java-1.8",
+                                               "-universal-java",
+                                               "-universal-jruby-1.2",
+                                               "-jruby",
+                                               "-java",
+                                               "-universal-ruby-1.8.7",
+                                               "-universal-ruby-1.9.2",
+                                               "-universal-ruby-1.9.3",
+                                               "-universal-ruby",
+                                               "" };
 
-    @Requirement( hint = Maven2ContentClass.ID )
-    private ContentClass contentClass;
+    private final ContentClass contentClass;
 
-    @Requirement( hint = RubyContentClass.ID )
-    private ContentClass masterContentClass;
+    private final ContentClass masterContentClass;
 
-    /**
-     * The GAV Calculator.
-     */
-    @Requirement( hint = "maven2" )
-    private GavCalculator gavCalculator;
+    private final GavCalculator gavCalculator;    
+
+    private final GemArtifactShadowRepositoryConfigurator configurator;
     
-    @Requirement( role = GemArtifactShadowRepositoryConfigurator.class )
-    private GemArtifactShadowRepositoryConfigurator gemArtifactRepositoryConfigurator;
-    
-    /**
-     * Metadata manager.
-     */
-    @Requirement
-    private MetadataManager metadataManager;
+    private final MetadataManager metadataManager;
 
-    /**
-     * The artifact packaging mapper.
-     */
-    @Requirement
     private ArtifactPackagingMapper artifactPackagingMapper;
 
-    /**
-     * Repository kind.
-     */
-    private RepositoryKind repositoryKind = new DefaultRepositoryKind( MavenShadowRepository.class,
-        Arrays.asList( new Class<?>[] { MavenRepository.class } ) );
+    private final RepositoryKind repositoryKind;
+    
+    private final RubygemsGateway gateway;
 
-    /**
-     * ArtifactStoreHelper.
-     */
     private ArtifactStoreHelper artifactStoreHelper;
 
+    @Inject
+    public GemArtifactShadowRepository( @Named( RubyContentClass.ID ) ContentClass masterContentClass,
+                                        @Named( Maven2ContentClass.ID ) ContentClass contentClass,
+                                        @Named("maven2" ) GavCalculator gavCalculator,
+                                        GemArtifactShadowRepositoryConfigurator configurator,
+                                        MetadataManager metadataManager,
+                                        ArtifactPackagingMapper artifactPackagingMapper,
+                                        RubygemsGateway gateway )
+             throws LocalStorageException, ItemNotFoundException{
+        this.masterContentClass = masterContentClass;
+        this.contentClass = contentClass;
+        this.gavCalculator = gavCalculator;
+        this.configurator = configurator;
+        this.metadataManager = metadataManager;
+        this.artifactPackagingMapper = artifactPackagingMapper;
+        this.gateway = gateway;
+        this.repositoryKind = new DefaultRepositoryKind( MavenShadowRepository.class,
+                                                         Arrays.asList( new Class<?>[] { MavenRepository.class } ) );
 
-    @Requirement
-    private RubygemsGateway gateway;
-    
+    }
+
     @Override
     public RepositoryKind getRepositoryKind()
     {
@@ -112,9 +127,9 @@ public class GemArtifactShadowRepository
     }
 
     @Override
-    protected Configurator getConfigurator()
+    protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator()
     {
-        return gemArtifactRepositoryConfigurator;
+        return configurator;
     }
 
     @Override
@@ -167,27 +182,6 @@ public class GemArtifactShadowRepository
     @Override
     public boolean isMavenMetadataPath(String path) {
         return path.matches( "/rubygems/[^/]+/maven-metadata.xml.*" );
-    }
-
-    protected StorageItem doRetrieveItemFromMaster( final ResourceStoreRequest request )
-        throws IllegalOperationException, ItemNotFoundException, StorageException
-    {
-        try
-        { 
-            return super.doRetrieveItemFromMaster( request );
-        }
-        catch( ItemNotFoundException e )
-        {
-            if ( request.getRequestPath().contains( "-java.gem") )
-            {
-                request.setRequestPath( request.getRequestPath().replace("-java.gem", ".gem") );
-                return super.doRetrieveItemFromMaster( request );
-            }
-            else
-            {
-                throw e;
-            }
-        }
     }
 
     @Override
@@ -246,44 +240,47 @@ public class GemArtifactShadowRepository
     }
 
 
+    @SuppressWarnings( "deprecation" )
     @Override
     public void storeItemWithChecksums(ResourceStoreRequest request,
             InputStream is, Map<String, String> userAttributes)
             throws UnsupportedStorageOperationException, ItemNotFoundException,
-            IllegalOperationException, StorageException, AccessDeniedException {
-        getLogger().error( "shadow " + request + " with checksum");
+            IllegalOperationException, org.sonatype.nexus.proxy.StorageException, AccessDeniedException {
         getArtifactStoreHelper().storeItemWithChecksums( request, is, userAttributes );
     }
 
+    @SuppressWarnings( "deprecation" )
     @Override
     public void deleteItemWithChecksums(ResourceStoreRequest request)
             throws UnsupportedStorageOperationException, ItemNotFoundException,
-            IllegalOperationException, StorageException, AccessDeniedException {
+            IllegalOperationException, org.sonatype.nexus.proxy.StorageException, AccessDeniedException {
         getArtifactStoreHelper().deleteItemWithChecksums(request);
     }
 
+    @SuppressWarnings( "deprecation" )
     @Override
     public void storeItemWithChecksums(boolean fromTask,
             AbstractStorageItem item)
             throws UnsupportedStorageOperationException,
-            IllegalOperationException, StorageException {
-        getLogger().error( "shadow " + item + " with checksum");
+            IllegalOperationException, org.sonatype.nexus.proxy.StorageException {
         getArtifactStoreHelper().storeItemWithChecksums( fromTask, item );
     }
 
+    @SuppressWarnings( "deprecation" )
     @Override
     public void deleteItemWithChecksums(boolean fromTask,
             ResourceStoreRequest request)
             throws UnsupportedStorageOperationException,
-            IllegalOperationException, ItemNotFoundException, StorageException {
+            IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException {
         getArtifactStoreHelper().deleteItemWithChecksums( fromTask, request );
    }
 
 
+    @SuppressWarnings( "deprecation" )
     @Override
     protected void deleteLink(StorageItem item)
             throws UnsupportedStorageOperationException,
-            IllegalOperationException, ItemNotFoundException, StorageException {
+            IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException {
         // TODO Auto-generated method stub
         
     }
@@ -300,12 +297,15 @@ public class GemArtifactShadowRepository
         int i = filename.lastIndexOf('-');
         if ( i < 1 )
         {
-            getLogger().error("bad path - ignored: " + path );
+            if (log.isErrorEnabled()){
+                log.error("bad path - ignored: " + path );
+            }
             return null;
         }
         else
         {
-            boolean isSnapshot = filename.substring( i + 1 ).matches( ".*[a-zA-Z].*" );
+            boolean isSnapshot =  isPrereleaseRepository() &&
+                        filename.substring( i + 1 ).matches( ".*[a-zA-Z].*" );
 
             StringBuilder builder = new StringBuilder( "/rubygems/" )
                 .append( filename.substring( 0, i ) )
@@ -327,10 +327,11 @@ public class GemArtifactShadowRepository
         }
     }
     
+    @SuppressWarnings( "deprecation" )
     @Override
     protected StorageLinkItem createLink(StorageItem item)
             throws UnsupportedStorageOperationException,
-            IllegalOperationException, StorageException {
+            IllegalOperationException, org.sonatype.nexus.proxy.StorageException {
         
         String shadowPath = transformMaster2Shadow( item.getPath() );
 
@@ -338,7 +339,7 @@ public class GemArtifactShadowRepository
         {
             ResourceStoreRequest req = new ResourceStoreRequest( shadowPath );
 
-            req.getRequestContext().putAll( item.getItemContext() );
+            req.getRequestContext().setParentContext( item.getItemContext() );
 
             DefaultStorageLinkItem link =
                 new DefaultStorageLinkItem( this, req, true, true, item.getRepositoryItemUid() );
@@ -355,16 +356,16 @@ public class GemArtifactShadowRepository
         }
     }
 
+    @SuppressWarnings( "deprecation" )
     private void storeHashes(StorageItem item, 
             ResourceStoreRequest req)
             throws UnsupportedStorageOperationException,
-            IllegalOperationException, StorageException {
+            IllegalOperationException, org.sonatype.nexus.proxy.StorageException {
         
         String path = req.getRequestPath();
         
         String sha1Hash = item.getRepositoryItemAttributes().get( DigestCalculatingInspector.DIGEST_SHA1_KEY );
 
-        @SuppressWarnings("deprecation")
         String md5Hash = item.getRepositoryItemAttributes().get( DigestCalculatingInspector.DIGEST_MD5_KEY );
 
         if ( !StringUtils.isEmpty( sha1Hash ) )
@@ -390,8 +391,9 @@ public class GemArtifactShadowRepository
         req.setRequestPath( path );
     }    
 
+    @SuppressWarnings( "deprecation" )
     private StorageItem processMetadata( StorageItem item ) 
-            throws IllegalOperationException, ItemNotFoundException, StorageException
+            throws IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException
     {
         ResourceStoreRequest request = item.getResourceStoreRequest();
         if ( isMavenMetadataPath( request.getRequestPath() ) ){
@@ -407,14 +409,16 @@ public class GemArtifactShadowRepository
         return item;
     }
 
+    @SuppressWarnings( "deprecation" )
     private StorageItem processMetadata( ResourceStoreRequest request ) 
-            throws IllegalOperationException, ItemNotFoundException, StorageException
+            throws IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException
     {            
         return recreateMetadata( request, storageItemOfSpecsIndex() );
     }
     
+    @SuppressWarnings( "deprecation" )
     public StorageItem retrieveItem( boolean fromTask, ResourceStoreRequest request ) 
-            throws StorageException, ItemNotFoundException, IllegalOperationException
+            throws org.sonatype.nexus.proxy.StorageException, ItemNotFoundException, IllegalOperationException
     {
         try
         {
@@ -430,8 +434,10 @@ public class GemArtifactShadowRepository
         }
     }
     
+    @SuppressWarnings( "deprecation" )
     public StorageItem retrieveItem( ResourceStoreRequest request )
-            throws IllegalOperationException, ItemNotFoundException, StorageException, AccessDeniedException
+            throws IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException,
+                   AccessDeniedException
     {          
         
         // METADATA
@@ -465,7 +471,7 @@ public class GemArtifactShadowRepository
         {
             if ( !"rubygems".equals( gav.getGroupId() ) || 
                  gav.isSnapshot() != isPrereleaseRepository() || 
-                 gav.getVersion().matches( ".*[a-zA-Z].*"  ) != isPrereleaseRepository() )
+                 ( isPrereleaseRepository() && !gav.getVersion().matches( ".*[a-zA-Z].*" ) ) )
             {
                 throw new ItemNotFoundException( request, this ); 
             }
@@ -484,38 +490,31 @@ public class GemArtifactShadowRepository
                 if ( "gem".equals( gav.getExtension() ) )
                 {
                 
+                    StorageItem item = null;
                     try {
-                        
-                        StorageItem item;
-                        try
+                        ItemNotFoundException last = null;
+                        // first try to get version the java platform
+                        // bit tricky since that gem could be uploaded last and then race conditions
+                        // can take place.                    
+                        for( String marker : PLATFORMS )
                         {
-
-                            // first try to get version the java platform
-                            // bit tricky since that gem could be uploaded last and then race conditions
-                            // can take place.
-                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( gem.getPath() ) );
-
+                            try
+                            {
+    
+                                String path = gem.getPath().replaceFirst( "-java.gem$", marker + ".gem" );
+                                item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
+                                break;
+                            }
+                            catch( ItemNotFoundException ee )
+                            {
+                                last = ee;
+                            }
                         }
-                        catch( ItemNotFoundException ee )
+                        if ( item == null )
                         {
-                            
-                            try 
-                            {
-
-                                String path = gem.getPath().replaceFirst( "-java.gem$", ".gem" ); 
-                                item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-
-                            }
-                            catch( ItemNotFoundException eee )
-                            {
-                                // like https://rubygems.org/quick/Marshal.4.8/therubyrhino-1.72.4-jruby.gem
-                                String path = gem.getPath().replaceFirst( "-java.gem$", "-jruby.gem" );       
-                                item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-                            }
-                            
+                            throw last;
                         }
-                        return createLink( item );
-                        
+                        return createLink( item );                        
                     }
                     catch ( UnsupportedStorageOperationException ee )
                     {
@@ -526,31 +525,28 @@ public class GemArtifactShadowRepository
                 // POM ARTIFACT
                 if ( "pom".equals( gav.getExtension() ) )
                 {
-                    StorageItem item; 
-                    try
+                    StorageItem item = null;
+                    ItemNotFoundException last = null;
+                    // first try to get version the java platform
+                    // bit tricky since that gem could be uploaded last and then race conditions
+                    // can take place.                    
+                    for( String marker : PLATFORMS )
                     {
+                        try
+                        {
 
-                        item = (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( gem.getGemspecRz() ) );
-                        
-
+                            String path = gem.getGemspecRz().replaceFirst( "-java.gemspec.rz$", marker + ".gemspec.rz" ); 
+                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
+                            break;
+                        }
+                        catch( ItemNotFoundException ee )
+                        {
+                            last = ee;
+                        }
                     }
-                    catch( ItemNotFoundException ee )
+                    if ( item == null )
                     {
-                        
-                        try 
-                        {
-                            
-                            String path = gem.getGemspecRz().replaceFirst( "-java.gemspec.rz$", ".gemspec.rz" ); 
-                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-
-                        }
-                        catch( ItemNotFoundException eee )
-                        {
-                            // like https://rubygems.org/quick/Marshal.4.8/therubyrhino-1.72.4-jruby.gemspec.rz
-                            String path = gem.getGemspecRz().replaceFirst( "-java.gemspec.rz$", "-jruby.gemspec.rz" );       
-                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-                        }
-                      
+                        throw last;
                     }
                     try 
                     {
@@ -566,7 +562,7 @@ public class GemArtifactShadowRepository
                     catch ( UnsupportedStorageOperationException usoe )
                     {
                         throw new ItemNotFoundException( request, this, usoe );
-                    } 
+                    }
                 }
             }
         }
@@ -574,11 +570,12 @@ public class GemArtifactShadowRepository
         return super.retrieveItem( request );
     }
 
+    @SuppressWarnings( "deprecation" )
     private StorageFileItem storageItemOfSpecsIndex()
             throws IllegalOperationException, ItemNotFoundException,
-            StorageException {
+                   org.sonatype.nexus.proxy.StorageException {
         SpecsIndexType type = isPrereleaseRepository() ? SpecsIndexType.PRERELEASE : SpecsIndexType.RELEASE;  
-        return (StorageFileItem) super.doRetrieveItemFromMaster( new ResourceStoreRequest( type.filepath() ) );
+        return (StorageFileItem) doRetrieveItemFromMaster( new ResourceStoreRequest( type.filepath() ) );
     }
 
     private StorageItem recreateMetadata(ResourceStoreRequest request,
@@ -591,32 +588,45 @@ public class GemArtifactShadowRepository
             long modified = specsIndex.getModified();
             MetadataBuilder builder = new MetadataBuilder( name, modified );
 
-            long start = System.currentTimeMillis();
-
+            long start = 0;
+            if ( log.isWarnEnabled() ){
+                start = System.currentTimeMillis();
+            }
+            
             builder.appendVersions( gateway.listVersions( name, 
                                                           specsIndex.getInputStream(), 
                                                           modified, 
                                                           isPrereleaseRepository() ),
                                     isPrereleaseRepository() );
             
-            getLogger().warn( "versions " + (System.currentTimeMillis() - start ) + " " + modified + " " + gateway.hashCode());
+            if ( log.isWarnEnabled() ){
+                log.warn( "versions " + (System.currentTimeMillis() - start ) + " " + 
+                          modified + " " + gateway.hashCode());
+            }
                
             return storeXmlContentWithHashes( request, builder.toString() );
 
         }
         catch ( IOException e )
         {
-            throw new ItemNotFoundException( request, this, e );
+            String msg = "Item not found for request \"" + String.valueOf(request) + "\" in repository \""
+                    + RepositoryStringUtils.getHumanizedNameString( this ) + "\"!";
+            ItemNotFoundInRepositoryReason reason = new ItemNotFoundInRepositoryReason(SimpleFormat.template(msg), request, this);
+            throw new ItemNotFoundException( reason, e );
         }
         catch ( UnsupportedStorageOperationException e )
         {
-            throw new ItemNotFoundException( request, this, e );
+            String msg = "Item not found for request \"" + String.valueOf(request) + "\" in repository \""
+                    + RepositoryStringUtils.getHumanizedNameString( this ) + "\"!";
+            ItemNotFoundInRepositoryReason reason = new ItemNotFoundInRepositoryReason(SimpleFormat.template(msg), request, this);
+            throw new ItemNotFoundException( reason, e );
         }
     }
 
+    @SuppressWarnings( "deprecation" )
     private StorageItem storeXmlContentWithHashes(ResourceStoreRequest request, String xml)
             throws UnsupportedStorageOperationException,
-            IllegalOperationException, StorageException {
+            IllegalOperationException, org.sonatype.nexus.proxy.StorageException {
         StorageFileItem item = new DefaultStorageFileItem( this, request, true, true, new StringContentLocator(
                 xml, "application/xml" ) );
                 

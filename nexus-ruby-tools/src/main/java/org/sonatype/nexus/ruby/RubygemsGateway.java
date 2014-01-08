@@ -12,7 +12,7 @@ public interface RubygemsGateway {
 
     void purgeBrokenGemspecFiles( String directory );
     
-    InputStream createGemspecRz( String gemname, InputStream gem ) throws IOException;
+    ByteArrayInputStream createGemspecRz( String gemname, InputStream gem ) throws IOException;
 
     InputStream emptyIndex();
 

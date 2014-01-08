@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.codehaus.plexus.component.annotations.Component;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.codehaus.plexus.util.IOUtil;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.item.ContentGenerator;
@@ -15,7 +17,8 @@ import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 
-@Component( role = ContentGenerator.class, hint = GzipContentGenerator.ID )
+@Singleton
+@Named( GzipContentGenerator.ID )
 public class GzipContentGenerator implements ContentGenerator {
 
     public static final String ID = "GzipContentGenerator";
@@ -34,11 +37,12 @@ public class GzipContentGenerator implements ContentGenerator {
             IOUtil.copy( item.getInputStream(), out );
             out.close();
             gzipped.close();
-            item.setLength( gzipped.toByteArray().length );
 
-            return new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ), "application/x-gzip" );
+            return new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ),
+                                               "application/x-gzip",
+                                               gzipped.toByteArray().length );
         } catch (IOException e) {
-            throw new ItemNotFoundException(item.getResourceStoreRequest(), e);
+            throw new ItemNotFoundException(item.getResourceStoreRequest(), repository, e);
         }
     }
 

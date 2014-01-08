@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.sonatype.nexus.ruby</groupId>
     <artifactId>nexus-ruby-support</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
 
   <groupId>org.sonatype.nexus.plugins</groupId>
@@ -74,117 +74,6 @@
 	  </plugin>
 	</plugins>
       </build>
-    </profile>
-	<!--
-	http://jira.codehaus.org/browse/MNG-4777  :(
-	
-	https://support.sonatype.com/entries/25049567-Where-is-nexus-oss-webapp-
-    https://github.com/sonatype/nexus-ruby-support/issues/31
-    -->    
-    <profile>
-      <id>2.5.1-01</id>
-      <activation>
-	<property>
-	  <name>nexus.version</name>
-	  <value>2.5.1-01</value>
-	</property>
-      </activation>
-
-      <properties>
-	<it.nexus.groupId>org.sonatype.nexus</it.nexus.groupId>
-	<it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
-      </properties>
-
-    </profile>
-    <profile>
-      <id>2.5.0-04</id>
-      <activation>
-	<property>
-	  <name>nexus.version</name>
-	  <value>2.5.0-04</value>
-	</property>
-      </activation>
-      
-      <properties>
-	<it.nexus.groupId>org.sonatype.nexus</it.nexus.groupId>
-	<it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
-      </properties>
-
-    </profile>
-    <profile>
-      <id>2.5.0-03</id>
-      <activation>
-	<property>
-	  <name>nexus.version</name>
-	  <value>2.5.0-03</value>
-	</property>
-      </activation>
-      
-      <properties>
-	<it.nexus.groupId>org.sonatype.nexus</it.nexus.groupId>
-	<it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
-      </properties>
-
-    </profile>
-    <profile>
-      <id>2.5.0-02</id>
-      <activation>
-	<property>
-	  <name>nexus.version</name>
-	  <value>2.5.0-02</value>
-	</property>
-      </activation>
-      
-      <properties>
-	<it.nexus.groupId>org.sonatype.nexus</it.nexus.groupId>
-	<it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
-      </properties>
-
-    </profile>
-    <profile>
-      <id>2.5.0-01</id>
-      <activation>
-	<property>
-	  <name>nexus.version</name>
-	  <value>2.5.0-01</value>
-	</property>
-      </activation>
-      
-      <properties>
-	<it.nexus.groupId>org.sonatype.nexus</it.nexus.groupId>
-	<it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
-      </properties>
-
-    </profile>
-    <profile>
-      <id>2.4.0-09</id>
-      <activation>
-	<property>
-	  <name>nexus.version</name>
-	  <value>2.4.0-09</value>
-	</property>
-      </activation>
-      
-      <properties>
-	<it.nexus.groupId>org.sonatype.nexus</it.nexus.groupId>
-	<it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
-      </properties>
-
-    </profile>
-    <profile>
-      <id>2.3.1-01</id>
-      <activation>
-	<property>
-	  <name>nexus.version</name>
-	  <value>2.3.1-01</value>
-	</property>
-      </activation>
-      
-      <properties>
-	<it.nexus.groupId>org.sonatype.nexus</it.nexus.groupId>
-	<it.nexus.artifactId>nexus-oss-webapp</it.nexus.artifactId>
-      </properties>
-
     </profile>
   </profiles>
 </project>

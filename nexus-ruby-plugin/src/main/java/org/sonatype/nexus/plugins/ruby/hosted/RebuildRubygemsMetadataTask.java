@@ -2,13 +2,13 @@ package org.sonatype.nexus.plugins.ruby.hosted;
 
 import java.util.List;
 
-import org.codehaus.plexus.component.annotations.Component;
+import javax.inject.Named;
+
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesTask;
-import org.sonatype.scheduling.SchedulerTask;
 
-@Component( role = SchedulerTask.class, hint = RebuildRubygemsMetadataTaskDescriptor.ID, instantiationStrategy = "per-lookup" )
+@Named( RebuildRubygemsMetadataTaskDescriptor.ID )
 public class RebuildRubygemsMetadataTask
     extends AbstractNexusRepositoriesTask<Object>
 {

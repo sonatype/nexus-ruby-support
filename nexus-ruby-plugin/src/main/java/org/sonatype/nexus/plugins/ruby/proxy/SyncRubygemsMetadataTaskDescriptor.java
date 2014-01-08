@@ -3,13 +3,15 @@ package org.sonatype.nexus.plugins.ruby.proxy;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.codehaus.plexus.component.annotations.Component;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.sonatype.nexus.formfields.FormField;
 import org.sonatype.nexus.formfields.RepoComboFormField;
 import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
-import org.sonatype.nexus.tasks.descriptors.ScheduledTaskDescriptor;
 
-@Component( role = ScheduledTaskDescriptor.class, hint = "SyncRubygemsMetadata", description = "Sync Rubygems Metadata" )
+@Singleton
+@Named( "SyncRubygemsMetadata" )
 public class SyncRubygemsMetadataTaskDescriptor
     extends AbstractScheduledTaskDescriptor
 {
