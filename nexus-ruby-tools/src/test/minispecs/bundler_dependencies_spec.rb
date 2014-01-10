@@ -85,7 +85,8 @@ describe Nexus::BundlerDependencies do
 
   it 'should merge the dependencies map in the given order' do
     files = Dir[ File.join( resources_dir, 'maven-tools*' ) ].sort
-    # TODO this fails on some platforms - not sure if that is an issue
+    # this fails on some platforms - looks like sorting depends on the platform
+    # see issue https://github.com/sonatype/nexus-ruby-support/issues/48
     #JSON.load( subject.merge( *files ) ).wont_equal expected
     files.sort!
     JSON.load( subject.merge( *files ) ).must_equal expected
