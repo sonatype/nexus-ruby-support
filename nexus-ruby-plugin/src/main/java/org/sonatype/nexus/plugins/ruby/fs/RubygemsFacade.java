@@ -17,7 +17,7 @@ import org.sonatype.nexus.ruby.SpecsIndexType;
 
 public interface RubygemsFacade {
 
-    void addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )
+    RubygemFile addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )
             throws UnsupportedStorageOperationException, LocalStorageException;
 
     boolean removeGem( RubyLocalRepositoryStorage storage, StorageFileItem gem )

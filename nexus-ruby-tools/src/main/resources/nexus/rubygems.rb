@@ -71,10 +71,14 @@ module Nexus
       nil
     end
 
-    def create_quick( gemname, gemfile )
-      spec = spec_get( gemfile )
-      expected = spec.file_name
-      raise "mismatched filename: expected #{expected} but got #{gemname}" if gemname != expected
+    def create_quick( gem, gemfile = nil )
+      if gemfile
+        spec = spec_get( gemfile )
+        expected = spec.file_name
+        raise "mismatched filename: expected #{expected} but got #{gem}" if gem != expected
+      else
+        spec = gem
+      end
       Gem.deflate( Marshal.dump( spec ) ).bytes.to_a
     end
 

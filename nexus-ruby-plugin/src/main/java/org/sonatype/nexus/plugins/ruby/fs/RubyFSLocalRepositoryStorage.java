@@ -30,6 +30,7 @@ import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.item.LinkPersister;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
@@ -46,8 +47,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
 {
 
     private static final String NEXUS_PREFIX = ".nexus";
-    private static final String NEXUS_TRASH_PREFIX = "/" + NEXUS_PREFIX + "/trash/";
-    private static final String NEXUS_TEMP_PREFIX = "/" + NEXUS_PREFIX + "/tmp/";
+    private static final String NEXUS_TRASH_PREFIX = RepositoryItemUid.PATH_SEPARATOR + NEXUS_PREFIX + RepositoryItemUid.PATH_SEPARATOR + "trash" + RepositoryItemUid.PATH_SEPARATOR;
+    private static final String NEXUS_TEMP_PREFIX = RepositoryItemUid.PATH_SEPARATOR + NEXUS_PREFIX + RepositoryItemUid.PATH_SEPARATOR + "tmp" + RepositoryItemUid.PATH_SEPARATOR;
 
     @Inject
     public RubyFSLocalRepositoryStorage( Wastebasket wastebasket,
@@ -170,22 +171,72 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         // fix the path !!
         return super.retrieveItem( repository, fixPath( request ) );            
     }
-
+    
+    @Override
+    public void superStoreItem(  Repository repository, StorageItem item ) 
+            throws LocalStorageException, UnsupportedStorageOperationException{
+        super.storeItem( repository, item );
+    }
+    
     @Override
     public void storeItem( Repository repository, StorageItem item )
             throws UnsupportedStorageOperationException, LocalStorageException
     {
+        if ( "/api/v1/api_key".equals( item.getPath() ) )
+        {
+            throw new RuntimeException( "not implemented !");
+        }
+        if ( "/api/v1/gems".equals( item.getPath() ) )
+        {            
+            File tmpDir = getFileFromBase( repository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX ) );
+            File tmpFile = null;
+            try
+            {
+                tmpDir.mkdirs();
+                tmpFile = File.createTempFile( "gems-", ".gem", tmpDir );
+                IOUtil.copy( ((StorageFileItem)item).getInputStream(), new FileOutputStream( tmpFile ) );
+
+                FileContentLocator locator = new FileContentLocator( tmpFile, "application/octect" );
+                ((StorageFileItem)item).setContentLocator( locator );
+                RubygemFile file = ( (RubyRepository) repository ).getRubygemsFacade().addGem( this, (StorageFileItem) item );
+                super.moveItem( repository, 
+                                new ResourceStoreRequest( new ResourceStoreRequest( NEXUS_TEMP_PREFIX +
+                                                                                    RepositoryItemUid.PATH_SEPARATOR +
+                                                                                    tmpFile.getName() ) ), 
+                                new ResourceStoreRequest( file.getPath() ) );
+                
+                item.getResourceStoreRequest().setRequestPath( file.getPath() );
+                ((AbstractStorageItem) item).setPath( file.getPath() );
+            } 
+            catch ( IOException e )
+            {
+                throw new LocalStorageException( "error creating temp gem file", e );
+            }
+            catch (ItemNotFoundException e)
+            {
+                throw new LocalStorageException( "error moving gem file into right place", e );
+            }
+            finally
+            {
+                if ( tmpFile != null )
+                {
+                    tmpFile.delete();
+                }
+            }
+            return;
+        }
+
         RubygemFile file = RubygemFile.fromFilename( item.getPath() );
         switch( file.getType() ){
         case GEM:
+            
             ((AbstractStorageItem) item).setPath( file.getPath() );
             item.getResourceStoreRequest().setRequestPath( item.getPath() );
-
             super.storeItem( repository, item );
 
             if ( !item.getPath().startsWith("/.nexus" ) )
             {
-                // add it to the index files
+                // add it to the rubygems-index files
                 File gem = getFileFromBase( repository, item.getResourceStoreRequest() );
                 FileContentLocator locator = new FileContentLocator( gem, file.getMime() );
                 ((StorageFileItem) item).setContentLocator( locator );

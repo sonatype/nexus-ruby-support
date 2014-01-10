@@ -9,6 +9,7 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.LocalRepositoryStorage;
 import org.sonatype.nexus.ruby.BundlerDependencies;
@@ -39,4 +40,7 @@ public interface RubyLocalRepositoryStorage extends LocalRepositoryStorage
                                            InputStream in,
                                            String mime ) 
              throws LocalStorageException;
+
+    void superStoreItem( Repository repository, StorageItem item )
+            throws LocalStorageException, UnsupportedStorageOperationException;
 }

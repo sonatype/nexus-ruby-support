@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.codehaus.plexus.util.IOUtil;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.AbstractRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
@@ -15,6 +16,7 @@ import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.ContentLocator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
+import org.sonatype.nexus.proxy.item.RepositoryItemUid;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.ByteArrayInputStream;
@@ -55,23 +57,43 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
         }
     }
 
+    private final static String API = RepositoryItemUid.PATH_SEPARATOR + "api" + 
+                                      RepositoryItemUid.PATH_SEPARATOR + "v1" + 
+                                      RepositoryItemUid.PATH_SEPARATOR + "gems";
+    private final static String GEMS = RepositoryItemUid.PATH_SEPARATOR + "gems" + 
+                                       RepositoryItemUid.PATH_SEPARATOR;
     @Override
-    public void addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem ) 
+    public RubygemFile addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem ) 
             throws UnsupportedStorageOperationException, LocalStorageException
     {
-        // first create the gemspec.rz file for the given gem
-        RubygemFile file = RubygemFile.fromFilename( gem.getPath() );
-        ResourceStoreRequest request = new ResourceStoreRequest( file.getGemspecRz() );
+        InputStream in = null;
+        Object spec;
+        try {
+            in = toInputStream( gem );
+            spec = gateway.spec( in );
+        }
+        finally
+        {
+            IOUtil.close( in );
+        }
         ByteArrayInputStream is;
-        try
+        ResourceStoreRequest request;
+        RubygemFile file;
+        
+        if ( API.equals( gem.getPath() ) )
         {
-            is = gateway.createGemspecRz( file.getName(), gem.getInputStream() );
-        } 
-        catch ( IOException e )
+            file = RubygemFile.fromFilename( GEMS + gateway.gemname( spec ) ); 
+            // first create the gemspec.rz file for the given spec object
+            is = gateway.createGemspecRz( spec );
+        }
+        else
         {
-            throw new LocalStorageException( "error writing gemspec file", e );
+            // first create the gemspec.rz file for the given gem
+            file = RubygemFile.fromFilename( gem.getPath() );
+            is = createGemspec( gem, file );
         }
         
+        request = new ResourceStoreRequest( file.getGemspecRz() );
         ContentLocator contentLocator = new PreparedContentLocator( is, 
                                                                     "application/x-ruby-marshal", 
                                                                     is.length() );
@@ -86,7 +108,6 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
         // now add the spec to the index
         try
         {
-            Object spec = gateway.spec( toInputStream( gem ) );
             for ( SpecsIndexType type : SpecsIndexType.values() )
             {
                 StorageFileItem specsIndex = retrieveSpecsIndex( repository, storage, type );
@@ -97,6 +118,21 @@ public class HostedRubygemsFacade extends AbstractRubygemsFacade
         catch (ItemNotFoundException e)
         {
             throw new LocalStorageException( "error updating rubygems index", e );
+        }
+        return file;
+    }
+    
+    private ByteArrayInputStream createGemspec( StorageFileItem gem,
+                                                RubygemFile file )
+            throws LocalStorageException
+    {
+        try
+        {
+            return gateway.createGemspecRz( file.getName(), gem.getInputStream() );
+        } 
+        catch ( IOException e )
+        {
+            throw new LocalStorageException( "error writing gemspec file", e );
         }
     }
     

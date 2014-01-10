@@ -37,11 +37,11 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
         // nice to have on newly create repo
         new File( basedir, "gems" ).mkdirs();
         new File( basedir, "quick/Marshal.4.8" ).mkdirs();
-        new File( basedir, "api/v1.0/dependencies" ).mkdirs();
+        new File( basedir, "api/v1/dependencies" ).mkdirs();
     }
     
     @Override
-    public void addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem ) 
+    public RubygemFile addGem( RubyLocalRepositoryStorage storage, StorageFileItem gem ) 
             throws UnsupportedStorageOperationException, LocalStorageException
     {
         throw new UnsupportedStorageOperationException( "can not add gems through this repository: " + repository );

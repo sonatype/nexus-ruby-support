@@ -246,4 +246,21 @@ public class DefaultRubygemsGateway
     {
         callMethod( "purge_broken_gemspec_files", directory, Void.class );        
     }
+
+    @Override
+    public ByteArrayInputStream createGemspecRz( Object spec )
+    {
+        @SuppressWarnings( "unchecked" )
+        List<Long> array = (List<Long>) callMethod( "create_quick",
+                                                    new Object[] { spec },
+                                                    List.class );
+        
+        return new ByteArrayInputStream( array );
+    }
+
+    @Override
+    public String gemname( Object spec )
+    {
+        return scriptingContainer.callMethod( spec, "file_name", String.class );
+    }
 }

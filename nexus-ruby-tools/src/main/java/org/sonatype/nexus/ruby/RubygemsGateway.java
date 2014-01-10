@@ -35,4 +35,8 @@ public interface RubygemsGateway {
 
     BundlerDependencies newBundlerDependencies();
 
+    ByteArrayInputStream createGemspecRz( Object spec );
+
+    String gemname( Object spec );
+
 }
