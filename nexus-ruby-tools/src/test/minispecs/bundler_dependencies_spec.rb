@@ -84,7 +84,7 @@ describe Nexus::BundlerDependencies do
   end
 
   it 'should merge the dependencies map in the given order' do
-    files = Dir[ File.join( resources_dir, 'maven-tools*' ) ]
+    files = Dir[ File.join( resources_dir, 'maven-tools*' ) ].sort
     JSON.load( subject.merge( *files ) ).wont_equal expected
     files.sort!
     JSON.load( subject.merge( *files ) ).must_equal expected
