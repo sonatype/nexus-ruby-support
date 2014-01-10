@@ -29,10 +29,17 @@
   <modules>
     <module>nexus-ruby-plugin</module>
     <module>nexus-gem</module>
-    <module>nexus-ruby-plugin-its</module>
     <module>nexus-ruby-tools</module>
   </modules>
 
+  <profiles>
+    <profile>
+      <id>run-its</id>
+      <modules>
+	<module>nexus-ruby-plugin-its</module>
+      </modules>
+    </profile>
+  </profiles>
 
   <dependencyManagement>
     <dependencies>
