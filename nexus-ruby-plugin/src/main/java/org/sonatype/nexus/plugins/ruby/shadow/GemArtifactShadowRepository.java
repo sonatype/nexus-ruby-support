@@ -500,7 +500,11 @@ public class GemArtifactShadowRepository
                  gav.isSnapshot() != isPrereleaseRepository() || 
                  ( isPrereleaseRepository() && !gav.getVersion().matches( ".*[a-zA-Z].*" ) ) )
             {
-                throw new ItemNotFoundException( request, this ); 
+                throw new ItemNotFoundException( reasonFor( request,
+                                                            this,
+                                                            "Path %s not found in gems repository %s",
+                                                            request.getRequestPath(),
+                                                            RepositoryStringUtils.getHumanizedNameString( this ) ) ); 
             }
         
             try
