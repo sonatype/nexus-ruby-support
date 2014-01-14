@@ -35,6 +35,11 @@
   <profiles>
     <profile>
       <id>run-its</id>
+      <activation>
+	<property>
+	  <name>it</name>
+	</property>
+      </activation>
       <modules>
 	<module>nexus-ruby-plugin-its</module>
       </modules>
