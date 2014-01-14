@@ -35,7 +35,7 @@ public class DownloadsOnEmptyRepositoriesIT extends RubyNexusRunningITSupport
         assertFileDownload( "/api", is( true ) );
         assertFileDownload( "/gems/", is( true ) );
         assertFileDownload( "/quick/Marshal.4.8", is( true ) );
-        assertFileDownload( "/api/v1.0/dependencies", is( true ) );
+        assertFileDownload( "/api/v1/dependencies", is( true ) );
     }
 
     private void assertAllSpecsIndexDownload( )
