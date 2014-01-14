@@ -290,8 +290,8 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
             throw new ItemNotFoundException( reasonFor( new ResourceStoreRequest( gem.getPath() ),
                                                         repository,
                                                         "Path %s not found in repository %s",
-                                                        RepositoryStringUtils.getHumanizedNameString( repository ),
-                                                        gem.getPath() ) );
+                                                        gem.getPath(),
+                                                        RepositoryStringUtils.getHumanizedNameString( repository ) ) );
         }
         RubygemFile newGem = RubygemFile.newGem( gemname + ".gem" );
         return newGem;
