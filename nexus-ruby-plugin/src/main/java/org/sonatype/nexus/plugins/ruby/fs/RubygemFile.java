@@ -153,7 +153,7 @@ public class RubygemFile extends File
 
     public boolean isPreleasedGem()
     {
-        return getGemnameWithVersion().replaceFirst( "^.*-", "" ).matches( ".*[a-zA-Z].*" );
+        return getGemVersion().matches( ".*[a-zA-Z].*" );
     }
 
     @Override
