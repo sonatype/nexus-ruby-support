@@ -27,10 +27,9 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
     @Test
     public void installPrereleasedGem() throws Exception 
     {
-	File preGem = testData().resolveFile( "pre-0.1.0.beta.gem" );
+        File preGem = testData().resolveFile( "pre-0.1.0.beta.gem" );
         String result = gemRunner().install( preGem );
         assertThat( result, containsString( "Successfully installed pre-0.1.0.beta" ) );
-
     }
     
     @Test
@@ -84,7 +83,7 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
 
     void deleteProxiedFiles( String gemName, String gemspecName )
     {
-        // an delete any file
+        // can delete any file
         assertFileRemoval( gemspecName, is( true ) );
         assertFileRemoval( gemspecName, is( false ) );
 
