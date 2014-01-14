@@ -16,6 +16,7 @@ import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHo
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
+import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
@@ -192,5 +193,25 @@ public class DefaultHostedRubyRepository
             LocalStorageException
     {
         return this.getLocalUrl().replace( "file:", "" );
+    }
+
+    @SuppressWarnings( "deprecation" )
+    @Override
+    public StorageItem retrieveJavaGem( RubygemFile gem )
+            throws AccessDeniedException, IllegalOperationException,
+                   ItemNotFoundException, RemoteAccessException,
+                   org.sonatype.nexus.proxy.StorageException
+    {
+        return facade.retrieveJavaGem( this, gem );
+    }
+ 
+    @SuppressWarnings( "deprecation" )
+    @Override
+    public StorageItem retrieveJavaGemspec( RubygemFile gem )
+            throws AccessDeniedException, IllegalOperationException,
+                   ItemNotFoundException, RemoteAccessException,
+                   org.sonatype.nexus.proxy.StorageException
+    {
+        return facade.retrieveJavaGemspec( this, gem );
     }
 }

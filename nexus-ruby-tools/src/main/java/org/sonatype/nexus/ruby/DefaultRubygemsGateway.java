@@ -263,4 +263,12 @@ public class DefaultRubygemsGateway
     {
         return scriptingContainer.callMethod( spec, "file_name", String.class );
     }
+
+    @Override
+    public String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified )
+    {
+        return callMethod( "gemname_with_platform", 
+                           new Object[] { gemname, version, specs, modified },
+                           String.class );
+    }
 }

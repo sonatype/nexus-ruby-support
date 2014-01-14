@@ -39,4 +39,6 @@ public interface RubygemsGateway {
 
     String gemname( Object spec );
 
+    String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified );
+
 }

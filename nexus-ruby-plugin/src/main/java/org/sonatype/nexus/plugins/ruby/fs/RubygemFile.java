@@ -102,7 +102,7 @@ public class RubygemFile extends File
     public RubygemFile( Gav gav )
     {
         super( RepositoryItemUid.PATH_SEPARATOR + "gems" + RepositoryItemUid.PATH_SEPARATOR +
-               gav.getArtifactId() + "-" + gav.getVersion().replaceFirst( "-SNAPSHOT", "" ) + "-java.gem" );
+               gav.getArtifactId() + "-" + gav.getVersion().replaceFirst( "-SNAPSHOT", "" ) + ".gem" );
         type = Type.GEM;
         assert "rubygems".equals( gav.getGroupId() );
     }
@@ -134,7 +134,26 @@ public class RubygemFile extends File
 
     public String getGemnameWithVersion()
     {
-        return getName().replaceFirst(".gem(spec.rz)?$", "");
+        return getName().replaceFirst( ".gem(spec.rz)?$", "" );
+    }
+    
+    public String getGemname()
+    {
+        String name = getGemnameWithVersion();
+        int last = name.lastIndexOf( '-' );
+        return name.substring( 0, last );
+    }
+
+    public String getGemVersion()
+    {
+        String name = getGemnameWithVersion();
+        int last = name.lastIndexOf( '-' );
+        return name.substring( last + 1 );
+    }
+
+    public boolean isPreleasedGem()
+    {
+        return getGemnameWithVersion().replaceFirst( "^.*-", "" ).matches( ".*[a-zA-Z].*" );
     }
 
     @Override

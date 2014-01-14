@@ -15,6 +15,7 @@ import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
+import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
@@ -176,6 +177,18 @@ public class DefaultRubyGroupRepository
     @Override
     public StorageFileItem retrieveDependenciesItem(String gemname)
             throws LocalStorageException, ItemNotFoundException
+    {
+        throw new RuntimeException( "BUG: not implemented for group repositories" );
+    }
+
+    @Override
+    public StorageItem retrieveJavaGem( RubygemFile gem )
+    {
+        throw new RuntimeException( "BUG: not implemented for group repositories" );
+    }
+
+    @Override
+    public StorageItem retrieveJavaGemspec( RubygemFile gem )
     {
         throw new RuntimeException( "BUG: not implemented for group repositories" );
     }

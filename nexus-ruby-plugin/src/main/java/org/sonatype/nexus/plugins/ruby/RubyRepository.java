@@ -1,5 +1,6 @@
 package org.sonatype.nexus.plugins.ruby;
 
+import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
@@ -35,4 +36,16 @@ public interface RubyRepository
 
     StorageFileItem retrieveDependenciesItem( String gemname )
             throws LocalStorageException, ItemNotFoundException;
+
+    @SuppressWarnings("deprecation")
+    StorageItem retrieveJavaGem( RubygemFile gem ) 
+            throws RemoteAccessException, AccessDeniedException, 
+                   org.sonatype.nexus.proxy.StorageException,
+                   IllegalOperationException, ItemNotFoundException;
+    
+    @SuppressWarnings("deprecation")
+    StorageItem retrieveJavaGemspec( RubygemFile gem ) 
+            throws RemoteAccessException, AccessDeniedException, 
+                   org.sonatype.nexus.proxy.StorageException,
+                   IllegalOperationException, ItemNotFoundException;
 }

@@ -26,10 +26,21 @@ public class RubygemFileTest
     
     public void testGAV()
     {
-        RubygemFile file = new RubygemFile( new Gav( "rubygems", "aid", "123" ) );
-        assertThat( file.getGemnameWithVersion(), is( "aid-123-java" ) );
+        RubygemFile file = new RubygemFile( new Gav( "rubygems", "ai-d", "123" ) );
+        assertThat( file.getGemnameWithVersion(), is( "ai-d-123" ) );
+        assertThat( file.getGemname(), is( "ai-d" ) );
+        assertThat( file.getGemVersion(), is( "123" ) );
+        assertThat( file.isPreleasedGem(), is( false ) );
         file = new RubygemFile( new Gav( "rubygems", "aid", "123-SNAPSHOT" ) );
-        assertThat( file.getGemnameWithVersion(), is( "aid-123-java" ) );
+        assertThat( file.getGemnameWithVersion(), is( "aid-123" ) );
+        assertThat( file.getGemname(), is( "aid" ) );
+        assertThat( file.getGemVersion(), is( "123" ) );
+        assertThat( file.isPreleasedGem(), is( false ) );
+        file = new RubygemFile( new Gav( "rubygems", "a-id", "123a" ) );
+        assertThat( file.getGemnameWithVersion(), is( "a-id-123a" ) );
+        assertThat( file.getGemname(), is( "a-id" ) );
+        assertThat( file.getGemVersion(), is( "123a" ) );
+        assertThat( file.isPreleasedGem(), is( true ) );
     }
 
     private void assertFilename( String filename )

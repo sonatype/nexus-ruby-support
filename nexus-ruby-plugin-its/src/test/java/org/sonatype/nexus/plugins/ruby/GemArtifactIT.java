@@ -8,8 +8,6 @@ import static org.sonatype.sisu.filetasks.builder.FileRef.path;
 import java.io.File;
 import java.io.IOException;
 
-import javax.validation.constraints.AssertFalse;
-
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Test;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;

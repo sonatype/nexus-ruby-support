@@ -134,6 +134,22 @@ module Nexus
       versions
     end
 
+    def gemname_with_platform( gemname, version, source, modified )
+      map = if version.match( /[a-zA-Z]/ )
+              name_preversions_map source, modified
+            else
+              name_versions_map source, modified
+            end
+      if versions = map[ gemname ]
+        versions = versions.select { |v| v.match( /^#{version}-/ ) }
+        versions = versions.collect { |v|  v.match( /-$/ ) ? v + 'ruby' : v }
+        versions = versions.sort do |m,n| 
+          m.sub( /-universal/, '') <=> n.sub( /-universal/, '')
+        end
+        gemname + '-' + versions.first.sub( /^#{version}-ruby$/, version ) unless versions.empty?
+      end
+    end
+
     def empty_specs
       dump_specs( [] )
     end

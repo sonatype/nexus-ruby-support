@@ -1,5 +1,7 @@
 package org.sonatype.nexus.plugins.ruby.fs;
 
+import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,10 +14,12 @@ import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
+import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
@@ -237,4 +241,59 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
     {
         return prepareDependencies( bundlerDependencies(), gemname )[0];
     }
-}
+
+    @SuppressWarnings( "deprecation" )
+    @Override
+    public StorageItem retrieveJavaGem( RubyRepository repository, RubygemFile gem )
+            throws AccessDeniedException, IllegalOperationException,
+                   ItemNotFoundException, RemoteAccessException,
+                   org.sonatype.nexus.proxy.StorageException
+    {
+        return repository.retrieveItem( new ResourceStoreRequest( retrieveGemname( repository, gem ).getPath() ) );
+    }
+    
+    @SuppressWarnings( "deprecation" )
+    @Override
+    public StorageItem retrieveJavaGemspec( RubyRepository repository, RubygemFile gem )
+            throws AccessDeniedException, IllegalOperationException,
+                   ItemNotFoundException, RemoteAccessException,
+                   org.sonatype.nexus.proxy.StorageException
+    {
+        return repository.retrieveItem( new ResourceStoreRequest( retrieveGemname( repository, gem ).getGemspecRz() ) );
+    }
+
+    @SuppressWarnings( "deprecation" )
+    protected RubygemFile retrieveGemname( RubyRepository repository,
+                                           RubygemFile gem )
+            throws ItemNotFoundException, IllegalOperationException,
+            org.sonatype.nexus.proxy.StorageException, AccessDeniedException
+    {
+        String path = ( gem.isPreleasedGem() ? SpecsIndexType.PRERELEASE : SpecsIndexType.RELEASE ).filepath();
+        StorageFileItem specs = (StorageFileItem) repository.retrieveItem( new ResourceStoreRequest( path ) );
+        String gemname;
+        try
+        {
+            gemname = gateway.gemnameWithPlatform( gem.getGemname(),
+                                                   gem.getGemVersion(),
+                                                   specs.getContentLocator().getContent(),
+                                                   specs.getModified() );
+        }
+        catch ( IOException e )
+        {
+            throw new ItemNotFoundException( reasonFor( new ResourceStoreRequest( gem.getPath() ),
+                                                        repository,
+                                                        "Path %s not found in repository %s",
+                                                        RepositoryStringUtils.getHumanizedNameString( repository ) ),
+                                                        e );
+        }
+        if ( gemname == null ){
+            throw new ItemNotFoundException( reasonFor( new ResourceStoreRequest( gem.getPath() ),
+                                                        repository,
+                                                        "Path %s not found in repository %s",
+                                                        RepositoryStringUtils.getHumanizedNameString( repository ),
+                                                        gem.getPath() ) );
+        }
+        RubygemFile newGem = RubygemFile.newGem( gemname + ".gem" );
+        return newGem;
+    }
+} 

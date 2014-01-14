@@ -54,6 +54,8 @@ import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.sisu.goodies.common.SimpleFormat;
 
+import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
+
 @Named( GemArtifactShadowRepository.ID )
 public class GemArtifactShadowRepository
     extends AbstractShadowRepository
@@ -61,19 +63,6 @@ public class GemArtifactShadowRepository
 {
 
     public static final String ID = "gem-artifacts";
-    public static final String[] PLATFORMS = { "-universal-java-1.5",
-                                               "-universal-java-1.6",
-                                               "-universal-java-1.7",
-                                               "-universal-java-1.8",
-                                               "-universal-java",
-                                               "-universal-jruby-1.2",
-                                               "-jruby",
-                                               "-java",
-                                               "-universal-ruby-1.8.7",
-                                               "-universal-ruby-1.9.2",
-                                               "-universal-ruby-1.9.3",
-                                               "-universal-ruby",
-                                               "" };
 
     private final ContentClass contentClass;
 
@@ -293,7 +282,10 @@ public class GemArtifactShadowRepository
         }
         
         // map /gems/n/nexus-0.1.0.gem => /rubygems/nexus/0.1.0/nexus-0.1.0.gem
-        String filename = FileUtils.filename( path.replace( "-java.gem", "" ).replace( ".gem", "" ) );
+        String filename = FileUtils.filename( path.replaceFirst( "-universal-.*.gem", "" )
+                                                  .replaceFirst( "-java.gem", "" )
+                                                  .replaceFirst( "-jruby.gem", "" )
+                                                  .replace( ".gem", "" ) );
         int i = filename.lastIndexOf('-');
         if ( i < 1 )
         {
@@ -433,7 +425,42 @@ public class GemArtifactShadowRepository
             throw e;
         }
     }
-    
+
+    @SuppressWarnings( "deprecation" )
+    protected StorageItem doRetrieveGemItemFromMaster( final RubygemFile gem )
+        throws IllegalOperationException, ItemNotFoundException, 
+        org.sonatype.nexus.proxy.StorageException
+    {
+      try {
+        return getMasterRepository().retrieveJavaGem( gem );
+      }
+      catch (AccessDeniedException e) {
+        // if client has no access to content over shadow, we just hide the fact
+        throw new ItemNotFoundException( reasonFor( new ResourceStoreRequest( gem.getPath() ),
+                                                    this,
+                                                    "Path %s not found in repository %s",
+                                                    RepositoryStringUtils.getHumanizedNameString(this) ),
+                                         e );
+      }
+    }
+
+    @SuppressWarnings( "deprecation" )
+    protected StorageItem doRetrieveGemspecItemFromMaster( final RubygemFile gem )
+        throws IllegalOperationException, ItemNotFoundException, 
+        org.sonatype.nexus.proxy.StorageException
+    {
+      try {
+        return getMasterRepository().retrieveJavaGemspec( gem );
+      }
+      catch (AccessDeniedException e) {
+        // if client has no access to content over shadow, we just hide the fact
+        throw new ItemNotFoundException( reasonFor( new ResourceStoreRequest( gem.getPath() ),
+                                                    this,
+                                                    "Path %s not found in repository %s",
+                                                    RepositoryStringUtils.getHumanizedNameString(this) ),
+                                         e );
+      }
+    }
     @SuppressWarnings( "deprecation" )
     public StorageItem retrieveItem( ResourceStoreRequest request )
             throws IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException,
@@ -489,68 +516,27 @@ public class GemArtifactShadowRepository
                 // GEM ARTIFACT
                 if ( "gem".equals( gav.getExtension() ) )
                 {
-                
-                    StorageItem item = null;
-                    try {
-                        ItemNotFoundException last = null;
-                        // first try to get version the java platform
-                        // bit tricky since that gem could be uploaded last and then race conditions
-                        // can take place.                    
-                        for( String marker : PLATFORMS )
-                        {
-                            try
-                            {
-    
-                                String path = gem.getPath().replaceFirst( "-java.gem$", marker + ".gem" );
-                                item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-                                break;
-                            }
-                            catch( ItemNotFoundException ee )
-                            {
-                                last = ee;
-                            }
-                        }
-                        if ( item == null )
-                        {
-                            throw last;
-                        }
-                        return createLink( item );                        
+                    try
+                    {
+                        return createLink( doRetrieveGemItemFromMaster( gem ) );
                     }
                     catch ( UnsupportedStorageOperationException ee )
                     {
-                        throw new ItemNotFoundException( request, this, ee );
+                        throw new ItemNotFoundException( reasonFor( new ResourceStoreRequest( gem.getPath() ),
+                                                                    this,
+                                                                    "Path %s not found in repository %s",
+                                                                    RepositoryStringUtils.getHumanizedNameString( this ) ),
+                                                         ee );
                     }
                 }
 
                 // POM ARTIFACT
                 if ( "pom".equals( gav.getExtension() ) )
                 {
-                    StorageItem item = null;
-                    ItemNotFoundException last = null;
-                    // first try to get version the java platform
-                    // bit tricky since that gem could be uploaded last and then race conditions
-                    // can take place.                    
-                    for( String marker : PLATFORMS )
-                    {
-                        try
-                        {
-
-                            String path = gem.getGemspecRz().replaceFirst( "-java.gemspec.rz$", marker + ".gemspec.rz" ); 
-                            item = doRetrieveItemFromMaster( new ResourceStoreRequest( path ) );
-                            break;
-                        }
-                        catch( ItemNotFoundException ee )
-                        {
-                            last = ee;
-                        }
-                    }
-                    if ( item == null )
-                    {
-                        throw last;
-                    }
                     try 
                     {
-                    
+
+                        StorageItem item = doRetrieveGemspecItemFromMaster( gem );                    
                         return storeXmlContentWithHashes( request, 
                                                           gateway.pom( ( (StorageFileItem) item ).getInputStream() ) );
 
