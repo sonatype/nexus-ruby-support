@@ -399,13 +399,16 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         boolean outdated = true; // outdate is true if there are no local-specs 
         if ( localSpecsItem != null )
         {
+            // using the timestamp from the file since localSpecsItem.getModified() produces something but
+            // not from .nexus/attributes/* file !!!
+            long modified = ((FileContentLocator) localSpecsItem.getContentLocator()).getFile().lastModified();
             outdated = false;
             for ( StorageItem item: specsItems )
             {     
-                outdated = outdated || ( item.getModified() > localSpecsItem.getModified() );
+                outdated = outdated || ( item.getModified() > modified );
             }
         }
- 
+
         if ( outdated && !specsItems.isEmpty() )
         {
             try
