@@ -187,7 +187,9 @@ public class DefaultProxyRubyRepository
         {
             ResourceStoreRequest req = new ResourceStoreRequest( request.getRequestPath()
                                                                     .replaceFirst( "/gems/[^/]/", "/gems/" )
+                                                                    .replaceFirst( "^gems/[^/]/", "gems/" )
                                                                     .replaceFirst( "/Marshal.4.8/[^/]/", "/Marshal.4.8/" )
+                                                                    .replaceFirst( "^Marshal.4.8/[^/]/", "Marshal.4.8/" )
                                                                     .replaceFirst( ".4.8$", ".4.8.gz" ) );
 
             AbstractStorageItem item = super.doRetrieveRemoteItem( req );
