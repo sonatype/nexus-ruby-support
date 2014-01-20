@@ -271,11 +271,13 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
         String path = ( gem.isPreleasedGem() ? SpecsIndexType.PRERELEASE : SpecsIndexType.RELEASE ).filepath();
         StorageFileItem specs = (StorageFileItem) repository.retrieveItem( new ResourceStoreRequest( path ) );
         String gemname;
+        InputStream in = null;
         try
         {
+            in = specs.getContentLocator().getContent();
             gemname = gateway.gemnameWithPlatform( gem.getGemname(),
                                                    gem.getGemVersion(),
-                                                   specs.getContentLocator().getContent(),
+                                                   in,
                                                    specs.getModified() );
         }
         catch ( IOException e )
@@ -285,6 +287,10 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
                                                         "Path %s not found in repository %s",
                                                         RepositoryStringUtils.getHumanizedNameString( repository ) ),
                                                         e );
+        }
+        finally
+        {
+            IOUtil.close( in );
         }
         if ( gemname == null ){
             throw new ItemNotFoundException( reasonFor( new ResourceStoreRequest( gem.getPath() ),
