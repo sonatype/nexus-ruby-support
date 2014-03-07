@@ -265,7 +265,7 @@ public class DefaultRubygemsGateway
     }
 
     @Override
-    public String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified )
+    public synchronized String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified )
     {
         return callMethod( "gemname_with_platform", 
                            new Object[] { gemname, version, specs, modified },
