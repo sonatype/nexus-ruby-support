@@ -1,5 +1,7 @@
 package org.sonatype.nexus.plugins.ruby.shadow;
 
+import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -9,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.nexus.configuration.Configurator;
@@ -53,8 +56,6 @@ import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.sisu.goodies.common.SimpleFormat;
-
-import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
 
 @Named( GemArtifactShadowRepository.ID )
 public class GemArtifactShadowRepository
@@ -235,7 +236,14 @@ public class GemArtifactShadowRepository
             InputStream is, Map<String, String> userAttributes)
             throws UnsupportedStorageOperationException, ItemNotFoundException,
             IllegalOperationException, org.sonatype.nexus.proxy.StorageException, AccessDeniedException {
-        getArtifactStoreHelper().storeItemWithChecksums( request, is, userAttributes );
+        try
+        {
+            getArtifactStoreHelper().storeItemWithChecksums( request, is, userAttributes );
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
     }
 
     @SuppressWarnings( "deprecation" )
@@ -269,9 +277,7 @@ public class GemArtifactShadowRepository
     @Override
     protected void deleteLink(StorageItem item)
             throws UnsupportedStorageOperationException,
-            IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException {
-        // TODO Auto-generated method stub
-        
+            IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException {        
     }
     
     String transformMaster2Shadow( String path )
@@ -339,7 +345,6 @@ public class GemArtifactShadowRepository
             storeItem( false, link );
 
             storeHashes( item, req );
-            
             return link;
         }
         else
@@ -537,12 +542,13 @@ public class GemArtifactShadowRepository
                 // POM ARTIFACT
                 if ( "pom".equals( gav.getExtension() ) )
                 {
+                    InputStream is = null;
                     try 
                     {
 
-                        StorageItem item = doRetrieveGemspecItemFromMaster( gem );                    
-                        return storeXmlContentWithHashes( request, 
-                                                          gateway.pom( ( (StorageFileItem) item ).getInputStream() ) );
+                        StorageItem item = doRetrieveGemspecItemFromMaster( gem );   
+                        is = ( (StorageFileItem) item ).getInputStream();
+                        return storeXmlContentWithHashes( request, gateway.pom( is ) );
 
                     }
                     catch ( IOException ioe )
@@ -552,6 +558,10 @@ public class GemArtifactShadowRepository
                     catch ( UnsupportedStorageOperationException usoe )
                     {
                         throw new ItemNotFoundException( request, this, usoe );
+                    }
+                    finally
+                    {
+                        IOUtil.close( is );
                     }
                 }
             }
@@ -571,6 +581,7 @@ public class GemArtifactShadowRepository
     private StorageItem recreateMetadata(ResourceStoreRequest request,
             StorageFileItem specsIndex)
             throws IllegalOperationException, ItemNotFoundException {
+        InputStream is = null;
         try
         {
 
@@ -583,8 +594,9 @@ public class GemArtifactShadowRepository
                 start = System.currentTimeMillis();
             }
             
+            is = specsIndex.getInputStream();
             builder.appendVersions( gateway.listVersions( name, 
-                                                          specsIndex.getInputStream(), 
+                                                          is, 
                                                           modified, 
                                                           isPrereleaseRepository() ),
                                     isPrereleaseRepository() );
@@ -610,6 +622,10 @@ public class GemArtifactShadowRepository
                     + RepositoryStringUtils.getHumanizedNameString( this ) + "\"!";
             ItemNotFoundInRepositoryReason reason = new ItemNotFoundInRepositoryReason(SimpleFormat.template(msg), request, this);
             throw new ItemNotFoundException( reason, e );
+        }
+        finally
+        {
+            IOUtil.close( is );
         }
     }
 
