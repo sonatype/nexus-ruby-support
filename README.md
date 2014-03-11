@@ -30,7 +30,7 @@ after that you will find the nexus plugin in **nexus-ruby-plugin/target/nexus-ru
 
 to upload gems to hosted gem repository on nexus you need to install the nexus gem for your local ruby environment with
 
-    gem install -l nexus-gem/target/nexus-*.gem
+    gem install -l nexus-gem/pkg/nexus-*.gem
 
 install the nexus plugin into your nexus server with
 
