@@ -19,6 +19,11 @@
       <artifactId>jruby-core</artifactId>
       <version>1.7.4</version>
     </dependency>
+    <dependency>
+      <groupId>com.github.jnr</groupId>
+      <artifactId>jnr-ffi</artifactId>
+      <version>1.0.10</version>
+    </dependency>
 
     <dependency>
       <groupId>de.saumya.mojo</groupId>
