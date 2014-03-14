@@ -11,7 +11,7 @@
 
   <groupId>org.sonatype.nexus.ruby</groupId>
   <artifactId>nexus-ruby-support</artifactId>
-  <version>1.2.0-SNAPSHOT</version>
+  <version>1.2.0</version>
   <packaging>pom</packaging>
   <name>Nexus Ruby Support (Aggregator)</name>
   <description>Nexus Ruby Support</description>
@@ -20,6 +20,7 @@
     <connection>scm:git:git://github.com/sonatype/nexus-ruby-support.git</connection>
     <developerConnection>scm:git:git@github.com:sonatype-oss/nexus-ruby-support.git</developerConnection>
     <url>http://github.com/sonatype/nexus-ruby-support</url>
+    <tag>nexus-ruby-support-1.2.0</tag>
   </scm>
 
   <properties>
@@ -53,7 +54,7 @@
         <groupId>rubygems</groupId>
         <artifactId>nexus</artifactId>
         <type>gem</type>
-        <version>1.2.1</version>
+        <version>1.2.0</version>
       </dependency>
 
       <!-- INTERNAL -->
@@ -62,20 +63,20 @@
         <groupId>org.sonatype.nexus.plugins</groupId>
         <artifactId>nexus-ruby-plugin</artifactId>
         <type>${nexus-plugin.type}</type>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.0</version>
       </dependency>
 
       <dependency>
         <groupId>org.sonatype.nexus.ruby</groupId>
         <artifactId>nexus-ruby-tools</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.0</version>
       </dependency>
 
       <dependency>
         <groupId>org.sonatype.nexus.ruby</groupId>
         <artifactId>nexus-ruby-tools</artifactId>
         <classifier>tests</classifier>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.0</version>
       </dependency>
 
     </dependencies>
