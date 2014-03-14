@@ -81,4 +81,23 @@
     </dependencies>
   </dependencyManagement>
 
+  <build>
+    <plugins>
+      <plugin>
+	<artifactId>maven-release-plugin</artifactId>
+	<configuration>     
+<!--
+          <releaseProfiles>release,optimize</releaseProfiles>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <localCheckout>true</localCheckout>
+          <pushChanges>false</pushChanges>
+          <mavenExecutorId>forked-path</mavenExecutorId>
+          <useReleaseProfile>false</useReleaseProfile>
+-->
+	  <goals>install</goals>
+	  <arguments>-DskipTests -Prun-its</arguments>
+	</configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
