@@ -65,7 +65,7 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
         throw new UnsupportedStorageOperationException( "can not merge specs-indeces for this repository: " + repository );
     }
 
-    protected InputStream toGZIPInputStream( StorageFileItem item ) throws LocalStorageException {
+    public InputStream toGZIPInputStream( StorageFileItem item ) throws LocalStorageException {
         try
         {
 

@@ -192,4 +192,10 @@ public class DefaultRubyGroupRepository
     {
         throw new RuntimeException( "BUG: not implemented for group repositories" );
     }
+    
+    @Override
+    public void storeItem( StorageItem item )
+    {
+        throw new RuntimeException( "not implemented" );
+    }
 }

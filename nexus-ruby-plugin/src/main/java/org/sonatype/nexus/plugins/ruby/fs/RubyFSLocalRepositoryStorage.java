@@ -39,6 +39,11 @@ import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
 import org.sonatype.nexus.ruby.BundlerDependencies;
+import org.sonatype.nexus.ruby.DependencyFile;
+import org.sonatype.nexus.ruby.FileLayout;
+import org.sonatype.nexus.ruby.FileType;
+import org.sonatype.nexus.ruby.RubygemsFile;
+import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
 @Singleton
@@ -49,6 +54,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
     private static final String NEXUS_PREFIX = ".nexus";
     private static final String NEXUS_TRASH_PREFIX = RepositoryItemUid.PATH_SEPARATOR + NEXUS_PREFIX + RepositoryItemUid.PATH_SEPARATOR + "trash" + RepositoryItemUid.PATH_SEPARATOR;
     private static final String NEXUS_TEMP_PREFIX = RepositoryItemUid.PATH_SEPARATOR + NEXUS_PREFIX + RepositoryItemUid.PATH_SEPARATOR + "tmp" + RepositoryItemUid.PATH_SEPARATOR;
+
+    private final FileLayout layout = new FileLayout();
 
     @Inject
     public RubyFSLocalRepositoryStorage( Wastebasket wastebasket,
@@ -155,21 +162,28 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             ResourceStoreRequest request ) throws ItemNotFoundException,
             LocalStorageException 
     {
-        SpecsIndexType type = SpecsIndexType.fromFilename( request.getRequestPath() );
-        if ( type != null )
+        RubygemsFile file = (RubygemsFile) request.getRequestContext().get( RubygemsFile.class.getName() );
+        if( file == null )
         {
-            if ( request.getRequestPath().startsWith( "/.nexus/" ) || request.getRequestPath().endsWith( ".gz" ) )
+            log.error( "TODO missing rubygemsfile from request context" );
+            layout.fromPath( request.getRequestPath() );
+        }
+        if( file == null )
+        {
+            // just let the storage handle this
+            return super.retrieveItem( repository, request );  
+        } 
+        if( file.type() == FileType.SPECS_INDEX )
+        {
+            if ( ! file.isSpecIndexFile().isGzipped() )
             {
-                // do not fix the path !!
-                return super.retrieveItem( repository, request );
-            }
-            else
-            {
-                return (AbstractStorageItem) retrieveSpecsIndex( (RubyRepository) repository, type );                     
+                return (AbstractStorageItem) retrieveSpecsIndex( (RubyRepository) repository, 
+                                                                 file.isSpecIndexFile().specsType() );
             }
         }
-        // fix the path !!
-        return super.retrieveItem( repository, fixPath( request ) );            
+        // use the respective remote path
+        request.setRequestPath( file.storagePath() );
+        return super.retrieveItem( repository, request );
     }
     
     @Override
@@ -186,6 +200,18 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
         {
             throw new RuntimeException( "not implemented !");
         }
+        if ( item.getPath().startsWith( "/api/v1/dependencies?gems=" ) )
+        {
+            DependencyFile file = (DependencyFile) layout.fromPath( item.getPath() );
+            DefaultStorageFileItem fileItem = (DefaultStorageFileItem) item; 
+            fileItem.setPath( file.storagePath() );
+            fileItem.getResourceStoreRequest().setRequestPath( file.storagePath() );
+            
+            //fileItem.setContentGeneratorId( );
+            super.storeItem( repository, fileItem );
+            return;
+        }
+        
         if ( "/api/v1/gems".equals( item.getPath() ) )
         {            
             File tmpDir = getFileFromBase( repository, new ResourceStoreRequest( NEXUS_TEMP_PREFIX ) );
@@ -336,8 +362,8 @@ public class RubyFSLocalRepositoryStorage extends DefaultFSLocalRepositoryStorag
             try
             {
                 storeItem( repository, zippedItem );
-		// keep unzipped file in place since deleting it ends up in 
-		// infinite recursion
+                // keep unzipped file in place since deleting it ends up in 
+                // infinite recursion
                 //deleteItem( repository, req );
             }
             catch (UnsupportedStorageOperationException e)
