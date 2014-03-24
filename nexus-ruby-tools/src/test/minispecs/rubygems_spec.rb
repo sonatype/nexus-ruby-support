@@ -79,6 +79,16 @@ describe Nexus::Rubygems do
     Marshal.load( StringIO.new( dump ) ).must_equal [ a2java, a2, b4 ]
   end
 
+  it 'should merge dependencies' do
+    a = [ {:name=>"jbundler", :number=>"0.5.5", :platform=>"ruby", :dependencies=>[["bundler", "~> 1.5"], ["ruby-maven", "< 3.1.2, >= 3.1.1.0.1"]]}, {:name=>"jbundler", :number=>"0.5.4", :platform=>"ruby", :dependencies=>[["bundler", "~> 1.2"], ["ruby-maven", "< 3.1.2, >= 3.1.1.0.1"]]}, {:name=>"jbundler", :number=>"0.5.3", :platform=>"ruby", :dependencies=>[["bundler", "~> 1.2"], ["ruby-maven", "< 3.1.1, >= 3.1.0.0.1"]]} ]
+    
+    b = [ {:name=>"bundler", :number=>"1.6.0.rc2", :platform=>"ruby", :dependencies=>[]}, {:name=>"bundler", :number=>"1.6.0.rc", :platform=>"ruby", :dependencies=>[]} ]
+    
+    dump = subject.merge_dependencies( java.io.ByteArrayInputStream.new( Marshal.dump( b ).to_java.bytes ),
+                                       java.io.ByteArrayInputStream.new( Marshal.dump( a ).to_java.bytes ) ).pack 'C*'
+    Marshal.load( StringIO.new( dump ) ).must_equal b + a
+  end
+
   it 'purge api files' do
     subject.purge_broken_depencency_files( broken_to )
     dirs = Dir[ File.join( broken_to, 'api', '**', '*' ) ]

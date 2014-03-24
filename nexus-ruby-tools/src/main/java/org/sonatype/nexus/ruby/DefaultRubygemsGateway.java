@@ -165,6 +165,50 @@ public class DefaultRubygemsGateway
         }
     }
 
+    @SuppressWarnings("resource")
+    @Override
+    public InputStream mergeDependencies( List<InputStream> deps )
+    {
+        try
+        {
+            @SuppressWarnings( "unchecked" )
+            List<Long> array = (List<Long>) callMethod( "merge_dependencies",
+                                                        deps.toArray(),
+                                                        List.class );
+        
+            return array == null ? null : new ByteArrayInputStream( array );
+        }
+        finally
+        {
+            for( InputStream in: deps )
+            {
+                IOUtil.close( in );
+            }
+        }
+    }
+
+    @SuppressWarnings("resource")
+    @Override
+    public InputStream createDependencies( List<InputStream> gemspecs )
+    {
+        try
+        {
+            @SuppressWarnings( "unchecked" )
+            List<Long> array = (List<Long>) callMethod( "create_dependencies",
+                                                        gemspecs.toArray(),
+                                                        List.class );
+        
+            return array == null ? null : new ByteArrayInputStream( array );
+        }
+        finally
+        {
+            for( InputStream in: gemspecs )
+            {
+                IOUtil.close( in );
+            }
+        }
+    }
+    
     @Override
     public String pom(InputStream specRz)
     {
@@ -271,4 +315,5 @@ public class DefaultRubygemsGateway
                            new Object[] { gemname, version, specs, modified },
                            String.class );
     }
+
 }

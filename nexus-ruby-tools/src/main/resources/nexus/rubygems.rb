@@ -126,6 +126,54 @@ module Nexus
       end
     end
 
+    def merge_dependencies( *deps )
+      result = []
+      deps.each do |dep|
+        result += Marshal.load( read_binary( dep ) )
+      end
+      Marshal.dump( result ).bytes.to_a
+    end
+
+    def create_dependencies( *gemspecs )
+      result = []
+      gemspecs.each do |gemspec|
+        spec = Marshal.load( Gem.inflate( read_binary( gemspec ) ) )
+        if spec.platform.respond_to? :os
+          platform =  spec.platform.os.to_s
+        else
+          platform = spec.platform.to_s
+        end
+        result << dependency_data( spec.name, 
+                                   spec.version.to_s,
+                                   platform, 
+                                   deps_from( spec ) )
+      end
+      Marshal.dump( result ).bytes.to_a
+    end
+
+    def deps_from( spec )
+      spec.runtime_dependencies.collect do |d|
+        # issue https://github.com/sonatype/nexus-ruby-support/issues/25
+        name = case d.name
+               when Array
+                 d.name.first
+               else
+                 d.name
+               end
+        [ name, d.requirement.to_s ]
+      end
+    end
+    private :deps_from
+
+    def dependency_data( gemname, number, platform, deps )
+      { :name => gemname,
+        :number => number,
+        :platform => platform,
+        :dependencies => deps }
+    end
+    private :dependency_data
+
+
     def list_versions( name, source, modified, prerelease = false )
       map_method = prerelease ? :name_preversions_map : :name_versions_map
       versions = send( map_method, source, modified )[ name.to_s ] || []

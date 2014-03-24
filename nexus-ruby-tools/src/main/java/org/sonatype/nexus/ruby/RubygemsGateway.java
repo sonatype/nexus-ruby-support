@@ -28,6 +28,10 @@ public interface RubygemsGateway {
 
     InputStream mergeSpecs( InputStream specs, List<InputStream> streams, boolean latest );
 
+    InputStream mergeDependencies( List<InputStream> deps );
+
+    InputStream createDependencies( List<InputStream> gemspecs );
+
     List<String> listVersions( String name, InputStream inputStream, long modified, boolean prerelease );
 
     BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
