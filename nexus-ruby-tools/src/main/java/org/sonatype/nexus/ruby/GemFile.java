@@ -3,7 +3,7 @@ package org.sonatype.nexus.ruby;
 
 public class GemFile extends BaseGemFile {
     
-    GemFile( FileLayout layout, String storage, String remote, String name )
+    GemFile( Layout layout, String storage, String remote, String name )
     {
         super( layout, FileType.GEM, storage, remote, name );
     }

@@ -2,13 +2,13 @@ package org.sonatype.nexus.ruby;
 
 public class RubygemsFile {
     
-    final FileLayout layout;
+    final Layout layout;
     final String name;
     private final String storage;
     private final String remote;
     private final FileType type;
     
-    RubygemsFile( FileLayout layout, FileType type, String storage, String remote, String name )
+    RubygemsFile( Layout layout, FileType type, String storage, String remote, String name )
     {
         this.layout = layout;
         this.type = type;

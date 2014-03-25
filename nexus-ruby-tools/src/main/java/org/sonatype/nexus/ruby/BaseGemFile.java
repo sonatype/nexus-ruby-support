@@ -26,7 +26,7 @@ public class BaseGemFile extends RubygemsFile {
     private final String nameWithVersion;
     private final String version;
     
-    BaseGemFile( FileLayout layout, FileType type, String storage, String remote, String name )
+    BaseGemFile( Layout layout, FileType type, String storage, String remote, String name )
     {
         super( layout, type, storage, remote, nameOnly( name ) );
         this.nameWithVersion = normalize( name );

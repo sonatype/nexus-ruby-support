@@ -7,15 +7,15 @@ import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 
-public class FileLayoutTest
+public class DefaultLayoutTest
     extends TestCase
 {
-    private FileLayout layout;
+    private Layout layout;
     
     @Before
     public void setUp() throws Exception
     {
-        layout = new FileLayout();
+        layout = new DefaultLayout();
     }
     
     @Test
@@ -97,15 +97,20 @@ public class FileLayoutTest
         RubygemsFile file = layout.fromPath( "/specs.4.8.gz" );
         assertNotNull( file );
         RubygemsFile file2 = layout.fromPath( "/specs.4.8" );
-        assertThat( file, equalTo( file2 ) );
+        assertThat( file.isSpecIndexFile(), 
+                    equalTo( file2.isSpecIndexFile().zippedSpecsIndexFile() ) );
+        assertThat( file.isSpecIndexFile(), 
+                    sameInstance( file.isSpecIndexFile().zippedSpecsIndexFile() ) );
+        assertThat( file2.isSpecIndexFile(), 
+                    sameInstance( file2.isSpecIndexFile().unzippedSpecsIndexFile() ) );
         assertThat( file.storagePath(), equalTo( "/specs.4.8.gz" ) );
         assertThat( file.remotePath(), equalTo( "/specs.4.8.gz" ) );
+        assertThat( file2.storagePath(), equalTo( "/specs.4.8" ) );
+        assertThat( file2.remotePath(), equalTo( "/specs.4.8" ) );
         assertThat( file.name(), equalTo( "specs" ) );
         assertThat( file.type(), equalTo( FileType.SPECS_INDEX ) );
 
         SpecsIndexFile file3 = (SpecsIndexFile) file;
-//        assertThat( file3.storagePathGz(), equalTo( "/specs.4.8.gz" ) );
-//        assertThat( file3.remotePathGz(), equalTo( "/specs.4.8.gz" ) );
         assertThat( file3.specsType(), equalTo( SpecsIndexType.RELEASE ) );
         assertThat( file3.storagePath(), equalTo( SpecsIndexType.RELEASE.filepathGzipped() ) );
     }
@@ -117,9 +122,16 @@ public class FileLayoutTest
         RubygemsFile file = layout.fromPath( "/latest_specs.4.8.gz" );
         assertNotNull( file );
         RubygemsFile file2 = layout.fromPath( "/latest_specs.4.8" );
-        assertThat( file, equalTo( file2 ) );
+        assertThat( file.isSpecIndexFile(), 
+                    equalTo( file2.isSpecIndexFile().zippedSpecsIndexFile() ) );
+        assertThat( file.isSpecIndexFile(), 
+                    sameInstance( file.isSpecIndexFile().zippedSpecsIndexFile() ) );
+        assertThat( file2.isSpecIndexFile(), 
+                    sameInstance( file2.isSpecIndexFile().unzippedSpecsIndexFile() ) );
         assertThat( file.storagePath(), equalTo( "/latest_specs.4.8.gz" ) );
         assertThat( file.remotePath(), equalTo( "/latest_specs.4.8.gz" ) );
+        assertThat( file2.storagePath(), equalTo( "/latest_specs.4.8" ) );
+        assertThat( file2.remotePath(), equalTo( "/latest_specs.4.8" ) );
         assertThat( file.name(), equalTo( "latest_specs" ) );
         assertThat( file.type(), equalTo( FileType.SPECS_INDEX ) );
 
@@ -138,9 +150,16 @@ public class FileLayoutTest
         RubygemsFile file = layout.fromPath( "/prerelease_specs.4.8.gz" );
         assertNotNull( file );
         RubygemsFile file2 = layout.fromPath( "/prerelease_specs.4.8" );
-        assertThat( file, equalTo( file2 ) );
+        assertThat( file.isSpecIndexFile(), 
+                    equalTo( file2.isSpecIndexFile().zippedSpecsIndexFile() ) );
+        assertThat( file.isSpecIndexFile(), 
+                    sameInstance( file.isSpecIndexFile().zippedSpecsIndexFile() ) );
+        assertThat( file2.isSpecIndexFile(), 
+                    sameInstance( file2.isSpecIndexFile().unzippedSpecsIndexFile() ) );
         assertThat( file.storagePath(), equalTo( "/prerelease_specs.4.8.gz" ) );
         assertThat( file.remotePath(), equalTo( "/prerelease_specs.4.8.gz" ) );
+        assertThat( file2.storagePath(), equalTo( "/prerelease_specs.4.8" ) );
+        assertThat( file2.remotePath(), equalTo( "/prerelease_specs.4.8" ) );
         assertThat( file.name(), equalTo( "prerelease_specs" ) );
         assertThat( file.type(), equalTo( FileType.SPECS_INDEX ) );
 
