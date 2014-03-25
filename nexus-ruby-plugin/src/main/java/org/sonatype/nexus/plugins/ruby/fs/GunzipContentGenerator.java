@@ -31,18 +31,23 @@ public class GunzipContentGenerator implements ContentGenerator {
     @Override
     public ContentLocator generateContent(Repository repository, String path,
             StorageFileItem item) throws ItemNotFoundException {
+       if( true ) throw new RuntimeException( "here" );
+       InputStream in = null;
+       ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            InputStream in = new GZIPInputStream( item.getInputStream() );
+            in = new GZIPInputStream( item.getInputStream() );
             IOUtil.copy( in, out );
-            out.close();
-            in.close();
-
+            
             return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), 
                                                "application/x-marshal-ruby",
                                                out.toByteArray().length );
         } catch (IOException e) {
             throw new ItemNotFoundException(item.getResourceStoreRequest(), repository, e);
+        }
+        finally
+        {
+            IOUtil.close( in );
+            IOUtil.close( out );
         }
     }
 }

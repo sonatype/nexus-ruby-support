@@ -145,12 +145,12 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
             gemnames = new String[ 0 ];
         }
         StorageFileItem[] result = new StorageFileItem[ gemnames.length ];
-        int index = 0;
-        for( String gemname: gemnames )
-        {
-            doPrepareDependencies( bundler, gemname );
-            result[ index++ ] = repository.retrieveDependenciesItem( gemname );
-        }
+//        int index = 0;
+//        for( String gemname: gemnames )
+//        {
+//            doPrepareDependencies( bundler, gemname );
+//            result[ index++ ] = repository.retrieveDependenciesItem( gemname );
+//        }
         return result;
     }
 
@@ -159,44 +159,44 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
                 throws ItemNotFoundException, AccessDeniedException, IllegalOperationException, 
                         org.sonatype.nexus.proxy.StorageException
         {
-        StorageFileItem dependencies = repository.retrieveDependenciesItem( gemname );
-        InputStream[] missingSpecs = null;
-        try {
-
-            String[] missing = bundler.add(gemname, 
-                    dependencies == null ? null : dependencies.getInputStream());
-            if ( missing.length > 0 || dependencies == null )
-            {
-                missingSpecs = new InputStream[missing.length];
-                int index = 0;
-                for (String version : missing)
-                {
-                    StorageFileItem item = 
-                            repository.retrieveGemspec( gemname + "-" + version );
-                    missingSpecs[ index++ ] = item.getInputStream();
-                }
-                String json = bundler.update( gemname,
-                        dependencies == null ? null : dependencies.getInputStream(), missingSpecs );
-
-                repository.storeDependencies( gemname, json );
-            }
-        } 
-        catch ( IOException e )
-        {
-            throw new ItemNotFoundException( dependencies.getResourceStoreRequest(), 
-                                             repository, e );
-        }
-        catch ( UnsupportedStorageOperationException e )
-        {
-            throw new RuntimeException("BUG: must be able to store data" );
-        }
-        finally {
-            if ( missingSpecs != null ) {
-                for( InputStream is : missingSpecs ) {
-                    IOUtil.close( is );
-                }
-            }
-        }
+//        StorageFileItem dependencies = repository.retrieveDependenciesItem( gemname );
+//        InputStream[] missingSpecs = null;
+//        try {
+//
+//            String[] missing = bundler.add(gemname, 
+//                    dependencies == null ? null : dependencies.getInputStream());
+//            if ( missing.length > 0 || dependencies == null )
+//            {
+//                missingSpecs = new InputStream[missing.length];
+//                int index = 0;
+//                for (String version : missing)
+//                {
+//                    StorageFileItem item = 
+//                            repository.retrieveGemspec( gemname + "-" + version );
+//                    missingSpecs[ index++ ] = item.getInputStream();
+//                }
+//                String json = bundler.update( gemname,
+//                        dependencies == null ? null : dependencies.getInputStream(), missingSpecs );
+//
+//                repository.storeDependencies( gemname, json );
+//            }
+//        } 
+//        catch ( IOException e )
+//        {
+//            throw new ItemNotFoundException( dependencies.getResourceStoreRequest(), 
+//                                             repository, e );
+//        }
+//        catch ( UnsupportedStorageOperationException e )
+//        {
+//            throw new RuntimeException("BUG: must be able to store data" );
+//        }
+//        finally {
+//            if ( missingSpecs != null ) {
+//                for( InputStream is : missingSpecs ) {
+//                    IOUtil.close( is );
+//                }
+//            }
+//        }
     }
     
     @SuppressWarnings( "deprecation" )
@@ -230,7 +230,7 @@ public abstract class AbstractRubygemsFacade implements RubygemsFacade {
 
             }
         }
-        return repository.superRetrieveItem( request );
+        return null;//repository.superRetrieveItem( request );
     }
 
     @SuppressWarnings( "deprecation" )
