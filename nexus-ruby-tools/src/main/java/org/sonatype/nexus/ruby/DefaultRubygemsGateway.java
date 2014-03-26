@@ -164,16 +164,29 @@ public class DefaultRubygemsGateway
             }
         }
     }
-
-    @SuppressWarnings("resource")
+    
     @Override
     public InputStream mergeDependencies( List<InputStream> deps )
     {
+        return mergeDependencies( deps, false );
+    }
+    
+    @SuppressWarnings("resource")
+    @Override
+    public InputStream mergeDependencies( List<InputStream> deps, boolean unique )
+    {
         try
         {
+            Object[] args = new Object[ deps.size() + 1 ];
+            args[ 0 ] = unique;
+            int index = 1;
+            for( InputStream is: deps )
+            {
+                args[ index ++ ] = is;
+            }
             @SuppressWarnings( "unchecked" )
             List<Long> array = (List<Long>) callMethod( "merge_dependencies",
-                                                        deps.toArray(),
+                                                        args,
                                                         List.class );
         
             return array == null ? null : new ByteArrayInputStream( array );

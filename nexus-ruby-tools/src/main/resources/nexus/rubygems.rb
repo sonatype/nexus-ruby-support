@@ -126,10 +126,13 @@ module Nexus
       end
     end
 
-    def merge_dependencies( *deps )
+    def merge_dependencies( unique, *deps )
       result = []
       deps.each do |dep|
         result += Marshal.load( read_binary( dep ) )
+      end
+      if unique
+        result.uniq! { |n| "#{n[:name]}-#{n[:number]}-#{n[:platform]}" }
       end
       Marshal.dump( result ).bytes.to_a
     end

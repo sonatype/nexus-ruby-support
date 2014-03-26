@@ -81,11 +81,18 @@ describe Nexus::Rubygems do
 
   it 'should merge dependencies' do
     a = [ {:name=>"jbundler", :number=>"0.5.5", :platform=>"ruby", :dependencies=>[["bundler", "~> 1.5"], ["ruby-maven", "< 3.1.2, >= 3.1.1.0.1"]]}, {:name=>"jbundler", :number=>"0.5.4", :platform=>"ruby", :dependencies=>[["bundler", "~> 1.2"], ["ruby-maven", "< 3.1.2, >= 3.1.1.0.1"]]}, {:name=>"jbundler", :number=>"0.5.3", :platform=>"ruby", :dependencies=>[["bundler", "~> 1.2"], ["ruby-maven", "< 3.1.1, >= 3.1.0.0.1"]]} ]
-    
+
+    aa = [ {:name=>"jbundler", :number=>"0.5.5", :platform=>"ruby", :dependencies=>[["bundler", "~> 1.5"]] }]
+
     b = [ {:name=>"bundler", :number=>"1.6.0.rc2", :platform=>"ruby", :dependencies=>[]}, {:name=>"bundler", :number=>"1.6.0.rc", :platform=>"ruby", :dependencies=>[]} ]
     
-    dump = subject.merge_dependencies( java.io.ByteArrayInputStream.new( Marshal.dump( b ).to_java.bytes ),
+    dump = subject.merge_dependencies( false, java.io.ByteArrayInputStream.new( Marshal.dump( b ).to_java.bytes ),
                                        java.io.ByteArrayInputStream.new( Marshal.dump( a ).to_java.bytes ) ).pack 'C*'
+    Marshal.load( StringIO.new( dump ) ).must_equal b + a
+
+    dump = subject.merge_dependencies( true, java.io.ByteArrayInputStream.new( Marshal.dump( b ).to_java.bytes ),
+                                       java.io.ByteArrayInputStream.new( Marshal.dump( a ).to_java.bytes ),
+                                       java.io.ByteArrayInputStream.new( Marshal.dump( aa ).to_java.bytes ) ).pack 'C*'
     Marshal.load( StringIO.new( dump ) ).must_equal b + a
   end
 

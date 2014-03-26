@@ -30,6 +30,8 @@ public interface RubygemsGateway {
 
     InputStream mergeDependencies( List<InputStream> deps );
 
+    InputStream mergeDependencies( List<InputStream> deps, boolean unique );
+
     InputStream createDependencies( List<InputStream> gemspecs );
 
     List<String> listVersions( String name, InputStream inputStream, long modified, boolean prerelease );
@@ -44,5 +46,4 @@ public interface RubygemsGateway {
     String gemname( Object spec );
 
     String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified );
-
 }
