@@ -2,9 +2,14 @@ package org.sonatype.nexus.ruby;
 
 import java.util.regex.Pattern;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
 
+@Singleton @Named( DefaultLayout.ID )
 public class DefaultLayout implements Layout
 {
+    public static final String ID = "DefaultLayout";
+
     private static final String _0_9A_Z_A_Z = "[0-9a-zA-Z-_]";
     
     private static final String SEPARATOR = "/";
