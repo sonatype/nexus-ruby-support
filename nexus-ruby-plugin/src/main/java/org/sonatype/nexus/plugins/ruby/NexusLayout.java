@@ -4,8 +4,6 @@ import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,7 +20,6 @@ import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.ContentLocator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
-import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -170,57 +167,16 @@ public class NexusLayout
                 throw new org.sonatype.nexus.proxy.StorageException( e );
             }
         }
-        InputStream is = gateway.mergeDependencies( deps );
-        
-        return createTempStorageFile( repository, is, file.type().mime() );
-    }
-    
-    protected StorageFileItem createTempStorageFile( RubyRepository repository,
-                                                     InputStream in,
-                                                     String mime ) 
-                    throws LocalStorageException
-    {
-        File tmpDir = repository.getApplicationTempDirectory();
-        File tmpFile;
-        try
-        {
-            tmpDir.mkdirs();
-            tmpFile = File.createTempFile( "bundler-", ".json", tmpDir );
-            IOUtil.copy( in, new FileOutputStream( tmpFile ) );
-        } 
-        catch (IOException e) {
-            throw new LocalStorageException( "error creating temp file", e );
-        }
-        ResourceStoreRequest request = new ResourceStoreRequest( tmpFile.getName(), 
-                false, false );
-        DefaultStorageFileItem file =
+        ContentLocator cl = new PreparedContentLocator( gateway.mergeDependencies( deps ),
+                                                        file.type().mime(), 
+                                                        PreparedContentLocator.UNKNOWN_LENGTH );
+        DefaultStorageFileItem result =
                 new DefaultStorageFileItem( repository, 
-                                            request, 
-                                            tmpFile.canRead(),
-                                            tmpFile.canWrite(),
-                                            new FileContentLocator( tmpFile,
-                                                                    mime,
-                                                 // set delete after close to true
-                                                                    true ) );
-        try
-        {
-            repository.getAttributesHandler().fetchAttributes( file );
-        
-            file.setModified( tmpFile.lastModified() );
-            file.setCreated( tmpFile.lastModified() );
+                                            toResourceStoreRequest( file ),
+                                            true, false, cl );
 
-            repository.getAttributesHandler().touchItemLastRequested( System.currentTimeMillis(), file );
-            
-        }
-        catch ( IOException e )
-        {
-            throw new LocalStorageException( "Exception during reading up an item from FS storage!", e );
-        }
-        finally {
-            IOUtil.close( in );
-        }
-        return file;
-    }
+        return result;
+    }    
 
     protected InputStream toGZIPInputStream( StorageFileItem item )
             throws LocalStorageException
@@ -304,12 +260,10 @@ public class NexusLayout
             ContentLocator cl = new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ),
                                                             "application/x-gzip",
                                                             gzipped.size() );
-           DefaultStorageFileItem item =
+            DefaultStorageFileItem item =
                     new DefaultStorageFileItem( repository,
                                                 toResourceStoreRequest( file ),
-                                                true,
-                                                true,
-                                                cl );
+                                                true, true, cl );
             repository.storeItem( item );
         }
         catch ( IOException e )

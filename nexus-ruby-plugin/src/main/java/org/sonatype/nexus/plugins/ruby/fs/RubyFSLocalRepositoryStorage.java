@@ -1,29 +1,20 @@
 package org.sonatype.nexus.plugins.ruby.fs;
 
-import java.io.InputStream;
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.sonatype.nexus.mime.MimeSupport;
-import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
-import org.sonatype.nexus.plugins.ruby.RubyRepository;
-import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.LinkPersister;
-import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
-import org.sonatype.nexus.ruby.BundlerDependencies;
 import org.sonatype.nexus.ruby.RubygemsFile;
-import org.sonatype.nexus.ruby.SpecsIndexType;
 
 @Singleton
 @Named( "rubyfile" )

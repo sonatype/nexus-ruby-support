@@ -113,7 +113,7 @@ public class DefaultRubyGroupRepository
     @Override
     public StorageItem retrieveItem( ResourceStoreRequest request )
             throws AccessDeniedException, ItemNotFoundException, IllegalOperationException,
-                    org.sonatype.nexus.proxy.StorageException
+                   org.sonatype.nexus.proxy.StorageException
     {
         RubygemsFile file = layout.fromResourceStoreRequest( this, request );
         switch( file.type() )

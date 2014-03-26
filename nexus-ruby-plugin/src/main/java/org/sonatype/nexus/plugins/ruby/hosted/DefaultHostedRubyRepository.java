@@ -3,14 +3,11 @@ package org.sonatype.nexus.plugins.ruby.hosted;
 import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.slf4j.Logger;
 import org.sonatype.nexus.configuration.Configurator;
@@ -19,7 +16,6 @@ import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
-import org.sonatype.nexus.plugins.ruby.fs.RubyLocalRepositoryStorage;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
@@ -30,9 +26,6 @@ import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.events.NexusStartedEvent;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
-import org.sonatype.nexus.proxy.item.FileContentLocator;
-import org.sonatype.nexus.proxy.item.RepositoryItemUid;
-import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractRepository;
