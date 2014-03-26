@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import org.codehaus.plexus.util.IOUtil;
 import org.sonatype.nexus.plugins.ruby.NexusLayout;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
@@ -21,6 +24,7 @@ import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.Layout;
 import org.sonatype.nexus.ruby.RubygemsFile;
@@ -28,9 +32,13 @@ import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
+@Singleton
 public class GroupNexusLayout extends NexusLayout implements Layout
 {
-    public GroupNexusLayout( Layout layout, 
+    
+    @Inject
+    public GroupNexusLayout( //@Named( DefaultLayout.ID ) Layout layout,
+                             DefaultLayout layout,
                              RubygemsGateway gateway )
     {
         super( layout, gateway );

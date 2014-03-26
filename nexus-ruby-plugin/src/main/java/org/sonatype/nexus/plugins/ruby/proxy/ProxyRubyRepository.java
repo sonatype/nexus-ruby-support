@@ -26,9 +26,4 @@ public interface ProxyRubyRepository
     void syncMetadata( ) throws LocalStorageException, ItemNotFoundException, 
         RemoteAccessException, AccessDeniedException, org.sonatype.nexus.proxy.StorageException, 
         IllegalOperationException, NoSuchResourceStoreException;
-
-    @SuppressWarnings( "deprecation" )
-    void updateBundlerDependencies() throws LocalStorageException,
-            AccessDeniedException, org.sonatype.nexus.proxy.StorageException, ItemNotFoundException,
-            IllegalOperationException, NoSuchResourceStoreException;
 }

@@ -7,6 +7,9 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import org.sonatype.nexus.plugins.ruby.NexusLayout;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.AccessDeniedException;
@@ -19,14 +22,19 @@ import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
+import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.Layout;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
+@Singleton
 public class HostedNexusLayout extends NexusLayout implements Layout
 {
-    public HostedNexusLayout( Layout layout, 
+    
+    @Inject
+    public HostedNexusLayout( //@Named("default") Layout layout,
+                              DefaultLayout layout,
                               RubygemsGateway gateway )
     {
         super( layout, gateway );

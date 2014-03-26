@@ -16,8 +16,8 @@ import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
+import org.sonatype.nexus.plugins.ruby.fs.DefaultRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
-import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
@@ -34,7 +34,6 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
-import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
@@ -54,7 +53,7 @@ public class DefaultHostedRubyRepository
 
     private final RubygemsGateway gateway;
         
-    private final HostedRubygemsFacade facade;
+    private final DefaultRubygemsFacade facade;
 
     private final RepositoryKind repositoryKind;
 
@@ -63,13 +62,15 @@ public class DefaultHostedRubyRepository
     @Inject
     public DefaultHostedRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
                                         HostedRubyRepositoryConfigurator configurator,
-                                        RubygemsGateway gateway )
+                                        HostedNexusLayout layout,
+                                        RubygemsGateway gateway,
+                                        DefaultRubygemsFacade facade )
              throws LocalStorageException, ItemNotFoundException{
         this.contentClass = contentClass;
         this.configurator = configurator;
         this.gateway = gateway;
-        this.layout = new HostedNexusLayout( new DefaultLayout(), gateway );
-        this.facade = new HostedRubygemsFacade( gateway, this );
+        this.layout = layout;
+        this.facade = facade;
         this.repositoryKind = new DefaultRepositoryKind( HostedRubyRepository.class,
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
     }
@@ -77,12 +78,6 @@ public class DefaultHostedRubyRepository
     @Subscribe
     public void on( NexusStartedEvent event ) throws Exception {
         this.facade.setupNewRepo( new File( getBaseDirectory() ) );
-    }
-
-    @Override
-    public RubygemsFacade getRubygemsFacade()
-    {
-        return facade;
     }
 
     @Override
