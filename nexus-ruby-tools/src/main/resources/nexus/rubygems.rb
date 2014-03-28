@@ -7,7 +7,6 @@ rescue LoadError
 end
 require 'maven/tools/pom'
 require 'json'
-require 'nexus/bundler_dependencies'
 require 'nexus/indexer'
 
 module Nexus
@@ -115,16 +114,6 @@ module Nexus
         end
       EVAL
 
-    end
-
-    def dependencies( specs, modified,
-                      prereleased_specs, prereleased_modified )
-      if specs
-        BundlerDependencies.new( name_versions_map( specs, modified ),
-                                 name_preversions_map( prereleased_specs, prereleased_modified ) )
-      else
-        BundlerDependencies.new
-      end
     end
 
     def merge_dependencies( unique, *deps )
