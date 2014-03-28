@@ -1,6 +1,5 @@
 package org.sonatype.nexus.ruby;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -12,11 +11,12 @@ public interface RubygemsGateway {
 
     void purgeBrokenGemspecFiles( String directory );
     
-    ByteArrayInputStream createGemspecRz( String gemname, InputStream gem ) throws IOException;
-
+    ByteArrayInputStream createGemspecRz( Object spec );
+    
     InputStream emptyIndex();
 
     Object spec( InputStream gem );
+    Object spec( InputStream gem, String gemname );
     
     String pom( InputStream specRz );
 
@@ -26,7 +26,7 @@ public interface RubygemsGateway {
 
     InputStream deleteSpec( Object spec, InputStream specsIndex, InputStream refSpecs );
 
-    InputStream mergeSpecs( InputStream specs, List<InputStream> streams, boolean latest );
+    InputStream mergeSpecs( List<InputStream> streams, boolean latest );
 
     InputStream mergeDependencies( List<InputStream> deps );
 
@@ -36,14 +36,8 @@ public interface RubygemsGateway {
 
     List<String> listVersions( String name, InputStream inputStream, long modified, boolean prerelease );
 
-    BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
-            InputStream prereleasedSpecs, long prereleasedModified );
-
-    BundlerDependencies newBundlerDependencies();
-
-    ByteArrayInputStream createGemspecRz( Object spec );
-
     String gemname( Object spec );
 
     String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified );
+
 }

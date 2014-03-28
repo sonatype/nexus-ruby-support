@@ -56,23 +56,23 @@ public class DefaultRubygemsGateway
         return scriptingContainer.callMethod( rubygems(), methodName, returnType );
     }
     
-    @Override
-    public ByteArrayInputStream createGemspecRz( String gemname, InputStream gem )
-    {
-        try
-        {
-            @SuppressWarnings( "unchecked" )
-            List<Long> array = (List<Long>) callMethod( "create_quick",
-                                                        new Object[] { gemname, gem },
-                                                        List.class );
-        
-            return new ByteArrayInputStream( array );
-        }
-        finally
-        {
-            IOUtil.close( gem );
-        }
-    }
+//    @Override
+//    public ByteArrayInputStream createGemspecRz( String gemname, InputStream gem )
+//    {
+//        try
+//        {
+//            @SuppressWarnings( "unchecked" )
+//            List<Long> array = (List<Long>) callMethod( "create_quick",
+//                                                        new Object[] { gemname, gem },
+//                                                        List.class );
+//        
+//            return new ByteArrayInputStream( array );
+//        }
+//        finally
+//        {
+//            IOUtil.close( gem );
+//        }
+//    }
 
     @Override
     public InputStream emptyIndex()
@@ -88,6 +88,20 @@ public class DefaultRubygemsGateway
         try
         {
             return callMethod( "spec_get", gem, Object.class );
+        }
+        finally
+        {
+            IOUtil.close( gem );
+        }
+    }
+    
+    @Override
+    public Object spec( InputStream gem, String gemname ) {
+        try
+        {
+            return callMethod( "spec_get",
+                               new Object[]{ gem, gemname},
+                               Object.class );
         }
         finally
         {
@@ -117,19 +131,22 @@ public class DefaultRubygemsGateway
 
     @Override
     public InputStream deleteSpec( Object spec, InputStream specsIndex ) {
-	return deleteSpec( spec, specsIndex, null );
+        return deleteSpec( spec, specsIndex, null );
     }
     
     @SuppressWarnings("resource")
     @Override
-    public InputStream deleteSpec( Object spec, InputStream specsIndex, InputStream refSpecs ) {
+    public InputStream deleteSpec( Object spec,
+                                   InputStream specsIndex, 
+                                   InputStream releasesSpecs )
+    {
         try
         {
             @SuppressWarnings( "unchecked" )
             List<Long> array = (List<Long>) callMethod( "delete_spec",
                                                         new Object[] { spec,
                                                                        specsIndex,
-                                                                       refSpecs },
+                                                                       releasesSpecs },
                                                         List.class );
         
             return array == null ? null : new ByteArrayInputStream( array );
@@ -142,14 +159,14 @@ public class DefaultRubygemsGateway
 
     @SuppressWarnings("resource")
     @Override
-    public InputStream mergeSpecs( InputStream specs,
-            List<InputStream> streams, boolean latest ) {
+    public InputStream mergeSpecs( List<InputStream> streams,
+                                   boolean latest )
+    {
         try
         {
             @SuppressWarnings( "unchecked" )
             List<Long> array = (List<Long>) callMethod( "merge_specs",
-                                                        new Object[] { specs,
-                                                                       streams,
+                                                        new Object[] { streams,
                                                                        latest },
                                                         List.class );
         
@@ -157,7 +174,6 @@ public class DefaultRubygemsGateway
         }
         finally
         {
-            IOUtil.close( specs );
             for( InputStream in: streams )
             {
                 IOUtil.close( in );
@@ -254,35 +270,6 @@ public class DefaultRubygemsGateway
         finally
         {
             IOUtil.close( inputStream );
-        }
-    }
-
-    @Override
-    public synchronized BundlerDependencies newBundlerDependencies()
-    {
-        Object bundlerDeps = callMethod( "dependencies",
-                                         new Object[] { null, 0, null, 0 },
-                                         Object.class );
-
-        return new BundlerDependencies( scriptingContainer, bundlerDeps );
-    }
-
-    @Override
-    public synchronized BundlerDependencies newBundlerDependencies( InputStream specs, long modified,
-            InputStream prereleasedSpecs, long prereleasedModified )
-    {
-        try
-        {
-            Object bundlerDeps = callMethod( "dependencies",
-                                             new Object[] { specs, modified, prereleasedSpecs, prereleasedModified },
-                                             Object.class );
-
-            return new BundlerDependencies(scriptingContainer, bundlerDeps);
-        }
-        finally
-        {
-            IOUtil.close( specs );
-            IOUtil.close( prereleasedSpecs );
         }
     }
 

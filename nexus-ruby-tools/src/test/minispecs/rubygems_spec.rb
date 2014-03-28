@@ -65,17 +65,17 @@ describe Nexus::Rubygems do
   end
 
   it 'should merge nothing' do
-    dump = subject.send( :merge_specs, nothing, [] ).pack 'C*'
+    dump = subject.send( :merge_specs, [ nothing ] ).pack 'C*'
     Marshal.load( StringIO.new( dump ) ).must_equal [ a1java, a2, b4 ]
   end
 
   it 'should merge something' do
-    dump = subject.send( :merge_specs, nothing, [ something ] ).pack 'C*'
+    dump = subject.send( :merge_specs, [ nothing, something ] ).pack 'C*'
     Marshal.load( StringIO.new( dump ) ).must_equal [ a1java,  a2java, a2, b4 ]
   end
 
   it 'should merge something latest' do
-    dump = subject.send( :merge_specs, nothing, [ something ], true ).pack 'C*'
+    dump = subject.send( :merge_specs, [ nothing, something ], true ).pack 'C*'
     Marshal.load( StringIO.new( dump ) ).must_equal [ a2java, a2, b4 ]
   end
 

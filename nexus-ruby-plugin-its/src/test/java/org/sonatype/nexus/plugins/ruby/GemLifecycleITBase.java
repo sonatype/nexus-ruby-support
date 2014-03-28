@@ -39,6 +39,8 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
         
         String gemName = "gems/" + nexusGem.getName();
         String gemspecName = "quick/Marshal.4.8/" + nexusGem.getName() + "spec.rz";
+        String dependencyName = "api/v1/dependencies/" + 
+                        nexusGem.getName().replaceFirst( "-.*$", ".json.rz" );
         
         // make sure our gem is not on the repository
         assertFileDownload( gemName, is( false ) );
@@ -50,8 +52,8 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
         assertThat( lastLine( gemRunner().nexus( config, nexusGem ) ), endsWith( "not allowed" ) );
 
         assertFileDownload( gemName, is( true ) );
-        
         assertFileDownload( gemspecName, is( true ) );
+        assertFileDownload( dependencyName, is( true ) );
         
         // now we have one remote gem
         assertThat( numberOfLines( gemRunner().list( repoId ) ), is( 1 ) );
@@ -59,40 +61,50 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
         // reinstall the gem from repository
         assertThat( lastLine( gemRunner().install( repoId, "nexus" ) ), equalTo( "1 gem installed" ) );
         
-        moreAsserts( gemName, gemspecName );
+        moreAsserts( gemName, gemspecName, dependencyName);
     }
     
-    abstract void moreAsserts( String gemName, String gemspecName );
+    abstract void moreAsserts( String gemName, String gemspecName, String dependencyName );
     
-    void deleteHostedFiles( String gemName, String gemspecName )
+    void deleteHostedFiles( String gemName, String gemspecName, String dependencyName )
     {
         // can not delete gemspec files
         assertFileRemoval( gemspecName, is( false ) );
 
         assertFileDownload( gemName, is( true ) );
         assertFileDownload( gemspecName, is( true ) );
+        assertFileDownload( dependencyName, is( true ) );
 
-        // can delete gem files which also deletes the associated gemspec file
+        // can delete gem files which also deletes the associated files
         assertFileRemoval( gemName, is( true ) );
 
         assertFileDownload( gemName, is( false ) );
         assertFileDownload( gemspecName, is( false ) );
+        assertFileDownload( dependencyName, is( false ) );
         
         // TODO specs index files
     }
 
-    void deleteProxiedFiles( String gemName, String gemspecName )
+    void deleteProxiedFiles( String gemName, String gemspecName, String dependencyName )
     {
+        gemName = gemName.replace( "nexus", "n/nexus" );
+        gemspecName = gemspecName.replace( "nexus", "n/nexus" );
+        dependencyName = dependencyName.replace( "nexus", "n/nexus" );
+        
         // can delete any file
         assertFileRemoval( gemspecName, is( true ) );
         assertFileRemoval( gemspecName, is( false ) );
 
         assertFileRemoval( gemName, is( true ) );
         assertFileRemoval( gemName, is( false ) );
+        
+        assertFileRemoval( dependencyName, is( true ) );
+        assertFileRemoval( dependencyName, is( false ) );
 
         // after delete the file will be fetched from the source again
         assertFileDownload( gemName, is( true ) );
         assertFileDownload( gemspecName, is( true ) );
+        assertFileDownload( dependencyName, is( true ) );
         
         // TODO specs index files
     }

@@ -2,6 +2,7 @@ package org.sonatype.nexus.ruby;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +11,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.IOUtils;
+import org.jruby.embed.InvokeFailedException;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +37,8 @@ public class RubygemsGatewayTest
     {
         String gem = "src/test/resources/gems/n/nexus-0.1.0.gem";
         
-        InputStream is = gateway.createGemspecRz( "nexus-0.1.0.gem", new FileInputStream( gem ) );
+        Object spec = gateway.spec( new FileInputStream( gem ) );
+        InputStream is = gateway.createGemspecRz( spec );
         int c = is.read();
         String gemspecPath = "target/nexus-0.1.0.gemspec.rz";
         FileOutputStream out = new FileOutputStream( gemspecPath );
@@ -54,13 +57,27 @@ public class RubygemsGatewayTest
         assertTrue( "spec from stream equal spec from gem", equalSpecs );
     }
 
+    @Test( expected = org.jruby.embed.InvokeFailedException.class )
+    public void testLoadSpecWithNameMismatched() throws FileNotFoundException
+    {
+        String gem = "src/test/resources/gems/n/nexus-0.1.0-java.gem";
+
+        try {
+            gateway.spec( new FileInputStream( gem ), "nexus-1.1.1.gem" );
+            fail( "exception needed" );
+        }
+        catch( InvokeFailedException e ){
+        }
+    }
+
     @Test
     public void testGenerateGemspecRzWithPlatform()
         throws Exception
     {
         String gem = "src/test/resources/gems/n/nexus-0.1.0-java.gem";
-        
-        InputStream is = gateway.createGemspecRz( "nexus-0.1.0-java.gem", new FileInputStream( gem ) );
+
+        Object spec = gateway.spec( new FileInputStream( gem ) );
+        InputStream is = gateway.createGemspecRz( spec );
         is.close();
         assertTrue( "did create without inconsistent gem-name exception", true );
     }

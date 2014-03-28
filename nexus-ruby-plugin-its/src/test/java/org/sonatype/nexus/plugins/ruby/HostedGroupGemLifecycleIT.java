@@ -7,7 +7,7 @@ public class HostedGroupGemLifecycleIT extends GemLifecycleITBase
         super( "gemshostgroup" );
     }
     
-    void moreAsserts(String gemName, String gemspecName )
+    void moreAsserts(String gemName, String gemspecName, String dependencyName  )
     {
         // TODO
     }

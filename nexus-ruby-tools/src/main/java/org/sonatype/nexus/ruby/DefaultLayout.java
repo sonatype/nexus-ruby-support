@@ -2,10 +2,7 @@ package org.sonatype.nexus.ruby;
 
 import java.util.regex.Pattern;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-
-@Singleton @Named( DefaultLayout.ID )
+//@Singleton @Named( DefaultLayout.ID )
 public class DefaultLayout implements Layout
 {
     public static final String ID = "DefaultLayout";

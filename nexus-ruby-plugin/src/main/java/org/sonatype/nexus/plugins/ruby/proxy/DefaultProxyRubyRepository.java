@@ -179,7 +179,7 @@ public class DefaultProxyRubyRepository
 
     @SuppressWarnings("deprecation")
     @Override
-    public StorageItem retrieveItem(ResourceStoreRequest request)
+    public StorageItem retrieveItem( ResourceStoreRequest request )
             throws AccessDeniedException, IllegalOperationException,
             ItemNotFoundException, RemoteAccessException,
             org.sonatype.nexus.proxy.StorageException

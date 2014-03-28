@@ -71,18 +71,19 @@ module Nexus
       nil
     end
 
-    def create_quick( gem, gemfile = nil )
-      if gemfile
-        spec = spec_get( gemfile )
-        expected = spec.file_name
-        raise "mismatched filename: expected #{expected} but got #{gem}" if gem != expected
-      else
-        spec = gem
-      end
+    def create_quick( spec )
       Gem.deflate( Marshal.dump( spec ) ).bytes.to_a
     end
 
-    def spec_get( gemfile )
+    def spec_get( gemfile, expected = nil )
+      spec = load_spec( gemfile )
+      if expected && spec.file_name != expected
+        raise "mismatched filename: expected #{expected} but got #{spec.file_name}" 
+      end
+      spec
+    end
+
+    def load_spec( gemfile )
       case gemfile
       when String
         Gem::Format.from_file_by_path( gemfile ).spec
@@ -205,12 +206,8 @@ module Nexus
       dump_specs( [] )
     end
 
-    def merge_specs( source, sources, lastest = false )
-      result = if source
-                 load_specs( source )
-               else
-                 []
-               end
+    def merge_specs( sources, lastest = false )
+      result = []
       sources.each do |s|
         result += load_specs( s )
       end
@@ -257,7 +254,7 @@ module Nexus
       end
     end
 
-    def delete_spec( spec, source, ref_source = nil )
+    def delete_spec( spec, source, releases = nil )
       # refill the map
       @name_versions_map = nil
       @name_preversions_map = nil
@@ -265,10 +262,10 @@ module Nexus
       old_entry = [ spec.name, spec.version, spec.platform.to_s ]
       if specs.member? old_entry
         specs.delete old_entry
-        if ref_source
-          ref_specs = load_specs( ref_source )
-          ref_specs.delete old_entry
-          specs = regenerate_latest( ref_specs )
+        if releases
+          releases_specs = load_specs( releases )
+          releases_specs.delete old_entry
+          specs = regenerate_latest( releases_specs )
         end
         dump_specs( specs )
       end

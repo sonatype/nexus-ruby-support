@@ -178,6 +178,27 @@ public class NexusLayout
         return result;
     }    
 
+    protected InputStream toInputStream( StorageFileItem item )
+            throws LocalStorageException
+    {
+        try
+        {
+    
+            if ( item != null )
+            {
+                return item.getInputStream();
+            }
+            else
+            {
+                return null;
+            }
+            
+        }
+        catch ( IOException e ) {
+            throw new LocalStorageException( "error getting stream to: " + item, e );
+        }
+    }
+
     protected InputStream toGZIPInputStream( StorageFileItem item )
             throws LocalStorageException
     {
@@ -257,6 +278,8 @@ public class NexusLayout
             ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
             out = new GZIPOutputStream( gzipped );
             IOUtil.copy( content, out );
+            // need to close gzip stream here
+            out.close();
             ContentLocator cl = new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ),
                                                             "application/x-gzip",
                                                             gzipped.size() );

@@ -110,12 +110,10 @@ public class GroupNexusLayout extends NexusLayout implements Layout
                  switch( file.type() )
                  {
                  case DEPENDENCY:
-                     mergeDependencies( repository, file.isDependencyFile(), 
-                                        items );
+                     merge( repository, file.isDependencyFile(), items );
                      break;
                  case SPECS_INDEX:
-                     mergeSpecsIndex( repository, file.isSpecIndexFile(),
-                                      localItem, items );
+                     merge( repository, file.isSpecIndexFile(), items );
                      break;
                  default:
                      throw new RuntimeException( "BUG: should never reach here: " + file );
@@ -129,30 +127,26 @@ public class GroupNexusLayout extends NexusLayout implements Layout
          }
      }
     
-    private void mergeSpecsIndex( RubyRepository repository,
-                                  SpecsIndexFile file,
-                                  StorageItem localItem,
-                                  List<StorageItem> items )
+    private void merge( RubyRepository repository,
+                        SpecsIndexFile file,
+                        List<StorageItem> items )
             throws UnsupportedStorageOperationException, LocalStorageException, 
                    IOException, IllegalOperationException
     {
         List<InputStream> streams = new LinkedList<InputStream>();
-        InputStream is = null;
         try
         {
             for( StorageItem item: items )
             {
                 streams.add( toGZIPInputStream( (StorageFileItem) item ) );
             }
-            is = localItem == null ? null : toGZIPInputStream( (StorageFileItem) localItem );
             storeSpecsIndex( repository, 
                              file,
-                             gateway.mergeSpecs( is, streams,
+                             gateway.mergeSpecs( streams,
                                                  file.specsType() == SpecsIndexType.LATEST ) );
         }
         finally
         {
-            IOUtil.close( is );
             if ( streams != null )
             {
                 for( InputStream i: streams )
@@ -163,9 +157,9 @@ public class GroupNexusLayout extends NexusLayout implements Layout
         }
     }
 
-    private void mergeDependencies( RubyRepository repository,
-                                    DependencyFile file,
-                                    List<StorageItem> dependencies )
+    private void merge( RubyRepository repository,
+                        DependencyFile file,
+                        List<StorageItem> dependencies )
           throws UnsupportedStorageOperationException, IllegalOperationException,
                  IOException
     {

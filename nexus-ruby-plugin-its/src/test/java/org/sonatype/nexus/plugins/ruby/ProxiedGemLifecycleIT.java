@@ -8,8 +8,8 @@ public class ProxiedGemLifecycleIT extends GemLifecycleITBase
         super( "gemsproxy" );
     }
     
-    void moreAsserts( String gemName, String gemspecName )
+    void moreAsserts( String gemName, String gemspecName, String dependencyName )
     {
-        deleteProxiedFiles( gemName, gemspecName );
+        deleteProxiedFiles( gemName, gemspecName, dependencyName );
     }
 }
