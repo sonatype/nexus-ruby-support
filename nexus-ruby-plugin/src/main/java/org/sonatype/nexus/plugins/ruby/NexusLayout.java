@@ -219,6 +219,17 @@ public class NexusLayout
             throw new LocalStorageException( "error getting stream to: " + item, e );
         }
     }
+    
+    @SuppressWarnings( "deprecation" )
+    public StorageFileItem retrieveSpecIndex( RubyRepository repository,
+                                              SpecsIndexFile specIndex )
+         throws org.sonatype.nexus.proxy.StorageException,
+                AccessDeniedException, ItemNotFoundException,
+                IllegalOperationException
+    {
+        ResourceStoreRequest request = toResourceStoreRequest( specIndex.zippedSpecsIndexFile() );
+        return (StorageFileItem) repository.retrieveItem( request );
+    }
 
     @SuppressWarnings( "deprecation" )
     public StorageFileItem retrieveUnzippedSpecsIndex( RubyRepository repository,
@@ -226,22 +237,19 @@ public class NexusLayout
           throws ItemNotFoundException, AccessDeniedException,
                  org.sonatype.nexus.proxy.StorageException, IllegalOperationException
     {
-        ResourceStoreRequest request = toResourceStoreRequest( specIndex.zippedSpecsIndexFile() );
-        StorageFileItem item = (StorageFileItem) repository.retrieveItem( request );
+        StorageFileItem item = retrieveSpecIndex( repository, specIndex );
         DefaultStorageFileItem unzippedItem = null;
         try
         {
-            unzippedItem = new DefaultStorageFileItem( repository,
-                                        toResourceStoreRequest( specIndex.unzippedSpecsIndexFile() ),
-                                        true, false,
-                                        gunzipContentLocator( item ) );
+            unzippedItem =
+                    new DefaultStorageFileItem( repository,
+                                                toResourceStoreRequest( specIndex.unzippedSpecsIndexFile() ),
+                                                true, false,
+                                                gunzipContentLocator( item ) );
         }
         catch (IOException e)
         {
-            throw new ItemNotFoundException( reasonFor( request, repository,
-                                                        "Could not create unzipped content for path %s in local storage of repository %s", 
-                                                        request.getRequestPath(),
-                                                        RepositoryStringUtils.getHumanizedNameString( repository ) ) );
+            throw new org.sonatype.nexus.proxy.StorageException( e );
         }
         unzippedItem.setModified( item.getModified() );
         return unzippedItem;

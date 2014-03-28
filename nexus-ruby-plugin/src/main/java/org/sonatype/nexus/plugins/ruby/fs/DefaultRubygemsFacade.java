@@ -2,7 +2,6 @@ package org.sonatype.nexus.plugins.ruby.fs;
 
 import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -14,7 +13,6 @@ import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
-import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
@@ -32,15 +30,6 @@ public class DefaultRubygemsFacade implements RubygemsFacade {
     public DefaultRubygemsFacade( RubygemsGateway gateway )
     {
         this.gateway = gateway;
-    }
-
-    @Override
-    public void setupNewRepo( File basedir ) throws LocalStorageException, ItemNotFoundException 
-    {   
-        // nice to have on newly create repo
-        new File( basedir, "gems" ).mkdirs();
-        new File( basedir, "quick/Marshal.4.8" ).mkdirs();
-        new File( basedir, "api/v1/dependencies" ).mkdirs();
     }
 
     @SuppressWarnings( "deprecation" )

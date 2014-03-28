@@ -78,11 +78,6 @@ public class DefaultHostedRubyRepository
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
     }
 
-    @Subscribe
-    public void on( NexusStartedEvent event ) throws Exception {
-        this.facade.setupNewRepo( new File( getBaseDirectory() ) );
-    }
-
     @Override
     protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator()
     {

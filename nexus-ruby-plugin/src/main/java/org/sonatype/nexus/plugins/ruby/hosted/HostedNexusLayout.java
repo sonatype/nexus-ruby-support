@@ -33,6 +33,7 @@ import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
 import org.sonatype.nexus.ruby.Layout;
 import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
 @Singleton
@@ -46,6 +47,25 @@ public class HostedNexusLayout extends NexusLayout implements Layout
     {
         super( layout, gateway );
     }    
+
+    @SuppressWarnings( "deprecation" )
+    @Override
+    public StorageFileItem retrieveSpecIndex( RubyRepository repository,
+                                              SpecsIndexFile specIndex )
+            throws org.sonatype.nexus.proxy.StorageException, 
+                   AccessDeniedException, IllegalOperationException,
+                   ItemNotFoundException
+    {
+        try
+        {
+            return super.retrieveSpecIndex( repository, specIndex );
+        }
+        catch (ItemNotFoundException e)
+        {
+            createEmptySpecs( repository, specIndex.specsType() );
+            return super.retrieveSpecIndex( repository, specIndex );
+        }
+    }
 
     @SuppressWarnings( "deprecation" )
     public void createDependency( RubyRepository repository, 
