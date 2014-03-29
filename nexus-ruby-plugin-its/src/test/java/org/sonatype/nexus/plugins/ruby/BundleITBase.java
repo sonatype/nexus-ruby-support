@@ -1,5 +1,6 @@
 package org.sonatype.nexus.plugins.ruby;
 
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
@@ -56,6 +57,14 @@ public class BundleITBase extends RubyNexusRunningITSupport
     protected void testAfterBundleComplete(){
     }
     
+    protected void assertHostedFiles()
+    {
+        assertFileDownload( "/api/v1/dependencies/z/zip.json.rz", is( true ) );
+        assertFileDownload( "/api/v1/dependencies/zip.json.rz", is( true ) );
+        assertFileDownload( "/quick/Marshal.4.8/z/zip-2.0.2.gemspec.rz", is( true ) );
+        assertFileDownload( "/quick/Marshal.4.8/zip-2.0.2.gemspec.rz", is( true ) );
+    }
+
     @Override
     protected NexusBundleConfiguration configureNexus( NexusBundleConfiguration configuration ) {
         configuration = super.configureNexus( configuration );
