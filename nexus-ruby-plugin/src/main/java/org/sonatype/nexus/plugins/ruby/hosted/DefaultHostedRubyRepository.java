@@ -209,6 +209,7 @@ public class DefaultHostedRubyRepository
                    org.sonatype.nexus.proxy.StorageException
     {
         RubygemsFile file = layout.fromResourceStoreRequest( this, request );
+        request.setRequestPath( file.storagePath() );
         switch( file.type() )
         {
         case API_V1:
@@ -225,13 +226,21 @@ public class DefaultHostedRubyRepository
         case DEPENDENCY:
             try
             {
-                request.setRequestPath( file.storagePath() );
                 return super.retrieveItem( request );
             }
             catch( ItemNotFoundException e )
             {
                 layout.createDependency( this, file.isDependencyFile() );
-                request.setRequestPath( file.storagePath() );
+                return super.retrieveItem( request );                
+            }
+        case GEMSPEC:
+            try
+            {
+                return super.retrieveItem( request );
+            }
+            catch( ItemNotFoundException e )
+            {
+                layout.createGemspec( this, file.isGemspecFile() );
                 return super.retrieveItem( request );                
             }
         case SPECS_INDEX:
@@ -240,7 +249,6 @@ public class DefaultHostedRubyRepository
                 return layout.retrieveUnzippedSpecsIndex( this, file.isSpecIndexFile() );
             }
         default:
-            request.setRequestPath( file.storagePath() );
             return super.retrieveItem( request );
         }
     }

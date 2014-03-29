@@ -25,6 +25,7 @@ import org.sonatype.nexus.proxy.item.ContentLocator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
+import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.ByteArrayInputStream;
 import org.sonatype.nexus.ruby.DefaultLayout;
@@ -64,6 +65,30 @@ public class HostedNexusLayout extends NexusLayout implements Layout
         {
             createEmptySpecs( repository, specIndex.specsType() );
             return super.retrieveSpecIndex( repository, specIndex );
+        }
+    }
+
+    @SuppressWarnings( "deprecation" )
+    public void createGemspec( RubyRepository repository, 
+                               GemspecFile gemspec ) 
+            throws org.sonatype.nexus.proxy.StorageException,
+                   ItemNotFoundException, IllegalOperationException,
+                   AccessDeniedException
+    {
+        StorageItem gem = repository.retrieveItem( toResourceStoreRequest( gemspec.gem() ) );
+        try
+        {
+            Object spec = gateway.spec( ((StorageFileItem) gem ).getInputStream() );
+            storeGemspecRz( repository, spec, gemspec );
+        }
+        catch ( IOException e )
+        {
+            throw new  org.sonatype.nexus.proxy.StorageException( e );
+        }
+        catch ( UnsupportedStorageOperationException e )
+        {
+            // should never happen 
+            throw new RuntimeException( "BUG", e );
         }
     }
 
@@ -215,18 +240,33 @@ public class HostedNexusLayout extends NexusLayout implements Layout
                    IllegalOperationException, LocalStorageException,
                    AccessDeniedException, ItemNotFoundException
     {
-        GemspecFile gemspec = gem.gemspec();
-        
-        // store the gemspec.rz
-        ResourceStoreRequest request = toResourceStoreRequest( gemspec );
-        ByteArrayInputStream is = gateway.createGemspecRz( spec );
-        store( repository, is, is.length(), gemspec.type().mime(), request );
+        storeGemspecRz( repository, spec, gem.gemspec() );
 
         // add the spec to the index
         addSpecToIndex( repository, spec );
         
         // create a new dependency file including the new gem
         createDependency( repository, gem.dependency() );
+    }
+
+    @SuppressWarnings( "deprecation" )
+    protected void storeGemspecRz( RubyRepository repository, Object spec,
+                                 GemspecFile gemspec ) 
+        throws org.sonatype.nexus.proxy.StorageException,
+               UnsupportedStorageOperationException, IllegalOperationException
+    {
+        ByteArrayInputStream is = null;
+        try
+        {
+            // store the gemspec.rz
+            ResourceStoreRequest request = toResourceStoreRequest( gemspec );
+            is = gateway.createGemspecRz( spec );
+            store( repository, is, is.length(), gemspec.type().mime(), request );
+        }
+        finally
+        {
+            IOUtil.close( is );
+        }
     }
 
     @SuppressWarnings( "deprecation" )
