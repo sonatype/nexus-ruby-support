@@ -22,7 +22,7 @@ module Nexus
 
     def exec( *args )
 
-      ENV['PATH'] ||= '' # just make bundler has a PATH variable
+      ENV['PATH'] ||= '' # just make sure bundler has a PATH variable
 
       shell = Shell.new
 
