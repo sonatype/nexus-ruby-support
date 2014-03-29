@@ -157,7 +157,7 @@ public class NexusLayout
         List<InputStream> deps = new LinkedList<InputStream>();
         for( String name: file.isBundlerApiFile().gemnames() )
         {
-            ResourceStoreRequest req = toResourceStoreRequest(  dependencyFile( name ) );
+            ResourceStoreRequest req = toResourceStoreRequest( dependencyFile( name ) );
             try
             {
                 deps.add( ((StorageFileItem) repository.retrieveItem( req ) ).getInputStream() );
