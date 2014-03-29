@@ -137,8 +137,8 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
             )
             .addOverlays(
                 overlays.copy()
-                    .file( file( testData().resolveFile( "nexus.xml" ) ) )
-                    .to().directory( path( "sonatype-work/nexus/conf" ) )
+                    .file( file( testData().resolveFile( "nexus-" + repoId + ".xml" ) ) )
+                    .to().file( path( "sonatype-work/nexus/conf/nexus.xml" ) )
             )
             .setStartTimeout( Time.minutes( 3 ).toSecondsI() )
             .setLogLevel( "DEBUG" )
