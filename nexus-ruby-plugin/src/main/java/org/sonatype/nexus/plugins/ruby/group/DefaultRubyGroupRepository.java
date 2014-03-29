@@ -1,5 +1,7 @@
 package org.sonatype.nexus.plugins.ruby.group;
 
+import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
+
 import java.io.File;
 import java.util.Arrays;
 
@@ -29,6 +31,7 @@ import org.sonatype.nexus.proxy.repository.GroupRepository;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.RubygemsFile;
 
 @Named( DefaultRubyGroupRepository.ID )
@@ -104,18 +107,11 @@ public class DefaultRubyGroupRepository
                    org.sonatype.nexus.proxy.StorageException
     {
         RubygemsFile file = layout.fromResourceStoreRequest( this, request );
+        request.setRequestPath( file.storagePath() );
         switch( file.type() )
         {
         case BUNDLER_API:
             return layout.createBundlerAPIResponse( this, file.isBundlerApiFile() );
-        case DEPENDENCY:
-            StorageItem item = layout.setup( this, file  );
-            if ( item != null )
-            {
-                return item;
-            }
-            request.setRequestPath( file.storagePath() );
-            return super.retrieveItem( request );
         case SPECS_INDEX:
             if ( file.isSpecIndexFile().isGzipped() )
             {
@@ -125,12 +121,40 @@ public class DefaultRubyGroupRepository
             {
                 return layout.retrieveUnzippedSpecsIndex( this, file.isSpecIndexFile() );
             }
-        default:
-            request.setRequestPath( file.storagePath() );
             return super.retrieveItem( request );
+        case DEPENDENCY:
+            StorageItem item = layout.setup( this, file  );
+            if ( item != null )
+            {
+                return item;
+            }
+        default:
+            return retrieveFirstItem( request );
         }
     }
 
+    @SuppressWarnings( "deprecation" )
+    private StorageItem retrieveFirstItem( ResourceStoreRequest request )
+        throws org.sonatype.nexus.proxy.StorageException,
+               AccessDeniedException, IllegalOperationException, ItemNotFoundException
+    {
+        for( Repository repo : getMemberRepositories() )
+        {
+            try
+            {
+                return repo.retrieveItem( request );
+            }
+            catch (ItemNotFoundException e)
+            {
+               // ignore
+            }
+        } 
+        throw new ItemNotFoundException( reasonFor( request, this,
+                                                    "Could not find content for path %s in local storage of repository %s", 
+                                                    request.getRequestPath(),
+                                                    RepositoryStringUtils.getHumanizedNameString( this ) ) );
+    }
+ 
     @Override
     public StorageItem retrieveJavaGem( RubygemFile gem )
     {

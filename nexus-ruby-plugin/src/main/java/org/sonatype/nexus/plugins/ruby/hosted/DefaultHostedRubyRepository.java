@@ -27,7 +27,6 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.events.NexusStartedEvent;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
@@ -40,8 +39,6 @@ import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
-
-import com.google.common.eventbus.Subscribe;
 
 @Named( DefaultHostedRubyRepository.ID )
 public class DefaultHostedRubyRepository
@@ -203,53 +200,61 @@ public class DefaultHostedRubyRepository
     
     @SuppressWarnings("deprecation")
     @Override
-    public StorageItem retrieveItem( ResourceStoreRequest request )
-            throws AccessDeniedException, IllegalOperationException,
+    public StorageItem retrieveItem( boolean fromTask, ResourceStoreRequest request )
+            throws //AccessDeniedException,
+                   IllegalOperationException,
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
         RubygemsFile file = layout.fromResourceStoreRequest( this, request );
         request.setRequestPath( file.storagePath() );
-        switch( file.type() )
+        try
         {
-        case API_V1:
-            if ( "api_key".equals( file.isApiV1File().name() ) )
+            switch( file.type() )
             {
-                // TODO not sure how
+            case API_V1:
+                if ( "api_key".equals( file.isApiV1File().name() ) )
+                {
+                    // TODO not sure how
+                }
+                throw new ItemNotFoundException( reasonFor( request, this,
+                                                            "Could not create unzipped content for path %s in local storage of repository %s", 
+                                                            request.getRequestPath(),
+                                                            RepositoryStringUtils.getHumanizedNameString( this ) ) );
+            case BUNDLER_API:
+                return layout.createBundlerAPIResponse( this, file.isBundlerApiFile() );
+            case DEPENDENCY:
+                try
+                {
+                    return super.retrieveItem( fromTask, request );
+                }
+                catch( ItemNotFoundException e )
+                {
+                    layout.createDependency( this, file.isDependencyFile() );
+                    return super.retrieveItem( fromTask, request );                
+                }
+            case GEMSPEC:
+                try
+                {
+                    return super.retrieveItem( fromTask, request );
+                }
+                catch( ItemNotFoundException e )
+                {
+                    layout.createGemspec( this, file.isGemspecFile() );
+                    return super.retrieveItem( fromTask, request );                
+                }
+            case SPECS_INDEX:
+                if ( ! file.isSpecIndexFile().isGzipped() )
+                {
+                    return layout.retrieveUnzippedSpecsIndex( this, file.isSpecIndexFile() );
+                }
+            default:
+                return super.retrieveItem( fromTask, request );
             }
-            throw new ItemNotFoundException( reasonFor( request, this,
-                                                        "Could not create unzipped content for path %s in local storage of repository %s", 
-                                                        request.getRequestPath(),
-                                                        RepositoryStringUtils.getHumanizedNameString( this ) ) );
-        case BUNDLER_API:
-            return layout.createBundlerAPIResponse( this, file.isBundlerApiFile() );
-        case DEPENDENCY:
-            try
-            {
-                return super.retrieveItem( request );
-            }
-            catch( ItemNotFoundException e )
-            {
-                layout.createDependency( this, file.isDependencyFile() );
-                return super.retrieveItem( request );                
-            }
-        case GEMSPEC:
-            try
-            {
-                return super.retrieveItem( request );
-            }
-            catch( ItemNotFoundException e )
-            {
-                layout.createGemspec( this, file.isGemspecFile() );
-                return super.retrieveItem( request );                
-            }
-        case SPECS_INDEX:
-            if ( ! file.isSpecIndexFile().isGzipped() )
-            {
-                return layout.retrieveUnzippedSpecsIndex( this, file.isSpecIndexFile() );
-            }
-        default:
-            return super.retrieveItem( request );
+        }
+        catch( AccessDeniedException e )
+        {
+            throw new org.sonatype.nexus.proxy.StorageException( e );
         }
     }
 
