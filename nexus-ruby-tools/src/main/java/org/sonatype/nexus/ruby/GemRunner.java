@@ -1,38 +1,31 @@
 package org.sonatype.nexus.ruby;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jruby.embed.PathType;
+import org.jruby.embed.ScriptingContainer;
 import org.jruby.runtime.builtin.IRubyObject;
 
-public class GemRunner
+public class GemRunner extends ScriptWrapper
 {
-
-    private final JRubyScriptingContainer ruby;
-    
-    private final IRubyObject runner;
     
     private final String baseUrl;
     
     private boolean listRemoteFirstRun = true;
     
-    public GemRunner( JRubyScriptingContainer ruby, String baseUrl )
+    public GemRunner( ScriptingContainer ruby, String baseUrl )
     {
-        this.ruby = ruby;
+        super( ruby );
         this.baseUrl = baseUrl;
-        
-        try
-        {
-            IRubyObject runnerClass = ruby.parseFile( "nexus/gem_runner.rb" ).run();
-            runner = ruby.callMethod( runnerClass, "new", IRubyObject.class );
-        } 
-        catch ( FileNotFoundException e )
-        {
-            throw new RuntimeException( "error", e);
-        }
+    }
+    
+    protected Object newScript()
+    {
+        IRubyObject runnerClass = scriptingContainer.parse( PathType.CLASSPATH, "nexus/gem_runner.rb" ).run();
+        return scriptingContainer.callMethod( runnerClass, "new", IRubyObject.class );
     }
     
     public String install( String repoId, String... gems )
@@ -43,7 +36,7 @@ public class GemRunner
         addNoDocu( args );
         setSource( args, repoId );
         args.addAll( Arrays.asList( gems ) );
-        return ruby.callMethod( runner, "exec", args.toArray(), String.class );
+        return callMethod( "exec", args.toArray(), String.class );
     }
 
     private void setSource(List<String> args, String repoId ) {
@@ -64,7 +57,7 @@ public class GemRunner
             args.add( gem.getAbsolutePath() );
         }
         
-        return ruby.callMethod( runner, "exec", args.toArray(), String.class );
+        return callMethod( "exec", args.toArray(), String.class );
     }
 
     private void addNoDocu(List<String> args) {
@@ -99,7 +92,7 @@ public class GemRunner
             setSource( args, repoId );
         }
         
-        return ruby.callMethod( runner, "exec", args.toArray(), String.class );
+        return callMethod( "exec", args.toArray(), String.class );
     }
     
     public String nexus( File config, File gem )
@@ -111,8 +104,8 @@ public class GemRunner
         args.add( gem.getAbsolutePath() );
         
         // make sure the custom gem command is loaded when the gem is installed
-        ruby.callMethod( runner, "load_plugins" );        
+        callMethod( "load_plugins" );        
         
-        return ruby.callMethod( runner, "exec", args.toArray(), String.class );        
+        return callMethod( "exec", args.toArray(), String.class );        
     }
 }

@@ -2,12 +2,12 @@ package org.sonatype.nexus.plugins.ruby;
 
 import java.io.File;
 
-import org.sonatype.nexus.ruby.TestJRubyScriptingContainer;
+import org.sonatype.nexus.ruby.TestScriptingContainer;
 
-class ITestJRubyScriptingContainer extends TestJRubyScriptingContainer
+class ITestJRubyScriptingContainer extends TestScriptingContainer
 {
     ITestJRubyScriptingContainer(){
-        super( "target/rubygems" );
+        super( "target/rubygems", null );
     }
     
     ITestJRubyScriptingContainer( File gemfile ){

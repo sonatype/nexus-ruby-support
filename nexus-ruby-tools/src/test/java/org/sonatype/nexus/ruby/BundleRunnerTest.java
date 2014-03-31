@@ -20,7 +20,7 @@ public class BundleRunnerTest
     @Before
     public void setUp() throws Exception
     {
-        runner = new BundleRunner( new TestJRubyScriptingContainer() );
+        runner = new BundleRunner( new TestScriptingContainer() );
     }
     
     @Test

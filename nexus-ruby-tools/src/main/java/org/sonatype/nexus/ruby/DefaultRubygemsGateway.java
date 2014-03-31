@@ -1,78 +1,56 @@
 package org.sonatype.nexus.ruby;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 
 import org.jruby.embed.LocalContextScope;
 import org.jruby.embed.LocalVariableBehavior;
+import org.jruby.embed.PathType;
+import org.jruby.embed.ScriptingContainer;
+import org.jruby.embed.osgi.OSGiScriptingContainer;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.osgi.framework.FrameworkUtil;
 
 public class DefaultRubygemsGateway
+    extends ScriptWrapper
     implements RubygemsGateway
 {
-
-    private final JRubyScriptingContainer scriptingContainer;
-
-    private final IRubyObject nexusRubygemsClass;
-
-    private Object rubygems;
-    
-    public DefaultRubygemsGateway()
+ 
+    private static ScriptingContainer newScriptingContainer()
     {
-        scriptingContainer = new JRubyScriptingContainer( LocalContextScope.THREADSAFE, 
-                                                          LocalVariableBehavior.PERSISTENT );
-
+        ScriptingContainer container;
         try
         {
-        
-            nexusRubygemsClass = scriptingContainer.parseFile( "nexus/rubygems.rb" ).run();
-
+            container = new OSGiScriptingContainer( FrameworkUtil.getBundle( DefaultRubygemsGateway.class ) );
         }
-        catch ( FileNotFoundException e )
+        catch( RuntimeException | NoClassDefFoundError e )
         {
-            throw new RuntimeException( e );
+            // adjust scope and behaviour better
+            container = new ScriptingContainer( LocalContextScope.THREADSAFE, 
+                                                LocalVariableBehavior.PERSISTENT );
         }
+        container.setClassLoader( DefaultRubygemsGateway.class.getClassLoader() );
+        
+        return container;
     }
-    
-    private synchronized Object rubygems()
+ 
+    public DefaultRubygemsGateway()
     {
-        if (rubygems == null )
-        { 
-            rubygems = scriptingContainer.callMethod( nexusRubygemsClass, "new", Object.class );
-        }
-        return rubygems;
+        super( newScriptingContainer() );
     }
 
-    private <T> T callMethod( String methodName, Object singleArg, Class<T> returnType ) {
-        return scriptingContainer.callMethod( rubygems(), methodName, singleArg, returnType );
-    }
-
-    private <T> T callMethod( String methodName, Object[] args, Class<T> returnType ) {
-        return scriptingContainer.callMethod( rubygems(), methodName, args, returnType );
-    }
-
-    private <T> T callMethod( String methodName, Class<T> returnType ) {
-        return scriptingContainer.callMethod( rubygems(), methodName, returnType );
+    protected Object newScript()
+    {
+        IRubyObject nexusRubygemsClass = scriptingContainer.parse( PathType.CLASSPATH,  "nexus/rubygems.rb" ).run();
+        return scriptingContainer.callMethod( nexusRubygemsClass, "new", Object.class );
     }
     
-//    @Override
-//    public ByteArrayInputStream createGemspecRz( String gemname, InputStream gem )
-//    {
-//        try
-//        {
-//            @SuppressWarnings( "unchecked" )
-//            List<Long> array = (List<Long>) callMethod( "create_quick",
-//                                                        new Object[] { gemname, gem },
-//                                                        List.class );
-//        
-//            return new ByteArrayInputStream( array );
-//        }
-//        finally
-//        {
-//            IOUtil.close( gem );
-//        }
-//    }
+    public Dependencies dependencies( InputStream is, long modified )
+    {
+        return new Dependencies( scriptingContainer, 
+                                 callMethod( "dependencies", new Object[]{ is, modified },
+                                             Object.class ) );
+    }
 
     @Override
     public InputStream emptyIndex()

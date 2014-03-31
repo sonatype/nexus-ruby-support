@@ -12,6 +12,8 @@ import junit.framework.TestCase;
 
 import org.apache.commons.io.IOUtils;
 import org.jruby.embed.InvokeFailedException;
+import org.jruby.embed.PathType;
+import org.jruby.embed.ScriptingContainer;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,16 +21,16 @@ import org.junit.Test;
 public class RubygemsGatewayTest
     extends TestCase
 {
-    private JRubyScriptingContainer scriptingContainer;
+    private ScriptingContainer scriptingContainer;
     private RubygemsGateway gateway;
     private IRubyObject check;
     
     @Before
     public void setUp() throws Exception
     {       
-        scriptingContainer = new TestJRubyScriptingContainer();
+        scriptingContainer = new TestScriptingContainer();
         gateway = new DefaultRubygemsGateway();
-        check = scriptingContainer.parseFile( "nexus/check.rb" ).run();
+        check = scriptingContainer.parse( PathType.CLASSPATH, "nexus/check.rb" ).run();
     }
     
     @Test

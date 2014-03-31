@@ -12,6 +12,7 @@ import java.util.Collection;
 import javax.inject.Inject;
 
 import org.hamcrest.Matcher;
+import org.jruby.embed.ScriptingContainer;
 import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
 import org.sonatype.nexus.client.core.subsystem.content.Content;
@@ -19,7 +20,6 @@ import org.sonatype.nexus.client.core.subsystem.content.Location;
 import org.sonatype.nexus.client.rest.BaseUrl;
 import org.sonatype.nexus.ruby.BundleRunner;
 import org.sonatype.nexus.ruby.GemRunner;
-import org.sonatype.nexus.ruby.JRubyScriptingContainer;
 import org.sonatype.nexus.testsuite.support.NexusRunningITSupport;
 import org.sonatype.sisu.filetasks.FileTaskBuilder;
 import org.sonatype.sisu.goodies.common.Time;
@@ -43,7 +43,7 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
     
     protected GemRunner gemRunner;
     
-    protected JRubyScriptingContainer ruby;
+    protected ScriptingContainer ruby;
     protected final String repoId;
 
     private BundleRunner bundleRunner;
@@ -57,17 +57,12 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
         this( null, repoId );
      }
 
-    private JRubyScriptingContainer ruby(){
+    private ScriptingContainer ruby(){
         if ( this.ruby == null )
         {
-            this.ruby = createScriptingContainer();
+            this.ruby = new ITestJRubyScriptingContainer();
         }
         return this.ruby;
-    }
-
-    protected ITestJRubyScriptingContainer createScriptingContainer()
-    {
-        return new ITestJRubyScriptingContainer();
     }
 
     protected GemRunner gemRunner() {

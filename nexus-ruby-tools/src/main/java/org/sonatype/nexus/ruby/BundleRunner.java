@@ -1,47 +1,40 @@
 package org.sonatype.nexus.ruby;
 
-import java.io.FileNotFoundException;
-
+import org.jruby.embed.PathType;
+import org.jruby.embed.ScriptingContainer;
 import org.jruby.runtime.builtin.IRubyObject;
 
-public class BundleRunner
+public class BundleRunner extends ScriptWrapper
 {
 
-    private final JRubyScriptingContainer ruby;
-    
-    private final IRubyObject runner;
-    
-    public BundleRunner( JRubyScriptingContainer ruby )
+    public BundleRunner( ScriptingContainer ruby )
     {
-        this.ruby = ruby;
-        try
-        {
-            IRubyObject runnerClass = ruby.parseFile( "nexus/bundle_runner.rb" ).run();
-            runner = ruby.callMethod( runnerClass, "new", IRubyObject.class );
-        } 
-        catch ( FileNotFoundException e )
-        {
-            throw new RuntimeException( "error", e);
-        }
+        super( ruby );
+    }
+    
+    protected Object newScript()
+    {
+        IRubyObject runnerClass = scriptingContainer.parse( PathType.CLASSPATH, "nexus/bundle_runner.rb" ).run();
+        return scriptingContainer.callMethod( runnerClass, "new", IRubyObject.class );
     }
     
     public String install()
     {
-        return ruby.callMethod( runner, "exec", "install", String.class );
+        return callMethod( "exec", "install", String.class );
     }
     
     public String show()
     {
-        return ruby.callMethod( runner, "exec", "show", String.class );
+        return callMethod( "exec", "show", String.class );
     }
 
     public String config()
     {
-        return ruby.callMethod( runner, "exec", "config", String.class );
+        return callMethod( "exec", "config", String.class );
     }
     
     public String show( String gemName )
     {
-        return ruby.callMethod( runner, "exec", new String[]{ "show", gemName } , String.class );
+        return callMethod( "exec", new String[]{ "show", gemName } , String.class );
     }
 }
