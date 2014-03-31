@@ -18,7 +18,12 @@ public class DownloadsOnEmptyRepositoriesIT extends RubyNexusRunningITSupport
     public DownloadsOnEmptyRepositoriesIT(String repoId) {
       super( repoId );
     }
-    
+
+    protected String nexusXML()
+    {
+        return "nexus-downloads-on-empty.xml";
+    }
+
     @Test
     public void nexusIsRunning()
     {

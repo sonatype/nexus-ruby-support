@@ -28,12 +28,12 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
 
     @Parameters
     public static Collection<String[]> data() {
-	String[][] data = new String[][] { 
-	                 { "gemshost" },
-					 { "gemsproxy" },
-					 { "gemshostgroup" },
-					 { "gemsproxygroup" },
-					 { "gemsgroup" } 
+	String[][] data = new String[][] {
+	    { "gemshost" },
+	    { "gemsproxy" },
+	    { "gemshostgroup" },
+	    { "gemsproxygroup" },
+        { "gemsgroup" }
       };
       return Arrays.asList(data);
     }
@@ -127,6 +127,11 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
         }
     }
 
+    protected String nexusXML()
+    {
+        return "nexus-" + repoId + ".xml";
+    }
+
     @Override
     protected NexusBundleConfiguration configureNexus( final NexusBundleConfiguration configuration ) {
         return configuration
@@ -137,7 +142,7 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
             )
             .addOverlays(
                 overlays.copy()
-                    .file( file( testData().resolveFile( "nexus-" + repoId + ".xml" ) ) )
+                    .file( file( testData().resolveFile( nexusXML() ) ) )
                     .to().file( path( "sonatype-work/nexus/conf/nexus.xml" ) )
             )
             .setStartTimeout( Time.minutes( 3 ).toSecondsI() )
