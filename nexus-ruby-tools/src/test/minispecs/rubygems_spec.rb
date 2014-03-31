@@ -119,7 +119,8 @@ describe Nexus::Rubygems do
     Dir[ File.join( broken_to, '*specs.4.8.gz' ) ].size.must_equal 3
     Dir[ File.join( broken_to, '*specs.4.8' ) ].size.must_equal 0
     Dir[ File.join( broken_to, '*' ) ].size.must_equal 6
-    Dir[ File.join( broken_to, 'quick', '**', '*' ) ].size.must_equal 3
+    # this includes all the defaultgems from jruby
+    Dir[ File.join( broken_to, 'quick', '**', '*' ) ].size.must_equal 15
   end
 
   it 'finds no gem with unknown gemname' do
