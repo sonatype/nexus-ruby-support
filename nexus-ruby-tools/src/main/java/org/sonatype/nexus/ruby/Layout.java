@@ -23,4 +23,6 @@ public interface Layout
 
     SpecsIndexFile specsIndex( String name, boolean isGzipped );
 
+    MavenMetadataFile mavenMetadata( String name, boolean prereleased );
+
 }

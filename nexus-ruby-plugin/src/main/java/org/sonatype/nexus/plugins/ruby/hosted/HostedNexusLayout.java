@@ -101,15 +101,17 @@ public class HostedNexusLayout extends NexusLayout implements Layout
     {
         List<InputStream> gemspecs = new LinkedList<InputStream>();
         try{
-            StorageFileItem specs = (StorageFileItem) retrieveSpecsIndex( repository, SpecsIndexType.RELEASE );
-        //    StorageFileItem prereleasedSpecs = 
-        //            (StorageFileItem) retrieveItem( new ResourceStoreRequest( SpecsIndexType.PRERELEASE.filepathGzipped() ) );
-        
+            StorageFileItem specs = (StorageFileItem) retrieveSpecsIndex( repository, SpecsIndexType.RELEASE );        
             List<String> versions = gateway.listVersions( file.name(),
                                                           toGZIPInputStream( specs ),
                                                           specs.getModified(),
                                                           false );
-            
+            specs = (StorageFileItem) retrieveSpecsIndex( repository, SpecsIndexType.PRERELEASE );
+            versions.addAll( gateway.listVersions( file.name(),
+                                                   toGZIPInputStream( specs ),
+                                                   specs.getModified(),
+                                                   true ) );
+                        
             for( String version: versions )
             {
                 ResourceStoreRequest req = toResourceStoreRequest( gemspecFile( file.name(), 

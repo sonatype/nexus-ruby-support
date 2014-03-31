@@ -5,6 +5,7 @@ public enum FileType {
     GEM( "application/x-rubygems" ),
     GEMSPEC( "application/x-ruby-marshal" ),
     DEPENDENCY( "application/json" ),
+    MAVEN_METADATA( "application/xml" ),
     SPECS_INDEX( "application/x-ruby-marshal" ),
     DIRECTORY( "application/octet" ), 
     BUNDLER_API( "application/x-ruby-marshal" ), 

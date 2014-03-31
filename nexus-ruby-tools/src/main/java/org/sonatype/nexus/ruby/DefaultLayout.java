@@ -42,6 +42,22 @@ public class DefaultLayout implements Layout
     private static final Pattern QUICK_MARSHAL_DIRS = Pattern.compile( "^" + QUICK_MARSHAL + "/[^/]/?$");
     private static final Pattern API_V1_DEPS_DIRS = Pattern.compile( "^" + API_V1_DEPS + "/[^/]/?$");
 
+    private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
+    private static final String MAVEN = "/maven";
+    private static final String RUBYGEMS = "/rubygems";
+    private static final String MAVEN_PRERELEASED = MAVEN + "/prereleased";
+    private static final String MAVEN_RELEASED = MAVEN + "/released";
+    private static final String MAVEN_PRERELEASED_RUBYGEMS = MAVEN_PRERELEASED + RUBYGEMS;
+    private static final String MAVEN_RELEASED_RUBYGEMS = MAVEN_RELEASED + RUBYGEMS;
+    private static final int MAVEN_METADATA_XML_LEN = MAVEN_METADATA_XML.length();
+    private static final int MAVEN_PRERELEASED_RUBYGEMS_LEN = MAVEN_PRERELEASED_RUBYGEMS.length();
+    private static final int MAVEN_RELEASED_RUBYGEMS_LEN = MAVEN_RELEASED_RUBYGEMS.length();
+    private static final String MAVEN_METADATA_COMMON = "^" + MAVEN + "/(pre)?released" +
+            RUBYGEMS + "/[^/]+/";
+    private static final Pattern MAVEN_METADATA = Pattern.compile( MAVEN_METADATA_COMMON +
+                                                                   MAVEN_METADATA_XML + "$" );
+    private static final Pattern MAVEN_DIRS = Pattern.compile(  MAVEN_METADATA_COMMON + "$" );
+
     /* (non-Javadoc)
      * @see org.sonatype.nexus.ruby.Layout#specsIndex(java.lang.String,boolean)
      */
@@ -58,7 +74,17 @@ public class DefaultLayout implements Layout
                                    name,
                                    isGzipped );
     }
-    
+    /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
+     */
+    @Override
+    public MavenMetadataFile mavenMetadata( String name, boolean prereleased )
+    {
+        String path = join( prereleased ? MAVEN_PRERELEASED_RUBYGEMS : MAVEN_RELEASED_RUBYGEMS,
+                            SEPARATOR, name, MAVEN_METADATA_XML );
+        return new MavenMetadataFile( this, path, path, name, prereleased );
+    }
+
     /* (non-Javadoc)
      * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
      */
@@ -214,13 +240,27 @@ public class DefaultLayout implements Layout
         {
             return apiV1File( "api_key" );
         }
-        if ( path.equals( "" ) || 
-                path.equals( GEMS ) || GEMS_DIRS.matcher( path ).matches() || 
-                path.equals( QUICK ) || 
-                path.equals( QUICK_MARSHAL ) || QUICK_MARSHAL_DIRS.matcher( path ).matches() ||  
-                path.equals( API ) || 
-                path.equals( API_V1 ) || 
-                path.equals( API_V1_DEPS ) || API_V1_DEPS_DIRS.matcher( path ).matches() )
+        if ( MAVEN_METADATA.matcher( path ).matches() )
+        {
+           boolean isPre = path.startsWith( MAVEN_PRERELEASED_RUBYGEMS );
+           String name = path.substring( isPre ? MAVEN_PRERELEASED_RUBYGEMS_LEN : MAVEN_RELEASED_RUBYGEMS_LEN,
+                                         path.length() - MAVEN_METADATA_XML_LEN );
+           return mavenMetadata( name, isPre );
+        }
+        if ( path.equals( "" ) ||
+                // TODO put this into ONE big regex
+                path.equals( GEMS ) || GEMS_DIRS.matcher( path ).matches() ||
+                path.equals( QUICK ) ||
+                path.equals( QUICK_MARSHAL ) || QUICK_MARSHAL_DIRS.matcher( path ).matches() ||
+                path.equals( API ) ||
+                path.equals( API_V1 ) ||
+                path.equals( API_V1_DEPS ) || API_V1_DEPS_DIRS.matcher( path ).matches() ||
+                path.equals( MAVEN ) ||
+                path.equals( MAVEN_PRERELEASED ) ||
+                path.equals( MAVEN_PRERELEASED_RUBYGEMS ) ||
+                path.equals( MAVEN_RELEASED ) ||
+                path.equals( MAVEN_RELEASED_RUBYGEMS ) ||
+                MAVEN_DIRS.matcher( path ).matches() )
         {
             return directory( path );
         }

@@ -32,6 +32,7 @@ import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
 import org.sonatype.nexus.ruby.Layout;
+import org.sonatype.nexus.ruby.MavenMetadataFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
@@ -50,6 +51,11 @@ public class NexusLayout
     }
 
     // delegate to layout
+
+    public MavenMetadataFile mavenMetadata( String name, boolean prereleased )
+    {
+        return layout.mavenMetadata( name, prereleased );
+    }
 
     public SpecsIndexFile specsIndex( String path, boolean gzipped )
     {
