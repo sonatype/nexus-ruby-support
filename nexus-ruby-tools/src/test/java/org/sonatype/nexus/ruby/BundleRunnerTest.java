@@ -27,8 +27,9 @@ public class BundleRunnerTest
     public void testInstall()
         throws Exception
     {
-        assertThat( numberOfLines( runner.install() ), is( 5 ) );
-        assertThat( lastLine( runner.install() ), startsWith( "Your bundle is complete!" ) );
+        //System.err.println( runner.install() );
+        assertThat( numberOfLines( runner.install() ), is( 10 ) );
+        assertThat( lastLine( runner.install() ), startsWith( "Use `bundle show [gemname]` to see where a bundled gem is installed." ) );
     }
 
     @Test
@@ -49,7 +50,7 @@ public class BundleRunnerTest
     @Test
     public void testConfig()
         throws Exception
-    {   
+    {
         assertThat( runner.config(), containsString( "mirror.http://rubygems.org" ) );
     }
 }

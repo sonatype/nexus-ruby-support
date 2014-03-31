@@ -1,10 +1,3 @@
-require 'rubygems'
-begin
-  require 'rubygems/format'
-rescue LoadError
-  # newer versions of rubygems do not have that anymore
-  # just to stay backward compatible for a while
-end
 require 'maven/tools/pom'
 require 'json'
 require 'nexus/indexer'
@@ -85,9 +78,28 @@ module Nexus
     def load_spec( gemfile )
       case gemfile
       when String
-        Gem::Format.from_file_by_path( gemfile ).spec
+        Gem::Package.new( gemfile ).spec
       else
-        Gem::Format.from_io( StringIO.new( read_binary( gemfile ) ) ).spec
+        io = StringIO.new( read_binary( gemfile ) )
+        # this part if basically copied from rubygems/package.rb
+        Gem::Package::TarReader.new( io ) do |reader|
+          reader.each do |entry|
+            case entry.full_name 
+            when 'metadata' then
+              return Gem::Specification.from_yaml entry.read
+            when 'metadata.gz' then
+              args = [entry]
+              args << { :external_encoding => Encoding::UTF_8 } if
+                Object.const_defined?(:Encoding) &&
+                Zlib::GzipReader.method(:wrap).arity != 1
+              
+              Zlib::GzipReader.wrap(*args) do |gzio|
+                return Gem::Specification.from_yaml gzio.read
+              end              
+            end
+          end
+        end
+        raise "failed to load spec from #{gemfile}"
       end
     end
 

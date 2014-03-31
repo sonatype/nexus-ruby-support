@@ -1,4 +1,3 @@
-require 'rubygems'
 require 'rubygems/gem_runner'
 require 'rubygems/exceptions'
 require 'stringio'
