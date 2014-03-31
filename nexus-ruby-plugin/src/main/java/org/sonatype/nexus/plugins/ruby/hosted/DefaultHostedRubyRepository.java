@@ -39,6 +39,7 @@ import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.SpecsIndexFile;
 
 @Named( DefaultHostedRubyRepository.ID )
 public class DefaultHostedRubyRepository
@@ -167,7 +168,7 @@ public class DefaultHostedRubyRepository
             } 
             break;
         default:
-            throw new UnsupportedStorageOperationException( "only gem-files can be deleted" );
+            throw new UnsupportedStorageOperationException( "only gem-files can be stored" );
         }
     }
 
@@ -187,7 +188,7 @@ public class DefaultHostedRubyRepository
         }
         else
         {
-            throw new UnsupportedStorageOperationException( "only gem-files can be stored" );
+            throw new UnsupportedStorageOperationException( "only gem-files can be deleted" );
         }
     }
 
@@ -244,9 +245,21 @@ public class DefaultHostedRubyRepository
                     return super.retrieveItem( fromTask, request );                
                 }
             case SPECS_INDEX:
-                if ( ! file.isSpecIndexFile().isGzipped() )
+                SpecsIndexFile specs = file.isSpecIndexFile();
+                if ( ! specs.isGzipped() )
                 {
-                    return layout.retrieveUnzippedSpecsIndex( this, file.isSpecIndexFile() );
+                    return layout.retrieveUnzippedSpecsIndex( this, specs );
+                }
+                else
+                {
+                    try
+                    {
+                        return super.retrieveItem( fromTask, request );
+                    }
+                    catch (ItemNotFoundException e)
+                    {
+                        layout.createEmptySpecs( this, specs.specsType() );
+                    }
                 }
             default:
                 return super.retrieveItem( fromTask, request );

@@ -384,6 +384,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
         store( repository, new java.io.ByteArrayInputStream( gzipped.toByteArray() ), 
                gzipped.size(), "application/x-gzip", request );
     }
+    
     @SuppressWarnings( "deprecation" )
     private InputStream retrieveSpecsIndexStream( RubyRepository repository,
                                                   SpecsIndexType type )
@@ -416,7 +417,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
     }
     
     @SuppressWarnings( "deprecation" )
-    private void createEmptySpecs( RubyRepository repository, SpecsIndexType type ) 
+    public void createEmptySpecs( RubyRepository repository, SpecsIndexType type ) 
          throws org.sonatype.nexus.proxy.StorageException,
                 IllegalOperationException
     {
