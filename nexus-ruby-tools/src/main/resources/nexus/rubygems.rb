@@ -1,4 +1,4 @@
-require 'maven/tools/pom'
+#require 'maven/tools/pom'
 require 'json'
 require 'nexus/indexer'
 
