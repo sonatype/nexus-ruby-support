@@ -50,7 +50,7 @@ public class GemRunner extends ScriptWrapper
     {
         List<String> args = new ArrayList<String>();
         args.add( "install" );
-        args.add( "-r" );
+        args.add( "-l" );
         addNoDocu( args );
         for( File gem: gems)
         {
