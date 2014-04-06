@@ -60,9 +60,14 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
     private ScriptingContainer ruby(){
         if ( this.ruby == null )
         {
-            this.ruby = new ITestJRubyScriptingContainer();
+            this.ruby = createScriptingContainer();
         }
         return this.ruby;
+    }
+
+    protected ScriptingContainer createScriptingContainer()
+    {
+        return new ITestJRubyScriptingContainer();
     }
 
     protected GemRunner gemRunner() {

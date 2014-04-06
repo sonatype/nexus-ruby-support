@@ -29,6 +29,7 @@ public class BundleITBase extends RubyNexusRunningITSupport
         super( repoId );
     }
 
+    @Override
     protected ITestJRubyScriptingContainer createScriptingContainer()
     {
         return new ITestJRubyScriptingContainer( new File( target, "project/Gemfile" ) );
@@ -43,8 +44,9 @@ public class BundleITBase extends RubyNexusRunningITSupport
         assertThat( bundleRunner().config(), containsString( "http://localhost:4711/nexus/content/repositories/" + repoId ) );
         
         String out = bundleRunner().install();
-       
-        assertThat( lastLine( out ), startsWith( "Your bundle is complete!" ) );
+       System.err.println( out);
+        assertThat( out, containsString( "Your bundle is complete!" ) );
+        assertThat( lastLine( out ), is( "Use `bundle show [gemname]` to see where a bundled gem is installed." ) );
         
         // assure that bundle support is working
         assertThat( out, not( containsString( "Fetching full source index from http://localhost:4711" ) ) );
