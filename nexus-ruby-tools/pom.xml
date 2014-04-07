@@ -16,9 +16,9 @@
     <dependency>
       <groupId>org.jruby</groupId>
       <artifactId>jruby</artifactId>
-      <version>1.7.12-SNAPSHOT</version>
+      <version>1.7.11</version>
     </dependency>
-<!--
+
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcpkix-jdk15on</artifactId>
@@ -29,11 +29,11 @@
       <artifactId>bcprov-jdk15on</artifactId>
       <version>1.47</version>
     </dependency>
--->
+
     <dependency>
       <groupId>de.saumya.mojo</groupId>
       <artifactId>maven-tools</artifactId>
-      <version>1.0.0.rc1-SNAPSHOT</version>
+      <version>0.34.2</version>
     </dependency>
 
     <dependency>
