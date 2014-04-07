@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.sonatype.nexus.ruby</groupId>
     <artifactId>nexus-ruby-support</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0</version>
   </parent>
   <groupId>rubygems</groupId>
   <artifactId>nexus</artifactId>
