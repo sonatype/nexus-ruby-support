@@ -19,17 +19,17 @@ public class DefaultRubygemsGateway
     private static ScriptingContainer newScriptingContainer()
     {
         ScriptingContainer container;
-	// try
-        //{
-        //    container = new OSGiScriptingContainer( FrameworkUtil.getBundle( DefaultRubygemsGateway.class ) );
-        //}
-        //catch( Throwable e )//RuntimeException | NoClassDefFoundError e )
-	      // {
+//        try
+//        {
+//            container = new OSGiScriptingContainer( FrameworkUtil.getBundle( DefaultRubygemsGateway.class ) );
+//        }
+//        catch( RuntimeException | NoClassDefFoundError e )
+//        {
             // adjust scope and behaviour better
             container = new ScriptingContainer( LocalContextScope.THREADSAFE, 
                                                 LocalVariableBehavior.PERSISTENT );
-	    //}
-        container.setClassLoader( DefaultRubygemsGateway.class.getClassLoader() );
+            container.setClassLoader( DefaultRubygemsGateway.class.getClassLoader() );
+//        }
         
         return container;
     }
