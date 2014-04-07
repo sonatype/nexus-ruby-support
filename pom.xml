@@ -92,6 +92,7 @@
 	<configuration>
 	  <goals>install</goals>
 	  <arguments>-DskipTests -Prun-its</arguments>
+          <autoVersionSubmodules>false</autoVersionSubmodules>
 	</configuration>
       </plugin>
     </plugins>
