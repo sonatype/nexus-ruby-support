@@ -87,6 +87,23 @@
 
     <plugins>
       <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>de.saumya.mojo:*</include>
+                </includes>
+              </artifactSet>
+	    </configuration>
+	  </execution>
+	</executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>

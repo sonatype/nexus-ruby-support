@@ -4,11 +4,11 @@
   <parent>
     <groupId>org.sonatype.nexus.ruby</groupId>
     <artifactId>nexus-ruby-support</artifactId>
-    <version>1.3.1-SNAPSHOT</version>
+    <version>1.3.0</version>
   </parent>
   <groupId>rubygems</groupId>
   <artifactId>nexus</artifactId>
-  <version>1.2.2-SNAPSHOT</version>
+  <version>1.2.1</version>
   <packaging>gem</packaging>
   <name>Gem Command to interact with Nexus server</name>
   <description>Adds a command to RubyGems for uploading gems to a nexus server.</description>

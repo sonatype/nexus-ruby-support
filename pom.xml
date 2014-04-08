@@ -57,7 +57,7 @@
         <groupId>rubygems</groupId>
         <artifactId>nexus</artifactId>
         <type>gem</type>
-        <version>1.2.2-SNAPSHOT</version>
+        <version>1.2.1</version>
       </dependency>
 
       <!-- INTERNAL -->
@@ -72,14 +72,14 @@
       <dependency>
         <groupId>org.sonatype.nexus.ruby</groupId>
         <artifactId>nexus-ruby-tools</artifactId>
-        <version>2.0.1-SNAPSHOT</version>
+        <version>2.0.0</version>
       </dependency>
 
       <dependency>
         <groupId>org.sonatype.nexus.ruby</groupId>
         <artifactId>nexus-ruby-tools</artifactId>
         <classifier>tests</classifier>
-        <version>2.0.1-SNAPSHOT</version>
+        <version>2.0.0</version>
       </dependency>
 
     </dependencies>
