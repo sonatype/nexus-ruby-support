@@ -5,6 +5,7 @@ import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -317,6 +318,20 @@ public class DefaultHostedRubyRepository
     @Override
     public Logger getLog()
     {
-        return log;
+        try
+        {
+            return log;
+        }
+        catch( java.lang.NoSuchFieldError e )
+        {
+            try
+            {
+                return (Logger) getClass().getSuperclass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
+            }
+            catch ( Exception ee )
+            {
+                throw new RuntimeException( "should work", ee );
+            }
+        }
     }
 }

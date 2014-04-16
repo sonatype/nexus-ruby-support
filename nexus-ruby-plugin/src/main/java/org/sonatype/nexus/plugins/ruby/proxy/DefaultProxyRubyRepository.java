@@ -263,6 +263,20 @@ public class DefaultProxyRubyRepository
     @Override
     public Logger getLog()
     {
-        return log;
+        try
+        {
+            return log;
+        }
+        catch( java.lang.NoSuchFieldError e )
+        {
+            try
+            {
+                return (Logger) getClass().getSuperclass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
+            }
+            catch ( Exception ee )
+            {
+                throw new RuntimeException( "should work", ee );
+            }
+        }
     }
 }
