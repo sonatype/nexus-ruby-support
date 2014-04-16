@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
@@ -341,7 +342,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
         }
     }
 
-    @SuppressWarnings( "deprecation" )
+    @SuppressWarnings( { "deprecation", "resource" } )
     protected void store( RubyRepository repository,
                           InputStream is,
                           long length,
@@ -350,8 +351,25 @@ public class HostedNexusLayout extends NexusLayout implements Layout
             throws org.sonatype.nexus.proxy.StorageException,
                    UnsupportedStorageOperationException, IllegalOperationException
     {
-        ContentLocator contentLocator = new PreparedContentLocator( is, mime, length );
-
+        ContentLocator contentLocator;
+        try
+        {
+            contentLocator = new PreparedContentLocator( is, mime, length );
+        }
+        catch( NoSuchMethodError e )
+        {
+            try
+            {
+                Constructor<PreparedContentLocator> c = PreparedContentLocator.class.getConstructor( new Class[] { InputStream.class, String.class } );
+                contentLocator = c.newInstance( is, mime );
+            }
+            catch (Exception ee)
+            {
+                ee.printStackTrace();
+                throw e;
+            }
+        }
+        
         DefaultStorageFileItem gemspecFile = new DefaultStorageFileItem( repository,
                                                                          request,
                                                                          true, true,

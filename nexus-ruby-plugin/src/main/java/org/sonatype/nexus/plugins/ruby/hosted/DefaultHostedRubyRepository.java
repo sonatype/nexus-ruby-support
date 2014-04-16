@@ -275,8 +275,8 @@ public class DefaultHostedRubyRepository
     public void recreateMetadata() throws LocalStorageException, ItemNotFoundException
     {
         String directory = getBaseDirectory();
-        if (log.isDebugEnabled()){
-            log.debug( "recreate rubygems metadata in " + directory );
+        if (getLog().isDebugEnabled()){
+            getLog().debug( "recreate rubygems metadata in " + directory );
         }
         gateway.recreateRubygemsIndex( directory );
         gateway.purgeBrokenDepencencyFiles( directory );

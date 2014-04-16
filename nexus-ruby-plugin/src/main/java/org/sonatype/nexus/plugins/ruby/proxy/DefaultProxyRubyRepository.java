@@ -115,8 +115,8 @@ public class DefaultProxyRubyRepository
         {
             if (item.getName().endsWith( ".gz" ) )
             {
-                if ( log.isDebugEnabled() ){
-                    log.debug( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(),
+                if ( getLog().isDebugEnabled() ){
+                     getLog().debug( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(),
                                                                         item ) );
                 }
                 return isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item );
@@ -222,8 +222,8 @@ public class DefaultProxyRubyRepository
         LocalStorageException
     {
         String basedir = this.getLocalUrl().replace( "file:", "" );
-        if (log.isDebugEnabled() ){
-            log.debug( "recreate rubygems metadata in " + basedir );
+        if ( getLog().isDebugEnabled() ){
+             getLog().debug( "recreate rubygems metadata in " + basedir );
         }
         return basedir;
     }

@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Constructor;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -270,9 +271,25 @@ public class NexusLayout
              in = new GZIPInputStream( item.getInputStream() );
              IOUtil.copy( in, out );
              
-             return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), 
-                                                "application/x-marshal-ruby",
-                                                out.toByteArray().length );
+             try
+             {
+                 return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), 
+                                                    "application/x-marshal-ruby",
+                                                    out.toByteArray().length ); 
+             }
+             catch( NoSuchMethodError e )
+             {
+                 try
+                 {
+                     Constructor<PreparedContentLocator> c = PreparedContentLocator.class.getConstructor( new Class[] { InputStream.class, String.class } );
+                     return c.newInstance( new ByteArrayInputStream( out.toByteArray() ), 
+                                           "application/x-marshal-ruby" );
+                 }
+                 catch (Exception ee)
+                 {
+                     throw e;
+                 }
+             }
          }
          finally
          {
@@ -281,6 +298,7 @@ public class NexusLayout
          }
     }
     
+    @SuppressWarnings( "resource" )
     protected void storeSpecsIndex( RubyRepository repository, SpecsIndexFile file,
                                     InputStream content)
          throws LocalStorageException, UnsupportedStorageOperationException,
@@ -294,9 +312,26 @@ public class NexusLayout
             IOUtil.copy( content, out );
             // need to close gzip stream here
             out.close();
-            ContentLocator cl = new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ),
-                                                            "application/x-gzip",
-                                                            gzipped.size() );
+            ContentLocator cl;
+            try
+            {
+                cl = new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ),
+                                                 "application/x-gzip",
+                                                 gzipped.size() );
+            }
+            catch( NoSuchMethodError e )
+            {
+                try
+                {
+                    Constructor<PreparedContentLocator> c = PreparedContentLocator.class.getConstructor( new Class[] { InputStream.class, String.class } );
+                    cl = c.newInstance( new ByteArrayInputStream( gzipped.toByteArray() ), 
+                                        "application/x-gzip" );
+                }
+                catch (Exception ee)
+                {
+                    throw e;
+                }
+            }
             DefaultStorageFileItem item =
                     new DefaultStorageFileItem( repository,
                                                 toResourceStoreRequest( file ),

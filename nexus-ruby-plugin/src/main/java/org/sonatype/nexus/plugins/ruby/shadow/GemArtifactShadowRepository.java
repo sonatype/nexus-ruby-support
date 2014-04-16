@@ -14,6 +14,7 @@ import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.slf4j.Logger;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
@@ -295,8 +296,8 @@ public class GemArtifactShadowRepository
         int i = filename.lastIndexOf('-');
         if ( i < 1 )
         {
-            if (log.isErrorEnabled()){
-                log.error("bad path - ignored: " + path );
+            if ( getLog().isErrorEnabled()){
+                 getLog().error("bad path - ignored: " + path );
             }
             return null;
         }
@@ -590,7 +591,7 @@ public class GemArtifactShadowRepository
             MetadataBuilder builder = new MetadataBuilder( name, modified );
 
             long start = 0;
-            if ( log.isWarnEnabled() ){
+            if ( getLog().isWarnEnabled() ){
                 start = System.currentTimeMillis();
             }
             
@@ -601,9 +602,9 @@ public class GemArtifactShadowRepository
                                                           isPrereleaseRepository() ),
                                     isPrereleaseRepository() );
             
-            if ( log.isWarnEnabled() ){
-                log.warn( "versions " + (System.currentTimeMillis() - start ) + " " + 
-                          modified + " " + gateway.hashCode());
+            if ( getLog().isWarnEnabled() ){
+                getLog().warn( "versions " + (System.currentTimeMillis() - start ) + " " + 
+                               modified + " " + gateway.hashCode());
             }
                
             return storeXmlContentWithHashes( request, builder.toString() );
@@ -641,5 +642,10 @@ public class GemArtifactShadowRepository
         storeHashes( item, request );
 
         return item;
+    }
+    
+    public Logger getLog()
+    {
+        return log;
     }
 }
