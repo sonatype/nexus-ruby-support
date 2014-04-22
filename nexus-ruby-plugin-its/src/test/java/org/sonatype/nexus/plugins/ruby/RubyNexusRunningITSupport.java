@@ -106,7 +106,7 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
         {
             // just ignore it and let matcher test
         }
-	// from version 2.4.0-03 onwards count empty files as non-existing
+        // from version 2.4.0-03 onwards count empty files as non-existing
         assertThat( target.exists() && target.length() > 0, matcher );
     
         target.deleteOnExit();

@@ -44,7 +44,7 @@ public class BundleITBase extends RubyNexusRunningITSupport
         assertThat( bundleRunner().config(), containsString( "http://localhost:4711/nexus/content/repositories/" + repoId ) );
         
         String out = bundleRunner().install();
-       System.err.println( out);
+
         assertThat( out, containsString( "Your bundle is complete!" ) );
         assertThat( lastLine( out ), is( "Use `bundle show [gemname]` to see where a bundled gem is installed." ) );
         
@@ -65,6 +65,17 @@ public class BundleITBase extends RubyNexusRunningITSupport
         assertFileDownload( "/api/v1/dependencies/zip.json.rz", is( true ) );
         assertFileDownload( "/quick/Marshal.4.8/z/zip-2.0.2.gemspec.rz", is( true ) );
         assertFileDownload( "/quick/Marshal.4.8/zip-2.0.2.gemspec.rz", is( true ) );
+        assertFileDownload( "/maven/releases/rubygems/zip/maven-metadata.xml", is( true ) );
+        assertFileDownload( "/maven/prereleases/rubygems/zip/maven-metadata.xml", is( true ) );
+        assertFileDownload( "/maven/releases/rubygems/pre/maven-metadata.xml", is( true ) );
+        assertFileDownload( "/maven/prereleases/rubygems/pre/maven-metadata.xml", is( true ) );
+        assertFileDownload( "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/maven-metadata.xml", is( true ) );
+        assertFileDownload( "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom", is( true ) );
+        assertFileDownload( "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom", is( true ) );
+        assertFileDownload( "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-SNAPSHOT.pom", is( true ) );
+        assertFileDownload( "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem", is( true ) );
+        assertFileDownload( "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem", is( true ) );
+        assertFileDownload( "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-SNAPSHOT.gem", is( true ) );
     }
 
     @Override
