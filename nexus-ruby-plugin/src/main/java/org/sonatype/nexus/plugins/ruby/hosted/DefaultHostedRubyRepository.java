@@ -5,7 +5,6 @@ import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -214,17 +213,25 @@ public class DefaultHostedRubyRepository
         {
             switch( file.type() )
             {
+            case GEM_ARTIFACT:
+                return layout.retrieveGem( this, request, file.isGemArtifactFile() );
+            case POM:
+                return layout.createPom( this, request, file.isPom() );
+            case MAVEN_METADATA:
+                return layout.createMavenMetadata( this, request, file.isMavenMetadataFile() );
+            case MAVEN_METADATA_SNAPSHOT:
+                return layout.createMavenMetadataSnapshot( this, request, file.isMavenMetadataSnapshotFile() );
+            case BUNDLER_API:
+                return layout.createBundlerAPIResponse( this, file.isBundlerApiFile() );
             case API_V1:
                 if ( "api_key".equals( file.isApiV1File().name() ) )
                 {
                     // TODO not sure how
                 }
                 throw new ItemNotFoundException( reasonFor( request, this,
-                                                            "Could not create unzipped content for path %s in local storage of repository %s", 
+                                                            "Can not serve path %s for repository %s", 
                                                             request.getRequestPath(),
                                                             RepositoryStringUtils.getHumanizedNameString( this ) ) );
-            case BUNDLER_API:
-                return layout.createBundlerAPIResponse( this, file.isBundlerApiFile() );
             case DEPENDENCY:
                 try
                 {
@@ -326,7 +333,7 @@ public class DefaultHostedRubyRepository
         {
             try
             {
-                return (Logger) getClass().getSuperclass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
+                return (Logger) getClass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
             }
             catch ( Exception ee )
             {

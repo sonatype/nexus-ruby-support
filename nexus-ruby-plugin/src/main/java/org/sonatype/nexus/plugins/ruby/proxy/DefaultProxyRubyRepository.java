@@ -187,6 +187,14 @@ public class DefaultProxyRubyRepository
         RubygemsFile file = layout.fromResourceStoreRequest( this, request );
         switch( file.type() )
         {
+        case GEM_ARTIFACT:
+            return layout.retrieveGem( this, request, file.isGemArtifactFile() );
+        case POM:
+            return layout.createPom( this, request, file.isPom() );
+        case MAVEN_METADATA:
+            return layout.createMavenMetadata( this, request, file.isMavenMetadataFile() );
+        case MAVEN_METADATA_SNAPSHOT:
+            return layout.createMavenMetadataSnapshot( this, request, file.isMavenMetadataSnapshotFile() );
         case BUNDLER_API:
             return layout.createBundlerAPIResponse( this, file.isBundlerApiFile() );
         case SPECS_INDEX:
@@ -271,7 +279,7 @@ public class DefaultProxyRubyRepository
         {
             try
             {
-                return (Logger) getClass().getSuperclass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
+                return (Logger) getClass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
             }
             catch ( Exception ee )
             {

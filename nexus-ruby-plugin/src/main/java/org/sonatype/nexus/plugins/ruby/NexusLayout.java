@@ -28,12 +28,18 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.BundlerApiFile;
+import org.sonatype.nexus.ruby.Dependencies;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.Directory;
+import org.sonatype.nexus.ruby.GemArtifactFile;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
 import org.sonatype.nexus.ruby.Layout;
 import org.sonatype.nexus.ruby.MavenMetadataFile;
+import org.sonatype.nexus.ruby.MavenMetadataSnapshotFile;
+import org.sonatype.nexus.ruby.MetadataBuilder;
+import org.sonatype.nexus.ruby.MetadataSnapshotBuilder;
+import org.sonatype.nexus.ruby.PomFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
@@ -53,6 +59,21 @@ public class NexusLayout
 
     // delegate to layout
 
+    public GemArtifactFile gemArtifact( String name, String version, String timestamp )
+    {
+        return layout.gemArtifact( name, version, timestamp );
+    }
+    
+    public PomFile pom( String name, String version, String timestamp )
+    {
+        return layout.pom( name, version, timestamp );
+    }
+    
+    public MavenMetadataSnapshotFile mavenMetadataSnapshot( String name, String version )
+    {
+        return layout.mavenMetadataSnapshot( name, version );
+    }
+ 
     public MavenMetadataFile mavenMetadata( String name, boolean prereleased )
     {
         return layout.mavenMetadata( name, prereleased );
@@ -347,5 +368,118 @@ public class NexusLayout
             IOUtil.close( content );
             IOUtil.close( out );
         }
+    }
+
+    protected ContentLocator newPreparedContentLocator( InputStream is, String mime,
+                                                 long length )
+    {
+        try
+        {
+            return new PreparedContentLocator( is, mime, length );
+        }
+        catch( NoSuchMethodError e )
+        {
+            try
+            {
+                Constructor<PreparedContentLocator> c = PreparedContentLocator.class.getConstructor( new Class[] { InputStream.class, String.class } );
+                return c.newInstance( is, mime );
+            }
+            catch (Exception ee)
+            {
+                ee.printStackTrace();
+                throw e;
+            }
+        }
+    }
+
+    @SuppressWarnings( "deprecation" )
+    public Dependencies retrieveDependencies( RubyRepository repository, DependencyFile file )
+            throws org.sonatype.nexus.proxy.StorageException, AccessDeniedException, ItemNotFoundException, IllegalOperationException
+    {
+        StorageFileItem item = (StorageFileItem) repository.retrieveItem( toResourceStoreRequest( file ) );
+        try
+        {
+            return gateway.dependencies( item.getInputStream(), item.getModified() );
+        }
+        catch (IOException e)
+        {
+            throw new org.sonatype.nexus.proxy.StorageException( e );
+        }        
+    }
+  
+    protected StorageItem toStorageItem( RubyRepository repository,
+                                         ResourceStoreRequest request,
+                                         String mime, String data )
+    {
+        ContentLocator contentLocator;
+        byte[] bytes = data.getBytes();
+        
+        contentLocator = newPreparedContentLocator( new java.io.ByteArrayInputStream( bytes ),
+                                                    mime, bytes.length );
+        
+        return new DefaultStorageFileItem( repository,
+                                           request,
+                                           true, true,
+                                           contentLocator );
+    }
+
+    @SuppressWarnings( { "deprecation" } )
+    public StorageItem createMavenMetadata( RubyRepository repository, ResourceStoreRequest request, MavenMetadataFile file )
+            throws org.sonatype.nexus.proxy.StorageException,
+                   AccessDeniedException, ItemNotFoundException, IllegalOperationException
+    {
+        try
+        {
+
+            MetadataBuilder meta= new MetadataBuilder( retrieveDependencies( repository, file.dependency() ) );
+            meta.appendVersions( file.isPrerelease() );
+            
+            return toStorageItem( repository, request, file.type().mime(), meta.toString() );
+
+        }
+        catch (IOException e)
+        {
+            throw new org.sonatype.nexus.proxy.StorageException( e );
+        }        
+    }
+
+    @SuppressWarnings( { "deprecation" } )
+    public StorageItem createMavenMetadataSnapshot( RubyRepository repository, ResourceStoreRequest request,
+                                                    MavenMetadataSnapshotFile file )
+            throws org.sonatype.nexus.proxy.StorageException, AccessDeniedException, ItemNotFoundException, IllegalOperationException
+    {
+        StorageFileItem item = (StorageFileItem) repository.retrieveItem( toResourceStoreRequest( file.dependency() ) );
+
+        MetadataSnapshotBuilder meta = new MetadataSnapshotBuilder( file.name(), file.version(),
+                                                                    item.getModified() );
+        
+        return toStorageItem( repository, request, file.type().mime(), meta.toString() );
+    }
+
+    @SuppressWarnings( "deprecation" )
+    public StorageItem createPom( RubyRepository repository, ResourceStoreRequest request, PomFile file )
+            throws org.sonatype.nexus.proxy.StorageException, AccessDeniedException, ItemNotFoundException, IllegalOperationException
+    {
+        GemspecFile gemspec = file.gemspec( retrieveDependencies( repository, file.dependency() ) );
+        StorageFileItem item = (StorageFileItem) repository.retrieveItem( toResourceStoreRequest( gemspec ) );
+        try
+        {
+            
+            String pom = gateway.pom( item.getInputStream() );
+            return toStorageItem( repository, request, file.type().mime(), pom );
+            
+        }
+        catch (IOException e)
+        {
+           throw new org.sonatype.nexus.proxy.StorageException( e );
+        }
+    }
+
+    @SuppressWarnings( "deprecation" )
+    public StorageItem retrieveGem( RubyRepository repository, ResourceStoreRequest request, GemArtifactFile file )
+            throws org.sonatype.nexus.proxy.StorageException, AccessDeniedException, ItemNotFoundException, IllegalOperationException
+    {
+        GemFile gem = file.gem( retrieveDependencies( repository, file.dependency() ) );
+        return (StorageFileItem) repository.retrieveItem( toResourceStoreRequest( gem ) );
     }
 }

@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
@@ -24,7 +23,6 @@ import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.ContentLocator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
-import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
@@ -103,15 +101,15 @@ public class HostedNexusLayout extends NexusLayout implements Layout
         List<InputStream> gemspecs = new LinkedList<InputStream>();
         try{
             StorageFileItem specs = (StorageFileItem) retrieveSpecsIndex( repository, SpecsIndexType.RELEASE );        
-            List<String> versions = gateway.listVersions( file.name(),
-                                                          toGZIPInputStream( specs ),
-                                                          specs.getModified(),
-                                                          false );
+            List<String> versions = gateway.listAllVersions( file.name(),
+                                                             toGZIPInputStream( specs ),
+                                                             specs.getModified(),
+                                                             false );
             specs = (StorageFileItem) retrieveSpecsIndex( repository, SpecsIndexType.PRERELEASE );
-            versions.addAll( gateway.listVersions( file.name(),
-                                                   toGZIPInputStream( specs ),
-                                                   specs.getModified(),
-                                                   true ) );
+            versions.addAll( gateway.listAllVersions( file.name(),
+                                                      toGZIPInputStream( specs ),
+                                                      specs.getModified(),
+                                                      true ) );
                         
             for( String version: versions )
             {
@@ -342,7 +340,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
         }
     }
 
-    @SuppressWarnings( { "deprecation", "resource" } )
+    @SuppressWarnings( { "deprecation" } )
     protected void store( RubyRepository repository,
                           InputStream is,
                           long length,
@@ -351,25 +349,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
             throws org.sonatype.nexus.proxy.StorageException,
                    UnsupportedStorageOperationException, IllegalOperationException
     {
-        ContentLocator contentLocator;
-        try
-        {
-            contentLocator = new PreparedContentLocator( is, mime, length );
-        }
-        catch( NoSuchMethodError e )
-        {
-            try
-            {
-                Constructor<PreparedContentLocator> c = PreparedContentLocator.class.getConstructor( new Class[] { InputStream.class, String.class } );
-                contentLocator = c.newInstance( is, mime );
-            }
-            catch (Exception ee)
-            {
-                ee.printStackTrace();
-                throw e;
-            }
-        }
-        
+        ContentLocator contentLocator = newPreparedContentLocator( is, mime, length );        
         DefaultStorageFileItem gemspecFile = new DefaultStorageFileItem( repository,
                                                                          request,
                                                                          true, true,
@@ -377,7 +357,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
 
         repository.storeItem( gemspecFile );
     }
-
+    
     @SuppressWarnings( "deprecation" )
     private void storeSpecsIndex( RubyRepository repository,
                                   SpecsIndexType type, 
