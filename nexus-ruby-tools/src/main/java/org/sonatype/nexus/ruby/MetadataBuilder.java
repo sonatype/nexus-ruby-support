@@ -1,17 +1,15 @@
 package org.sonatype.nexus.ruby;
 
-import java.sql.Timestamp;
 
-public class MetadataBuilder {
+public class MetadataBuilder extends AbstractMetadataBuilder {
     
     private final StringBuilder xml;
     private boolean closed = false;
-    private long modified;
     private final Dependencies deps;
     
-    public MetadataBuilder( Dependencies deps, long modified )
+    public MetadataBuilder( Dependencies deps )
     {
-        this.modified = modified;
+        super( deps.modified() );
         this.deps = deps;
         xml = new StringBuilder();
         xml.append("<metadata>\n");
@@ -23,7 +21,7 @@ public class MetadataBuilder {
 
     public void appendVersions( boolean isPrerelease )
     {
-        for( String version : deps.javaVersions( isPrerelease ) )
+        for( String version : deps.versions( isPrerelease ) )
         {
             xml.append("      <version>" ).append( version );
             if ( isPrerelease ){
@@ -39,7 +37,7 @@ public class MetadataBuilder {
         {
             xml.append("    </versions>\n");
             xml.append("    <lastUpdated>")
-                .append( new Timestamp( modified ).toString().replaceAll( "[:\\- ]", "" ).replaceFirst( "[.].*$", "" ) )
+                .append( timestamp )
                 .append("</lastUpdated>\n");
             xml.append("  </versioning>\n");
             xml.append("</metadata>\n");

@@ -43,19 +43,28 @@ public class DefaultLayout implements Layout
     private static final Pattern API_V1_DEPS_DIRS = Pattern.compile( "^" + API_V1_DEPS + "/[^/]/?$");
 
     private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
+    private static final String SNAPSHOT = "-SNAPSHOT";
+    private static final String MAVEN_METADATA_XML_WITH_SNAPSHOT = SNAPSHOT + "/" + MAVEN_METADATA_XML;
     private static final String MAVEN = "/maven";
     private static final String RUBYGEMS = "/rubygems";
-    private static final String MAVEN_PRERELEASED = MAVEN + "/prereleased";
-    private static final String MAVEN_RELEASED = MAVEN + "/released";
+    private static final String MAVEN_PRERELEASED = MAVEN + "/prereleases";
+    private static final String MAVEN_RELEASED = MAVEN + "/releases";
     private static final String MAVEN_PRERELEASED_RUBYGEMS = MAVEN_PRERELEASED + RUBYGEMS;
     private static final String MAVEN_RELEASED_RUBYGEMS = MAVEN_RELEASED + RUBYGEMS;
     private static final int MAVEN_METADATA_XML_LEN = MAVEN_METADATA_XML.length();
+    private static final int MAVEN_METADATA_XML_WITH_SNAPSHOT_LEN = MAVEN_METADATA_XML_WITH_SNAPSHOT.length();
     private static final int MAVEN_PRERELEASED_RUBYGEMS_LEN = MAVEN_PRERELEASED_RUBYGEMS.length();
     private static final int MAVEN_RELEASED_RUBYGEMS_LEN = MAVEN_RELEASED_RUBYGEMS.length();
-    private static final String MAVEN_METADATA_COMMON = "^" + MAVEN + "/(pre)?released" +
+    private static final String MAVEN_METADATA_COMMON = "^" + MAVEN + "/(pre)?releases" +
             RUBYGEMS + "/[^/]+/";
     private static final Pattern MAVEN_METADATA = Pattern.compile( MAVEN_METADATA_COMMON +
                                                                    MAVEN_METADATA_XML + "$" );
+    private static final Pattern MAVEN_METADATA_SNAPSHOTS = Pattern.compile( MAVEN_METADATA_COMMON + "[^/]+-SNAPSHOT/" +
+                                                                             MAVEN_METADATA_XML + "$" );
+    private static final Pattern POM_RELEASE = Pattern.compile( MAVEN_METADATA_COMMON + "[^/]+/[^/]+\\.pom$" );
+    private static final Pattern POM_SNAPSHOT = Pattern.compile( MAVEN_METADATA_COMMON + "[^/]+-SNAPSHOT/[^/]+\\.pom$" );
+    private static final Pattern GEM_ARTIFACT_RELEASE = Pattern.compile( MAVEN_METADATA_COMMON + "[^/]+/[^/]+\\.gem$" );
+    private static final Pattern GEM_ARTIFACT_SNAPSHOT = Pattern.compile( MAVEN_METADATA_COMMON + "[^/]+-SNAPSHOT/[^/]+\\.gem$" );
     private static final Pattern MAVEN_DIRS = Pattern.compile(  MAVEN_METADATA_COMMON + "$" );
 
     /* (non-Javadoc)
@@ -74,6 +83,71 @@ public class DefaultLayout implements Layout
                                    name,
                                    isGzipped );
     }
+
+    @Override
+    public NotFoundFile notFound()
+    {
+        return new NotFoundFile( this );
+    }
+    
+    private String toPath( String name, String version, String timestamp, boolean snapshot )
+    {
+        String v1 = snapshot ? version + "-" + timestamp : version;
+        String v2 = snapshot ? version + SNAPSHOT : version;
+        return join( snapshot ? MAVEN_PRERELEASED_RUBYGEMS : MAVEN_RELEASED_RUBYGEMS, 
+                     SEPARATOR, name, SEPARATOR, v2, SEPARATOR, name + '-' + v1 );
+    }
+
+    /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
+     */
+    @Override
+    public PomFile pomSnapshot( String name, String version, String timestamp )
+    {
+        String path = toPath( name, version, timestamp, true ) + ".pom";
+        return new PomFile( this, path, path, name, version, true );
+    }
+
+    /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
+     */
+    @Override
+    public GemArtifactFile gemArtifactSnapshot( String name, String version, String timestamp )
+    {
+        String path = toPath( name, version, timestamp, true ) + ".gem";
+        return new GemArtifactFile( this, path, path, name, version, true );
+    }
+    
+    /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
+     */
+    @Override
+    public PomFile pom( String name, String version )
+    {
+        String path = toPath( name, version, null, false ) + ".pom";
+        return new PomFile( this, path, path, name, version, false );
+    }
+
+    /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
+     */
+    @Override
+    public GemArtifactFile gemArtifact( String name, String version )
+    {
+        String path = toPath( name, version, null, false ) + ".gem";
+        return new GemArtifactFile( this, path, path, name, version, false );
+    }
+ 
+    /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
+     */
+    @Override
+    public MavenMetadataSnapshotFile mavenMetadataSnapshot( String name, String version )
+    {
+        String path = join(  MAVEN_PRERELEASED_RUBYGEMS, SEPARATOR, name, SEPARATOR, version + SNAPSHOT, SEPARATOR, MAVEN_METADATA_XML );
+        return new MavenMetadataSnapshotFile( this, path, path, name, version );
+    }
+
     /* (non-Javadoc)
      * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
      */
@@ -81,7 +155,7 @@ public class DefaultLayout implements Layout
     public MavenMetadataFile mavenMetadata( String name, boolean prereleased )
     {
         String path = join( prereleased ? MAVEN_PRERELEASED_RUBYGEMS : MAVEN_RELEASED_RUBYGEMS,
-                            SEPARATOR, name, MAVEN_METADATA_XML );
+                            SEPARATOR, name, SEPARATOR, MAVEN_METADATA_XML );
         return new MavenMetadataFile( this, path, path, name, prereleased );
     }
 
@@ -89,13 +163,15 @@ public class DefaultLayout implements Layout
      * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
      */
     @Override
-    public Directory directory( String path )
+    public Directory directory( String path, String... items )
     {
-        path = path.replaceFirst( "\\/$", "" );
-        return new Directory( this,
-                              join( path ),
-                              join( path ), 
-                              path.replaceFirst( ".*\\/", "" ) );
+        if( ! path.endsWith( "/" ) )
+        {
+            path += "/";
+        }
+        return new Directory( this, path, path, 
+                              path.substring( 0, path.length() - 1 ).replaceFirst( ".*\\/", "" ),
+                              items );
     }
 
     /* (non-Javadoc)
@@ -168,7 +244,7 @@ public class DefaultLayout implements Layout
     @Override
     public ApiV1File apiV1File( String name ){
         return new ApiV1File( this,
-                              join( API_V1, name ),
+                              join( API_V1, SEPARATOR, name ),
                               name );
     }
     
@@ -242,10 +318,48 @@ public class DefaultLayout implements Layout
         }
         if ( MAVEN_METADATA.matcher( path ).matches() )
         {
-           boolean isPre = path.startsWith( MAVEN_PRERELEASED_RUBYGEMS );
-           String name = path.substring( isPre ? MAVEN_PRERELEASED_RUBYGEMS_LEN : MAVEN_RELEASED_RUBYGEMS_LEN,
-                                         path.length() - MAVEN_METADATA_XML_LEN );
-           return mavenMetadata( name, isPre );
+            boolean isPre = path.startsWith( MAVEN_PRERELEASED_RUBYGEMS );
+            String name = path.substring( 1 + ( isPre ? MAVEN_PRERELEASED_RUBYGEMS_LEN : MAVEN_RELEASED_RUBYGEMS_LEN ),
+                                         path.length() - MAVEN_METADATA_XML_LEN - 1 );
+            return mavenMetadata( name, isPre );
+        }
+        if ( MAVEN_METADATA_SNAPSHOTS.matcher( path ).matches() )
+        {
+            String[] nameAndVersion = path.substring( MAVEN_PRERELEASED_RUBYGEMS_LEN + 1,
+                                                      path.length() - MAVEN_METADATA_XML_WITH_SNAPSHOT_LEN ).split( "\\/" );
+           
+            return mavenMetadataSnapshot( nameAndVersion[ 0 ], nameAndVersion[ 1 ] );
+        }
+        if ( POM_SNAPSHOT.matcher( path ).matches() )
+        {
+            String timestamp = path.replaceAll( "^.*-|.pom$", "" );
+            path = path.replaceFirst( SNAPSHOT + "/[^/]+$", "" );
+            String[] nameAndVersion = path.substring( MAVEN_PRERELEASED_RUBYGEMS_LEN + 1 ).split( "\\/" );
+           
+            return pomSnapshot( nameAndVersion[ 0 ], nameAndVersion[ 1 ], timestamp );
+        }
+        // keep this second since some pattern will match for POM_SNAPSHOT as well
+        if ( POM_RELEASE.matcher( path ).matches() )
+        {
+            path = path.replaceFirst( "/[^/]+$", "" );
+            String[] nameAndVersion = path.substring( MAVEN_RELEASED_RUBYGEMS_LEN + 1 ).split( "\\/" );
+           
+            return pom( nameAndVersion[ 0 ], nameAndVersion[ 1 ] );
+        }
+        if ( GEM_ARTIFACT_SNAPSHOT.matcher( path ).matches() )
+        {
+            String timestamp = path.replaceAll( "^.*-|.gem$", "" );
+            path = path.replaceFirst( SNAPSHOT + "/[^/]+$", "" );
+            String[] nameAndVersion = path.substring( MAVEN_PRERELEASED_RUBYGEMS_LEN + 1 ).split( "\\/" );
+            return gemArtifactSnapshot( nameAndVersion[ 0 ], nameAndVersion[ 1 ], timestamp );
+        }
+        // keep this second since some pattern will match for POM_SNAPSHOT as well
+        if ( GEM_ARTIFACT_RELEASE.matcher( path ).matches() )
+        {
+            path = path.replaceFirst( "/[^/]+$", "" );
+            String[] nameAndVersion = path.substring( MAVEN_RELEASED_RUBYGEMS_LEN + 1 ).split( "\\/" );
+           
+            return gemArtifact( nameAndVersion[ 0 ], nameAndVersion[ 1 ] );
         }
         if ( path.equals( "" ) ||
                 // TODO put this into ONE big regex

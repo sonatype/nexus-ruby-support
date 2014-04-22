@@ -40,4 +40,9 @@ public interface RubygemsGateway {
 
     String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified );
 
+    Dependencies dependencies( InputStream inputStream, long modified );
+
+    List<String> listAllVersions( String name, InputStream inputStream,
+                                  long modified, boolean prerelease );
+
 }

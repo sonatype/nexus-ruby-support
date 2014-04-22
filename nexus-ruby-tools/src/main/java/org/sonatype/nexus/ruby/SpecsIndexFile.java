@@ -27,7 +27,7 @@ public class SpecsIndexFile extends RubygemsFile {
     {
         if ( isGzipped )
         {
-            return layout.specsIndex( name, false );
+            return layout.specsIndex( name(), false );
         }
         else
         {
@@ -42,7 +42,7 @@ public class SpecsIndexFile extends RubygemsFile {
         }
         else
         {
-            return layout.specsIndex( name, true );
+            return layout.specsIndex( name(), true );
         }
     }
 

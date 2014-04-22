@@ -3,8 +3,6 @@ package org.sonatype.nexus.ruby;
 import java.io.InputStream;
 import java.util.List;
 
-import org.jruby.embed.LocalContextScope;
-import org.jruby.embed.LocalVariableBehavior;
 import org.jruby.embed.PathType;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.embed.osgi.OSGiScriptingContainer;
@@ -19,24 +17,28 @@ public class DefaultRubygemsGateway
     private static ScriptingContainer newScriptingContainer()
     {
         ScriptingContainer container;
-	// try
-        //{
-        //    container = new OSGiScriptingContainer( FrameworkUtil.getBundle( DefaultRubygemsGateway.class ) );
-        //}
-        //catch( Throwable e )//RuntimeException | NoClassDefFoundError e )
-	      // {
-            // adjust scope and behaviour better
-            container = new ScriptingContainer( LocalContextScope.THREADSAFE, 
-                                                LocalVariableBehavior.PERSISTENT );
-	    //}
+        try
+        {
+            container = new OSGiScriptingContainer( FrameworkUtil.getBundle( DefaultRubygemsGateway.class ) );
+        }
+        catch( Throwable e )
+        {
+            container = new ScriptingContainer();
+	    }
+        // set the right classloader
         container.setClassLoader( DefaultRubygemsGateway.class.getClassLoader() );
         
         return container;
     }
- 
+
     public DefaultRubygemsGateway()
     {
-        super( newScriptingContainer() );
+        this( newScriptingContainer() );
+    }
+
+    public DefaultRubygemsGateway( ScriptingContainer container )
+    {
+        super( container );
     }
 
     protected Object newScript()
@@ -45,11 +47,12 @@ public class DefaultRubygemsGateway
         return scriptingContainer.callMethod( nexusRubygemsClass, "new", Object.class );
     }
     
+    @Override
     public Dependencies dependencies( InputStream is, long modified )
     {
-        return new Dependencies( scriptingContainer, 
-                                 callMethod( "dependencies", new Object[]{ is, modified },
-                                             Object.class ) );
+        return new DependenciesImpl( scriptingContainer, 
+                                 callMethod( "dependencies", is,
+                                             Object.class ), modified );
     }
 
     @Override
@@ -231,14 +234,36 @@ public class DefaultRubygemsGateway
 
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized List<String> listVersions(String name, 
-                                                  InputStream inputStream, 
-                                                  long modified, 
-                                                  boolean prerelease )
+    public synchronized List<String> listVersions( String name, 
+                                                   InputStream inputStream, 
+                                                   long modified, 
+                                                   boolean prerelease )
     {
         try
         {
             return (List<String>) callMethod( "list_versions",
+                                              new Object[] { name,
+                                                             inputStream,
+                                                             modified ,
+                                                             prerelease },
+                                              List.class );
+        }
+        finally
+        {
+            IOUtil.close( inputStream );
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public synchronized List<String> listAllVersions( String name, 
+                                                      InputStream inputStream, 
+                                                      long modified, 
+                                                      boolean prerelease )
+    {
+        try
+        {
+            return (List<String>) callMethod( "list_all_versions",
                                               new Object[] { name,
                                                              inputStream,
                                                              modified ,

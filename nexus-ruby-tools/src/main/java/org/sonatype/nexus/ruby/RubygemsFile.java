@@ -2,8 +2,8 @@ package org.sonatype.nexus.ruby;
 
 public class RubygemsFile {
     
-    final Layout layout;
-    final String name;
+    protected final Layout layout;
+    private final String name;
     private final String storage;
     private final String remote;
     private final FileType type;
@@ -49,7 +49,27 @@ public class RubygemsFile {
     {
         return type == FileType.SPECS_INDEX ? (SpecsIndexFile) this : null;
     }
-    
+
+    public MavenMetadataFile isMavenMetadataFile()
+    {
+        return type == FileType.MAVEN_METADATA ? (MavenMetadataFile) this : null;
+    }
+
+    public MavenMetadataSnapshotFile isMavenMetadataSnapshotFile()
+    {
+        return type == FileType.MAVEN_METADATA_SNAPSHOT ? (MavenMetadataSnapshotFile) this : null;
+    }
+
+    public PomFile isPom()
+    {
+        return type == FileType.POM ? (PomFile) this : null;
+    }
+
+    public GemArtifactFile isGemArtifactFile()
+    {
+        return type == FileType.GEM_ARTIFACT ? (GemArtifactFile) this : null;
+    }    
+
     public DependencyFile isDependencyFile()
     {
         return type == FileType.DEPENDENCY ? (DependencyFile) this : null;
@@ -132,5 +152,4 @@ public class RubygemsFile {
             return false;
         return true;
     }
-    
-}
+ }

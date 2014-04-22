@@ -13,6 +13,6 @@ public class GemFile extends BaseGemFile {
     }
 
     public DependencyFile dependency(){
-        return layout.dependencyFile( name );
+        return layout.dependencyFile( name() );
     }
 }

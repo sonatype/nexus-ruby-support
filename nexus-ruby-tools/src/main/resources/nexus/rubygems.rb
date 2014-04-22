@@ -1,6 +1,7 @@
 require 'maven/tools/pom'
 require 'json'
 require 'nexus/indexer'
+require 'nexus/dependencies'
 
 module Nexus
   class Rubygems
@@ -178,6 +179,15 @@ module Nexus
     end
     private :dependency_data
 
+    def dependencies( file )
+      data = Marshal.load( read_binary( file ) )
+      Dependencies.new( data.first[ :name ], data ) unless data.empty?
+    end
+
+    def list_all_versions( name, source, modified, prerelease = false )
+      map_method = prerelease ? :name_preversions_map : :name_versions_map
+      send( map_method, source, modified )[ name.to_s ] || []
+    end
 
     def list_versions( name, source, modified, prerelease = false )
       map_method = prerelease ? :name_preversions_map : :name_versions_map
