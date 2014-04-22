@@ -29,7 +29,8 @@ public class RubygemsGatewayTest
     public void setUp() throws Exception
     {       
         scriptingContainer = new TestScriptingContainer();
-        gateway = new DefaultRubygemsGateway();
+        // share the TestSCriptingContainer over all tests to have a uniform ENV setup
+        gateway = new DefaultRubygemsGateway( scriptingContainer );
         check = scriptingContainer.parse( PathType.CLASSPATH, "nexus/check.rb" ).run();
     }
     

@@ -10,6 +10,43 @@ import org.junit.Test;
 public class DefaultLayoutTest
     extends TestCase
 {
+    static class DependenciesMock implements Dependencies
+    {
+        private final String platform;
+
+        DependenciesMock(){
+            this( "ruby" );
+        }
+
+        DependenciesMock( String platform ){
+            this.platform = platform;
+        }
+  
+        @Override
+        public String[] versions( boolean prereleased )
+        {
+            return null;
+        }
+
+        @Override
+        public String platform( String version )
+        {
+            return platform;
+        }
+
+        @Override
+        public String name()
+        {
+            return null;
+        }
+
+        @Override
+        public long modified()
+        {
+            return 0;
+        }        
+    }
+ 
     private Layout layout;
     
     @Before
@@ -18,6 +55,156 @@ public class DefaultLayoutTest
         layout = new DefaultLayout();
     }
     
+    @Test
+    public void testGemArtifact()
+        throws Exception
+    {
+        String path = "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.gem";
+        RubygemsFile file = layout.fromPath( path );
+        assertNotNull( file );
+        RubygemsFile file2 = layout.fromPath( path );
+        assertThat( file, equalTo( file2 ) );
+        assertThat( file.storagePath(), equalTo( path ) );
+        assertThat( file.remotePath(), equalTo( path ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.GEM_ARTIFACT ) );
+
+        GemArtifactFile file3 = (GemArtifactFile) file;
+
+        Dependencies deps = new DependenciesMock();
+        assertThat( file3.version(), equalTo( "1.2.3" ) );
+        assertThat( file3.gem( deps ).name(), equalTo( "jbundler" ) );
+        assertThat( file3.gem( deps ).version(), equalTo( "1.2.3" ) );
+        assertThat( file3.isSnapshot(), equalTo( false ) );
+    }
+
+    @Test
+    public void testGemSnapshotArtifact()
+        throws Exception
+    {
+        String path = "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123123123.gem";
+        RubygemsFile file = layout.fromPath( path );
+        assertNotNull( file );
+        RubygemsFile file2 = layout.fromPath( path );
+        assertThat( file, equalTo( file2 ) );
+        assertThat( file.storagePath(), equalTo( path ) );
+        assertThat( file.remotePath(), equalTo( path ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.GEM_ARTIFACT ) );
+
+        GemArtifactFile file3 = (GemArtifactFile) file;
+
+        Dependencies deps = new DependenciesMock();
+        assertThat( file3.version(), equalTo( "1.2.3" ) );
+        assertThat( file3.gem( deps ).name(), equalTo( "jbundler" ) );
+        assertThat( file3.gem( deps ).version(), equalTo( "1.2.3" ) );
+        assertThat( file3.isSnapshot(), equalTo( true ) );
+    }
+    
+    @Test
+    public void testPomRelease()
+        throws Exception
+    {
+        String path = "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.pom";
+        RubygemsFile file = layout.fromPath( path );
+        assertNotNull( file );
+        RubygemsFile file2 = layout.fromPath( path );
+        assertThat( file, equalTo( file2 ) );
+        assertThat( file.storagePath(), equalTo( path ) );
+        assertThat( file.remotePath(), equalTo( path ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.POM ) );
+
+        PomFile file3 = (PomFile) file;
+
+        Dependencies deps = new DependenciesMock();
+        assertThat( file3.version(), equalTo( "1.2.3" ) );
+        assertThat( file3.gemspec( deps ).name(), equalTo( "jbundler" ) );
+        assertThat( file3.gemspec( deps ).version(), equalTo( "1.2.3" ) );
+        assertThat( file3.isSnapshot(), equalTo( false ) );
+    }
+
+    @Test
+    public void testPomSnapshot()
+        throws Exception
+    {
+        String path = "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123123123.pom";
+        RubygemsFile file = layout.fromPath( path );
+        assertNotNull( file );
+        RubygemsFile file2 = layout.fromPath( path );
+        assertThat( file, equalTo( file2 ) );
+        assertThat( file.storagePath(), equalTo( path ) );
+        assertThat( file.remotePath(), equalTo( path ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.POM ) );
+
+        PomFile file3 = (PomFile) file;
+
+        Dependencies deps = new DependenciesMock();
+        assertThat( file3.version(), equalTo( "1.2.3" ) );
+        assertThat( file3.gemspec( deps ).name(), equalTo( "jbundler" ) );
+        assertThat( file3.gemspec( deps ).version(), equalTo( "1.2.3" ) );
+        assertThat( file3.isSnapshot(), equalTo( true ) );
+    }
+    @Test
+    public void testMetadataXmlReleases()
+        throws Exception
+    {
+        String path = "/maven/releases/rubygems/jbundler/maven-metadata.xml";
+        RubygemsFile file = layout.fromPath( path );
+        assertNotNull( file );
+        RubygemsFile file2 = layout.fromPath( path );
+        assertThat( file, equalTo( file2 ) );
+        assertThat( file.storagePath(), equalTo( path ) );
+        assertThat( file.remotePath(), equalTo( path ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.MAVEN_METADATA ) );
+
+        MavenMetadataFile file3 = (MavenMetadataFile) file;
+        
+        assertThat( file3.dependency().name(), equalTo( "jbundler" ) );
+        assertThat( file3.isPrerelease(), equalTo( false ) );
+    }
+    
+    @Test
+    public void testMetadataXmlPrereleases()
+        throws Exception
+    {
+        String path = "/maven/prereleases/rubygems/jbundler/maven-metadata.xml";
+        RubygemsFile file = layout.fromPath( path );
+        assertNotNull( file );
+        RubygemsFile file2 = layout.fromPath( path );
+        assertThat( file, equalTo( file2 ) );
+        assertThat( file.storagePath(), equalTo( path ) );
+        assertThat( file.remotePath(), equalTo( path ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.MAVEN_METADATA ) );
+
+        MavenMetadataFile file3 = (MavenMetadataFile) file;
+        
+        assertThat( file3.dependency().name(), equalTo( "jbundler" ) );
+        assertThat( file3.isPrerelease(), equalTo( true ) );        
+    }
+    
+    @Test
+    public void testMetadataXmlSnapshots()
+        throws Exception
+    {
+        String path = "/maven/prereleases/rubygems/jbundler/9.2.3-SNAPSHOT/maven-metadata.xml";
+        RubygemsFile file = layout.fromPath( path );
+        assertNotNull( file );
+        RubygemsFile file2 = layout.fromPath( path );
+        assertThat( file, equalTo( file2 ) );
+        assertThat( file.storagePath(), equalTo( path ) );
+        assertThat( file.remotePath(), equalTo( path ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.MAVEN_METADATA_SNAPSHOT ) );
+
+        MavenMetadataSnapshotFile file3 = (MavenMetadataSnapshotFile) file;
+        
+        assertThat( file3.version(), equalTo("9.2.3" ) );        
+    }
+
     @Test
     public void testGemfile()
         throws Exception

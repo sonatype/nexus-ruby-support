@@ -25,9 +25,8 @@ public class TestScriptingContainer extends ScriptingContainer
             env.put( "BUNDLE_GEMFILE", gemfile );
         }
 
-        env.put( "PATH", "" ); // bundler needs a PATH ;)
+        env.put( "PATH", "" ); // bundler needs a PATH set ;)
         env.put( "DEBUG", "true" );
-        
         setEnvironment( env );
     }
 }

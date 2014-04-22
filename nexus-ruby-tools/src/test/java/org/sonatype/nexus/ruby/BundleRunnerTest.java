@@ -20,6 +20,7 @@ public class BundleRunnerTest
     @Before
     public void setUp() throws Exception
     {
+        // share the TestSCriptingContainer over all tests to have a uniform ENV setup
         runner = new BundleRunner( new TestScriptingContainer() );
     }
     
