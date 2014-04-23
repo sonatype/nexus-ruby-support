@@ -18,11 +18,30 @@ public class ApiV1DependenciesCuba implements Cuba
         {
             if ( state.context.query.startsWith( "gems=" ) )
             {
-                return state.context.layout.bundlerApiFile( state.context.query.substring( 5 ) );
+                if ( state.context.query.contains( "," ) )
+                {
+                    return state.context.layout.bundlerApiFile( state.context.query.substring( 5 ) );
+                }
+                else
+                {
+                    return state.context.layout.dependencyFile( state.context.query.substring( 5 ) );
+                }
             }
             return state.context.layout.directory( state.context.original );
         }
-        Matcher m = FILE.matcher( state.part.length() == 1 ? state.path.substring( 1 ) : state.part );
+        Matcher m;
+        if ( state.part.length() == 1 )
+        {
+            if ( state.path.length() < 2 )
+            {
+                return state.context.layout.directory( state.context.original );
+            }
+            m = FILE.matcher( state.path.substring( 1 ) );
+        }
+        else
+        {
+            m = FILE.matcher( state.part );
+        }
         if ( m.matches() )
         {
             return state.context.layout.dependencyFile( m.group( 1 ) );

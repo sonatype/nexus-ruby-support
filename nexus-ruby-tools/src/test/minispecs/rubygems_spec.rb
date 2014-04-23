@@ -121,8 +121,8 @@ describe Nexus::Rubygems do
     Dir[ File.join( broken_to, '*' ) ].size.must_equal 6
     # this includes all the defaultgems from jruby
     # also includes all the gems coming from maven-tools dependency !!
-    # p Dir[ File.join( broken_to, 'quick', '**', '*' ) ]
-    Dir[ File.join( broken_to, 'quick', '**', '*' ) ].size.must_equal 29
+    # puts Dir[ File.join( broken_to, 'quick', '**', '*' ) ].join("\n")
+    Dir[ File.join( broken_to, 'quick', '**', '*' ) ].size.must_equal 31
   end
 
   it 'finds no gem with unknown gemname' do

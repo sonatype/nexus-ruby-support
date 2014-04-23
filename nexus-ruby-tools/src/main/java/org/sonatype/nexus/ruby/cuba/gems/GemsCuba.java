@@ -13,8 +13,20 @@ public class GemsCuba implements Cuba
 
     @Override
     public RubygemsFile on( State state )
-    {
-        Matcher m = FILE.matcher( state.part.length() == 1 ? state.path.substring( 1 ) : state.part );
+    {      
+        Matcher m;
+        if ( state.part.length() == 1 )
+        {
+            if ( state.path.length() < 2 )
+            {
+                return state.context.layout.directory( state.context.original );
+            }
+            m = FILE.matcher( state.path.substring( 1 ) );
+        }
+        else
+        {
+            m = FILE.matcher( state.part );
+        }
         if ( m.matches() )
         {
             return state.context.layout.gemFile( m.group( 2 ) );

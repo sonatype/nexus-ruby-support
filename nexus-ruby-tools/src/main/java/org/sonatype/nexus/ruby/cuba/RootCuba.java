@@ -1,10 +1,14 @@
 package org.sonatype.nexus.ruby.cuba;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.sonatype.nexus.ruby.RubygemsFile;
 
 
 public class RootCuba implements Cuba
 {
+    private static final Pattern SPECS = Pattern.compile( "^((prerelease_|latest_)?specs).4.8(.gz)?$" );
 
     public static final String API = "api";
     public static final String QUICK = "quick";
@@ -25,7 +29,7 @@ public class RootCuba implements Cuba
     }
     
     public RubygemsFile on( State state )
-    {       
+    {
         switch( state.part )
         {
         case API:
@@ -39,7 +43,12 @@ public class RootCuba implements Cuba
         case "":
             return state.context.layout.directory( state.context.original, (String[]) null );
         default:
-            return state.context.layout.notFound();
         }
+        Matcher m = SPECS.matcher( state.part );
+        if ( m.matches() )
+        {
+            return state.context.layout.specsIndex( m.group( 1 ), m.group( 3 ) != null );
+        }
+        return state.context.layout.notFound();
     }
 }

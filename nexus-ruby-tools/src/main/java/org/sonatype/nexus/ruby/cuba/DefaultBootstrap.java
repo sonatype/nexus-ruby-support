@@ -16,14 +16,18 @@ import org.sonatype.nexus.ruby.cuba.quick.QuickMarshalCuba;
 
 public class DefaultBootstrap extends Bootstrap
 {
-    public DefaultBootstrap()
+    public DefaultBootstrap( Layout layout )
     {
-        super( new DefaultLayout(),
+        super( layout,
                new RootCuba( new ApiCuba( new ApiV1Cuba( new ApiV1DependenciesCuba() ) ),
                              new QuickCuba( new QuickMarshalCuba() ),
                              new GemsCuba(),
                              new MavenCuba( new MavenReleasesCuba( new MavenReleasesRubygemsCuba() ), 
                                             new MavenPrereleasesCuba( new MavenPrereleasesRubygemsCuba() ) ) ) );
+    }    
+    public DefaultBootstrap()
+    {
+        this( new DefaultLayout() );
     }    
     
     public static void main( String... args ){

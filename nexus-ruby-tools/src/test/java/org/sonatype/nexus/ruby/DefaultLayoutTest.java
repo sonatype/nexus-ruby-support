@@ -62,6 +62,7 @@ public class DefaultLayoutTest
         String path = "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.gem";
         RubygemsFile file = layout.fromPath( path );
         assertNotNull( file );
+        assertNotNull( file.isGemArtifactFile() );
         RubygemsFile file2 = layout.fromPath( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -85,6 +86,7 @@ public class DefaultLayoutTest
         String path = "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123123123.gem";
         RubygemsFile file = layout.fromPath( path );
         assertNotNull( file );
+        assertNotNull( file.isGemArtifactFile() );
         RubygemsFile file2 = layout.fromPath( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -108,6 +110,7 @@ public class DefaultLayoutTest
         String path = "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.pom";
         RubygemsFile file = layout.fromPath( path );
         assertNotNull( file );
+        assertNotNull( file.isPomFile() );
         RubygemsFile file2 = layout.fromPath( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -131,6 +134,7 @@ public class DefaultLayoutTest
         String path = "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123123123.pom";
         RubygemsFile file = layout.fromPath( path );
         assertNotNull( file );
+        assertNotNull( file.isPomFile() );
         RubygemsFile file2 = layout.fromPath( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -153,6 +157,7 @@ public class DefaultLayoutTest
         String path = "/maven/releases/rubygems/jbundler/maven-metadata.xml";
         RubygemsFile file = layout.fromPath( path );
         assertNotNull( file );
+        assertNotNull( file.isMavenMetadataFile() );
         RubygemsFile file2 = layout.fromPath( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -173,6 +178,7 @@ public class DefaultLayoutTest
         String path = "/maven/prereleases/rubygems/jbundler/maven-metadata.xml";
         RubygemsFile file = layout.fromPath( path );
         assertNotNull( file );
+        assertNotNull( file.isMavenMetadataFile() );
         RubygemsFile file2 = layout.fromPath( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -193,6 +199,7 @@ public class DefaultLayoutTest
         String path = "/maven/prereleases/rubygems/jbundler/9.2.3-SNAPSHOT/maven-metadata.xml";
         RubygemsFile file = layout.fromPath( path );
         assertNotNull( file );
+        assertNotNull( file.isMavenMetadataSnapshotFile() );
         RubygemsFile file2 = layout.fromPath( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -211,6 +218,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.fromPath( "/gems/jbundler-9.2.1.gem" );
         assertNotNull( file );
+        assertNotNull( file.isGemFile() );
         RubygemsFile file2 = layout.fromPath( "/gems/j/jbundler-9.2.1.gem" );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/gems/j/jbundler-9.2.1.gem" ) );
@@ -233,6 +241,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.fromPath( "/quick/Marshal.4.8/jbundler-9.2.1.gemspec.rz" );
         assertNotNull( file );
+        assertNotNull( file.isGemspecFile() );
         RubygemsFile file2 = layout.fromPath( "/quick/Marshal.4.8/j/jbundler-9.2.1.gemspec.rz" );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/quick/Marshal.4.8/j/jbundler-9.2.1.gemspec.rz" ) );
@@ -254,6 +263,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.fromPath( "/api/v1/dependencies/jbundler.json.rz" );
         assertNotNull( file );
+        assertNotNull( file.isDependencyFile() );
         RubygemsFile file2 = layout.fromPath( "/api/v1/dependencies?gems=jbundler" );
         assertThat( file, equalTo( file2 ) );
         file2 = layout.fromPath( "/api/v1/dependencies/j/jbundler.json.rz" );
@@ -270,6 +280,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.fromPath( "/api/v1/dependencies?gems=jbundler,bundler" );
         assertNotNull( file );
+        assertNotNull( file.isBundlerApiFile() );
         assertNull( file.storagePath() );
         assertNull( file.name() );
         assertThat( file.remotePath(), equalTo( "/api/v1/dependencies?gems=jbundler,bundler" ) );
@@ -283,6 +294,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.fromPath( "/specs.4.8.gz" );
         assertNotNull( file );
+        assertNotNull( file.isSpecIndexFile() );
         RubygemsFile file2 = layout.fromPath( "/specs.4.8" );
         assertThat( file.isSpecIndexFile(), 
                     equalTo( file2.isSpecIndexFile().zippedSpecsIndexFile() ) );
@@ -308,6 +320,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.fromPath( "/latest_specs.4.8.gz" );
         assertNotNull( file );
+        assertNotNull( file.isSpecIndexFile() );
         RubygemsFile file2 = layout.fromPath( "/latest_specs.4.8" );
         assertThat( file.isSpecIndexFile(), 
                     equalTo( file2.isSpecIndexFile().zippedSpecsIndexFile() ) );
@@ -336,6 +349,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.fromPath( "/prerelease_specs.4.8.gz" );
         assertNotNull( file );
+        assertNotNull( file.isSpecIndexFile() );
         RubygemsFile file2 = layout.fromPath( "/prerelease_specs.4.8" );
         assertThat( file.isSpecIndexFile(), 
                     equalTo( file2.isSpecIndexFile().zippedSpecsIndexFile() ) );
@@ -362,13 +376,17 @@ public class DefaultLayoutTest
         throws Exception
     {
         RubygemsFile file = layout.fromPath( "/prereleased_specs.4.8.gz" );
-        assertNull( file );
+        assertNotNull( file );
+        assertThat( file.type(), equalTo( FileType.NOT_FOUND ) );
         file = layout.fromPath( "/pre_specs.4.8" );
-        assertNull( file );
+        assertNotNull( file );
+        assertThat( file.type(), equalTo( FileType.NOT_FOUND ) );
         file = layout.fromPath( "/gems/something.json" );
-        assertNull( file );
+        assertNotNull( file );
+        assertThat( file.type(), equalTo( FileType.NOT_FOUND ) );
         file = layout.fromPath( "/something/index.html" );
-        assertNull( file );
+        assertNotNull( file );
+        assertThat( file.type(), equalTo( FileType.NOT_FOUND ) );
     }
     
     @Test
@@ -377,6 +395,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.fromPath( "/api" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         RubygemsFile file2 = layout.fromPath( "/api/" );
         assertThat( file, equalTo( file2 ) );
         

@@ -60,7 +60,7 @@ public class RubygemsFile {
         return type == FileType.MAVEN_METADATA_SNAPSHOT ? (MavenMetadataSnapshotFile) this : null;
     }
 
-    public PomFile isPom()
+    public PomFile isPomFile()
     {
         return type == FileType.POM ? (PomFile) this : null;
     }
