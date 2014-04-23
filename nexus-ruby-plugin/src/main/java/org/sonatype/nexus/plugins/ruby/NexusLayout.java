@@ -39,6 +39,7 @@ import org.sonatype.nexus.ruby.MavenMetadataFile;
 import org.sonatype.nexus.ruby.MavenMetadataSnapshotFile;
 import org.sonatype.nexus.ruby.MetadataBuilder;
 import org.sonatype.nexus.ruby.MetadataSnapshotBuilder;
+import org.sonatype.nexus.ruby.NotFoundFile;
 import org.sonatype.nexus.ruby.PomFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
@@ -59,14 +60,29 @@ public class NexusLayout
 
     // delegate to layout
 
-    public GemArtifactFile gemArtifact( String name, String version, String timestamp )
+    public NotFoundFile notFound()
     {
-        return layout.gemArtifact( name, version, timestamp );
+        return layout.notFound();
     }
     
-    public PomFile pom( String name, String version, String timestamp )
+    public GemArtifactFile gemArtifactSnapshot( String name, String version, String timestamp )
     {
-        return layout.pom( name, version, timestamp );
+        return layout.gemArtifactSnapshot( name, version, timestamp );
+    }
+    
+    public GemArtifactFile gemArtifact( String name, String version )
+    {
+        return layout.gemArtifact( name, version );
+    }
+    
+    public PomFile pomSnapshot( String name, String version, String timestamp )
+    {
+        return layout.pomSnapshot( name, version, timestamp );
+    }
+    
+    public PomFile pom( String name, String version )
+    {
+        return layout.pom( name, version );
     }
     
     public MavenMetadataSnapshotFile mavenMetadataSnapshot( String name, String version )
@@ -84,9 +100,9 @@ public class NexusLayout
         return layout.specsIndex( path, gzipped );
     }
 
-    public Directory directory( String path )
+    public Directory directory( String path, String... items )
     {
-        return layout.directory( path );
+        return layout.directory( path, items );
     }
 
     public GemFile gemFile( String name, String version )
@@ -163,6 +179,7 @@ public class NexusLayout
                 path += request.getRequestUrl().substring( request.getRequestUrl().indexOf( '?' ) );
             }
             file = fromPath( path );
+            // this request.getRequestContext().put needs to be compiled with nexus-2.7.x to work for 2.8.x
             request.getRequestContext().put( RubygemsFile.class.getName(), file );
         }
         return file;
@@ -171,6 +188,7 @@ public class NexusLayout
     public ResourceStoreRequest toResourceStoreRequest( RubygemsFile file )
     {
         ResourceStoreRequest request = new ResourceStoreRequest( file.storagePath() );
+        // this request.getRequestContext().put needs to be compiled with nexus-2.7.x to work for 2.8.x
         request.getRequestContext().put( RubygemsFile.class.getName(), file );
         return request;
     }

@@ -113,7 +113,7 @@ public class DefaultRubyGroupRepository
         case GEM_ARTIFACT:
             return layout.retrieveGem( this, request, file.isGemArtifactFile() );
         case POM:
-            return layout.createPom( this, request, file.isPom() );
+            return layout.createPom( this, request, file.isPomFile() );
         case MAVEN_METADATA:
             return layout.createMavenMetadata( this, request, file.isMavenMetadataFile() );
         case MAVEN_METADATA_SNAPSHOT:

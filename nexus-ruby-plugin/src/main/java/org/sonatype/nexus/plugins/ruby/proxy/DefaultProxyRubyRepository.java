@@ -32,6 +32,7 @@ import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
+import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
@@ -169,7 +170,7 @@ public class DefaultProxyRubyRepository
     @Override
     public RepositoryItemUid createUid( final String path ) {
         RubygemsFile file = layout.fromPath( path );
-        if ( file == null )
+        if ( file.type() == FileType.NOT_FOUND )
         {
             // nexus internal path like .nexus/**/*
             return super.createUid( path );
@@ -190,7 +191,7 @@ public class DefaultProxyRubyRepository
         case GEM_ARTIFACT:
             return layout.retrieveGem( this, request, file.isGemArtifactFile() );
         case POM:
-            return layout.createPom( this, request, file.isPom() );
+            return layout.createPom( this, request, file.isPomFile() );
         case MAVEN_METADATA:
             return layout.createMavenMetadata( this, request, file.isMavenMetadataFile() );
         case MAVEN_METADATA_SNAPSHOT:
@@ -279,7 +280,7 @@ public class DefaultProxyRubyRepository
         {
             try
             {
-                return (Logger) getClass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
+                return (Logger) getClass().getSuperclass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
             }
             catch ( Exception ee )
             {
