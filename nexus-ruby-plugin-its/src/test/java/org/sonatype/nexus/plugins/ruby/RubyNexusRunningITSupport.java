@@ -133,7 +133,8 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
     }
 
     @Override
-    protected NexusBundleConfiguration configureNexus( final NexusBundleConfiguration configuration ) {
+    protected NexusBundleConfiguration configureNexus( final NexusBundleConfiguration configuration )
+    {
         return configuration
             .addPlugins(
                 artifactResolver().resolvePluginFromDependencyManagement(
