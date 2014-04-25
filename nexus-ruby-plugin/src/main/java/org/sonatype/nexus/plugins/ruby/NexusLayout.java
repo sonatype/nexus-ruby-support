@@ -173,6 +173,7 @@ public class NexusLayout
                                                         request.getRequestPath(),
                                                         RepositoryStringUtils.getHumanizedNameString( repository ) ) );
         }
+        request.setRequestPath( file.storagePath() );
         return file;
     }
 

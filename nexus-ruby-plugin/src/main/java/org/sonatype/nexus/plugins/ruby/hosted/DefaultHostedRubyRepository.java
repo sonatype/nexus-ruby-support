@@ -208,10 +208,8 @@ public class DefaultHostedRubyRepository
                    org.sonatype.nexus.proxy.StorageException
     {
         RubygemsFile file = layout.fromResourceStoreRequest( this, request );
-        request.setRequestPath( file.storagePath() );
         try
         {
-            getLog().error( file.toString() );
             switch( file.type() )
             {
             case SHA1:

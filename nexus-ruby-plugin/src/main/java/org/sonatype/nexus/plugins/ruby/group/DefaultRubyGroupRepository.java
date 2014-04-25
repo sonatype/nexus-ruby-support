@@ -107,7 +107,6 @@ public class DefaultRubyGroupRepository
                    org.sonatype.nexus.proxy.StorageException
     {
         RubygemsFile file = layout.fromResourceStoreRequest( this, request );
-        request.setRequestPath( file.storagePath() );
         switch( file.type() )
         {
         case GEM_ARTIFACT:

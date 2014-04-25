@@ -204,7 +204,6 @@ public class DefaultProxyRubyRepository
                 return layout.retrieveUnzippedSpecsIndex( this, file.isSpecIndexFile() );
             }
         default:
-            request.setRequestPath( file.storagePath() );
             return super.retrieveItem( request );
         }
     }
