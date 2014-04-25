@@ -60,8 +60,23 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
 
         // reinstall the gem from repository
         assertThat( lastLine( gemRunner().install( repoId, "nexus" ) ), equalTo( "1 gem installed" ) );
+
+        File winGem = testData().resolveFile( "win.gem" );
+        // mismatch filenames on upload
+        assertThat( lastLine( gemRunner().nexus( config, winGem ) ), equalTo( "something went wrong" ) );
+        
         
         moreAsserts( gemName, gemspecName, dependencyName);
+        
+        winGem = testData().resolveFile( "win-2-x86-mswin32-60.gem" );
+        assertThat( lastLine( gemRunner().nexus( config, winGem ) ), equalTo( "Created" ) );
+       
+        assertFileDownload( "gems/" + winGem.getName(),
+                            is( true ) );
+        assertFileDownload( "quick/Marshal.4.8/" + winGem.getName() + "spec.rz",
+                            is( true ) );
+        assertFileDownload( "api/v1/dependencies/" + winGem.getName().replaceFirst( "-.*$", ".json.rz" ),
+                            is( true ) );
     }
     
     abstract void moreAsserts( String gemName, String gemspecName, String dependencyName );

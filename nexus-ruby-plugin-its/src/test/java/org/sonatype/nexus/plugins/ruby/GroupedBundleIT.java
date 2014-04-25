@@ -1,5 +1,7 @@
 package org.sonatype.nexus.plugins.ruby;
 
+import java.io.IOException;
+
 
 public class GroupedBundleIT extends BundleITBase
 {
@@ -9,7 +11,7 @@ public class GroupedBundleIT extends BundleITBase
     }
     
     @Override
-    protected void testAfterBundleComplete()
+    protected void testAfterBundleComplete() throws IOException
     {
         assertHostedFiles();
     }
