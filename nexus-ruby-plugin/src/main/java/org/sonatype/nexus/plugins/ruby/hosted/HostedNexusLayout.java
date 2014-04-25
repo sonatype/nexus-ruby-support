@@ -114,7 +114,8 @@ public class HostedNexusLayout extends NexusLayout implements Layout
             for( String version: versions )
             {
                 ResourceStoreRequest req = toResourceStoreRequest( gemspecFile( file.name(), 
-                                                                                version ) ); 
+                                                                                // ruby platform is not part of the gemname 
+                                                                                version.replaceFirst( "-ruby$", "" ) ) ); 
                 try
                 {
                     gemspecs.add( ((StorageFileItem) repository.retrieveItem( req ) ).getInputStream() );
@@ -252,7 +253,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
 
     @SuppressWarnings( "deprecation" )
     protected void storeGemspecRz( RubyRepository repository, Object spec,
-                                 GemspecFile gemspec ) 
+                                   GemspecFile gemspec ) 
         throws org.sonatype.nexus.proxy.StorageException,
                UnsupportedStorageOperationException, IllegalOperationException
     {
