@@ -70,6 +70,11 @@ public class RubygemsFile {
         return type == FileType.GEM_ARTIFACT ? (GemArtifactFile) this : null;
     }    
 
+    public Sha1File isSha1File()
+    {
+        return type == FileType.SHA1 ? (Sha1File) this : null;
+    }
+
     public DependencyFile isDependencyFile()
     {
         return type == FileType.DEPENDENCY ? (DependencyFile) this : null;

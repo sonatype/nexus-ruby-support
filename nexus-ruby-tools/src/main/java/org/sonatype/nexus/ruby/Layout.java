@@ -37,4 +37,6 @@ public interface Layout
 
     NotFoundFile notFound();
 
+    Sha1File sha1( RubygemsFile file );
+
 }

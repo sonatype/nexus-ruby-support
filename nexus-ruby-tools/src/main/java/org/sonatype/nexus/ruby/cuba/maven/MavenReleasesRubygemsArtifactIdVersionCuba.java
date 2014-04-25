@@ -10,7 +10,7 @@ import org.sonatype.nexus.ruby.cuba.Cuba;
 public class MavenReleasesRubygemsArtifactIdVersionCuba implements Cuba
 {
 
-    private static Pattern FILE = Pattern.compile( "^.*\\.(gem|pom)$" );
+    private static Pattern FILE = Pattern.compile( "^.*\\.(gem|pom|gem.sha1|pom.sha1)$" );
     
     private final String name;
     private final String version;
@@ -33,6 +33,12 @@ public class MavenReleasesRubygemsArtifactIdVersionCuba implements Cuba
                 return state.context.layout.gemArtifact( name, version );
             case "pom":
                 return state.context.layout.pom( name, version );
+            case "gem.sha1":
+                RubygemsFile file = state.context.layout.gemArtifact( name, version );
+                return state.context.layout.sha1( file );
+            case "pom.sha1":
+                file = state.context.layout.pom( name, version );
+                return state.context.layout.sha1( file );
             default:
             }
         }

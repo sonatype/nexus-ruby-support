@@ -34,6 +34,12 @@ public class DefaultLayout implements Layout
     
     
     private final Bootstrap bootstrap = new DefaultBootstrap( this );
+
+    @Override
+    public Sha1File sha1( RubygemsFile file )
+    {
+        return new Sha1File( this, file.storagePath() + ".sha1", file.remotePath() + ".sha1", file );
+    }
     
     /* (non-Javadoc)
      * @see org.sonatype.nexus.ruby.Layout#specsIndex(java.lang.String,boolean)

@@ -13,7 +13,8 @@ public enum FileType {
     BUNDLER_API( "application/x-ruby-marshal" ), 
     API_V1( null ), 
     GEM_ARTIFACT( "application/x-rubygems" ), 
-    NOT_FOUND( null );
+    NOT_FOUND( null ), 
+    SHA1( "text/plain" );
 
     private FileType(String mime){
         this.mime = mime;
