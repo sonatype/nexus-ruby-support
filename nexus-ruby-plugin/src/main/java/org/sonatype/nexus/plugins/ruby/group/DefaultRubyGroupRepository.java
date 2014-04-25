@@ -201,7 +201,7 @@ public class DefaultRubyGroupRepository
         {
             try
             {
-                return (Logger) getClass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
+                return (Logger) getClass().getSuperclass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
             }
             catch ( Exception ee )
             {
