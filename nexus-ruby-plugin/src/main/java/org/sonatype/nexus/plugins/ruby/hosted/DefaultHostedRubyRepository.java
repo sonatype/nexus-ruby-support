@@ -211,8 +211,11 @@ public class DefaultHostedRubyRepository
         request.setRequestPath( file.storagePath() );
         try
         {
+            getLog().error( file.toString() );
             switch( file.type() )
             {
+            case SHA1:
+                return layout.createSha1( this, request, file.isSha1File() );
             case GEM_ARTIFACT:
                 return layout.retrieveGem( this, request, file.isGemArtifactFile() );
             case POM:

@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -43,7 +45,9 @@ import org.sonatype.nexus.ruby.NotFoundFile;
 import org.sonatype.nexus.ruby.PomFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.Sha1File;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
+import org.sonatype.nexus.util.DigesterUtils;
 
 public class NexusLayout
 {
@@ -63,6 +67,11 @@ public class NexusLayout
     public NotFoundFile notFound()
     {
         return layout.notFound();
+    }
+    
+    public Sha1File sha1( RubygemsFile file )
+    {
+        return layout.sha1( file );
     }
     
     public GemArtifactFile gemArtifactSnapshot( String name, String version, String timestamp )
@@ -223,7 +232,43 @@ public class NexusLayout
 
         return result;
     }    
-
+    
+    @SuppressWarnings( "deprecation" )
+    public StorageItem createSha1( RubyRepository repository, 
+                                   ResourceStoreRequest request, Sha1File sha ) 
+         throws org.sonatype.nexus.proxy.StorageException,
+                AccessDeniedException, ItemNotFoundException, IllegalOperationException
+    {
+        StorageFileItem file = (StorageFileItem) repository.retrieveItem( toResourceStoreRequest( sha.getSource() ) );
+        try( InputStream is = file.getInputStream() )
+        {
+           // ContentLocator cl = new ChecksummingContentLocator( file.getContentLocator(), MessageDigest.getInstance("SHA1"),
+             //                                    StorageFileItem.DIGEST_SHA1_KEY, file.getItemContext());
+            MessageDigest digest = MessageDigest.getInstance("SHA1");
+            int i = is.read();
+            while ( i != -1 )
+            {
+                digest.update( (byte) i );
+                i = is.read();
+            }
+            String d = DigesterUtils.getDigestAsString( digest.digest() );
+            ContentLocator contentLocator = newPreparedContentLocator( new ByteArrayInputStream( d.getBytes() ), 
+                                                                       sha.type().mime(), d.length() );
+            
+            return new DefaultStorageFileItem( repository, request,
+                                               true, false,
+                                               contentLocator );
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            throw new RuntimeException( "BUG should never happen", e );
+        }
+        catch (IOException e)
+        {
+            throw new org.sonatype.nexus.proxy.StorageException( e );
+        }
+    }
+    
     protected InputStream toInputStream( StorageFileItem item )
             throws LocalStorageException
     {
@@ -389,7 +434,7 @@ public class NexusLayout
     }
 
     protected ContentLocator newPreparedContentLocator( InputStream is, String mime,
-                                                 long length )
+                                                        long length )
     {
         try
         {
@@ -435,8 +480,7 @@ public class NexusLayout
         contentLocator = newPreparedContentLocator( new java.io.ByteArrayInputStream( bytes ),
                                                     mime, bytes.length );
         
-        return new DefaultStorageFileItem( repository,
-                                           request,
+        return new DefaultStorageFileItem( repository, request,
                                            true, true,
                                            contentLocator );
     }
