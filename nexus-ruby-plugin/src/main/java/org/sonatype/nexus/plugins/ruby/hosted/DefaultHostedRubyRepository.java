@@ -17,6 +17,7 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
+import org.sonatype.nexus.plugins.ruby.GETLayout;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.DefaultRubygemsFacade;
@@ -59,6 +60,8 @@ public class DefaultHostedRubyRepository
     private final RepositoryKind repositoryKind;
 
     private final HostedNexusLayout layout;
+
+    private GETLayout get;
     
     @Inject
     public DefaultHostedRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
@@ -74,6 +77,7 @@ public class DefaultHostedRubyRepository
         this.facade = facade;
         this.repositoryKind = new DefaultRepositoryKind( HostedRubyRepository.class,
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
+        this.get = new GETLayout( this );
     }
 
     @Override
@@ -198,6 +202,17 @@ public class DefaultHostedRubyRepository
     {
         throw new UnsupportedStorageOperationException( "not supported" );
     }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public StorageFileItem retrieveDirectItem( ResourceStoreRequest request )
+            throws AccessDeniedException,
+                   IllegalOperationException,
+                   ItemNotFoundException, RemoteAccessException, 
+                   org.sonatype.nexus.proxy.StorageException
+    {
+        return (StorageFileItem) super.retrieveItem( false, request );
+    }
     
     @SuppressWarnings("deprecation")
     @Override
@@ -207,7 +222,12 @@ public class DefaultHostedRubyRepository
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
-        RubygemsFile file = layout.fromResourceStoreRequest( this, request );
+        RubygemsFile file = get.fromPath( request.getRequestPath() );
+        StorageItem item = (StorageItem) file.get();
+        if ( item != null )
+        {
+            return item;
+        }
         try
         {
             switch( file.type() )

@@ -24,8 +24,10 @@ import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.RepositoryItemUid;
+import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
@@ -286,5 +288,14 @@ public class DefaultProxyRubyRepository
                 throw new RuntimeException( "should work", ee );
             }
         }
+    }
+
+    @Override
+    public StorageFileItem retrieveDirectItem( ResourceStoreRequest resourceStoreRequest )
+            throws IllegalOperationException, ItemNotFoundException,
+            RemoteAccessException, StorageException, AccessDeniedException
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

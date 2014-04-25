@@ -8,6 +8,9 @@ import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
+import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
+import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
@@ -36,4 +39,7 @@ public interface RubyRepository
     void storeItem( StorageItem item ) 
             throws UnsupportedStorageOperationException, IllegalOperationException, 
             org.sonatype.nexus.proxy.StorageException;
+
+    StorageFileItem retrieveDirectItem( ResourceStoreRequest resourceStoreRequest ) 
+            throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, StorageException, AccessDeniedException;
 }
