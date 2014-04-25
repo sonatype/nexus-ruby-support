@@ -1,5 +1,7 @@
 package org.sonatype.nexus.ruby;
 
+import java.io.InputStream;
+
 public class RubygemsFile {
     
     protected final Layout layout;
@@ -8,6 +10,18 @@ public class RubygemsFile {
     private final String remote;
     private final FileType type;
     
+    private InputStream inputStream;
+    
+    public InputStream getInputStream()
+    {
+        return inputStream;
+    }
+
+    public void setInputStream( InputStream inputStream )
+    {
+        this.inputStream = inputStream;
+    }
+
     RubygemsFile( Layout layout, FileType type, String storage, String remote, String name )
     {
         this.layout = layout;

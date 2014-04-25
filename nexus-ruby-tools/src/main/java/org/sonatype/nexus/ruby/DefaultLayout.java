@@ -237,15 +237,7 @@ public class DefaultLayout implements Layout
      */
     @Override
     public RubygemsFile fromPath( String path )
-    {
-        //normalize PATH-Separator from Windows platform to valid URL-Path
-        //    https://github.com/sonatype/nexus-ruby-support/issues/38
-        path = path.replace( '\\', '/' );
-        if ( !path.startsWith( "/" ) )
-        {
-            path = "/" + path;
-        }
-        
+    {        
         return bootstrap.accept( path );
     }
 }

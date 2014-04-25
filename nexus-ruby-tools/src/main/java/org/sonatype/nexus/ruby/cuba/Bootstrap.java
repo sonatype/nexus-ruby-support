@@ -24,6 +24,14 @@ public class Bootstrap
 
     public RubygemsFile accept( String original )
     {
+        //normalize PATH-Separator from Windows platform to valid URL-Path
+        //    https://github.com/sonatype/nexus-ruby-support/issues/38
+        original = original.replace( '\\', '/' );
+        if ( !original.startsWith( "/" ) )
+        {
+            original = "/" + original;
+        }
+        
         int index = original.indexOf( "?" );
         final String query;
         final String path;
