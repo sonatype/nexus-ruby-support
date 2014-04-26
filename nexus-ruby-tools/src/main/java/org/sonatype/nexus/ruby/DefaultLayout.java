@@ -152,8 +152,13 @@ public class DefaultLayout implements Layout
      * @see org.sonatype.nexus.ruby.Layout#gemFile(java.lang.String, java.lang.String)
      */
     @Override
-    public GemFile gemFile( String name, String version ){
-        return gemFile( name + "-" + version );
+    public GemFile gemFile( String name, String version, String platform )
+    {
+        String filename = BaseGemFile.toFilename( name, version, platform );
+        return new GemFile( this,
+                            join( GEMS, SEPARATOR, name.substring( 0, 1 ), SEPARATOR, filename, GEM),
+                            join( GEMS, SEPARATOR, filename, GEM ), 
+                            name, version, platform );
     }
     
     /* (non-Javadoc)
@@ -161,9 +166,6 @@ public class DefaultLayout implements Layout
      */
     @Override
     public GemFile gemFile( String name ){
-        if ( name.contains( SEPARATOR ) ){
-            return null;
-        }
         return new GemFile( this,
                             join( GEMS, SEPARATOR, name.substring( 0, 1 ), SEPARATOR, name, GEM),
                             join( GEMS, SEPARATOR, name, GEM ), 
@@ -174,8 +176,12 @@ public class DefaultLayout implements Layout
      * @see org.sonatype.nexus.ruby.Layout#gemspecFile(java.lang.String, java.lang.String)
      */
     @Override
-    public GemspecFile gemspecFile( String name, String version ){
-        return gemspecFile( name + "-" + version );
+    public GemspecFile gemspecFile( String name, String version, String platform ){
+        String filename = BaseGemFile.toFilename( name, version, platform );
+        return new GemspecFile( this,
+                                join( QUICK_MARSHAL, SEPARATOR, name.substring( 0, 1 ), SEPARATOR, filename, GEMSPEC_RZ),
+                                join( QUICK_MARSHAL, SEPARATOR, filename, GEMSPEC_RZ ), 
+                                name, version, platform );
     }
     
     /* (non-Javadoc)

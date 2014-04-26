@@ -23,17 +23,10 @@ public class PomFile extends RubygemsFile {
         return snapshot;
     }
 
-    public GemspecFile gemspec( Dependencies dependencies )
+    public GemspecFile gemspec( DependencyData dependencies )
     {
         String platform = dependencies.platform( version() );
-        if ( "ruby".equals( platform ) )
-        {
-            return layout.gemspecFile( name() + "-" + version() );
-        }
-        else
-        {
-            return layout.gemspecFile( name() + "-" + version() + "-" + platform );
-        }
+        return layout.gemspecFile( name(), version(), platform );
     }
 
     public DependencyFile dependency()

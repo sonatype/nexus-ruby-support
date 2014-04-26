@@ -3,44 +3,57 @@ package org.sonatype.nexus.ruby;
 
 public class BaseGemFile extends RubygemsFile {
 
-    static String nameOnly( String name )
+    public static String toFilename( String name, String version, String platform )
     {
-        name = normalize( name );
-        int last = name.lastIndexOf( '-' );
-        if( last > -1 )
+        StringBuilder filename = new StringBuilder( name );
+        if ( version != null )
         {
-            return name.substring( 0, last );
+            filename.append( "-" ).append( version );
+            if ( platform != null && !"ruby".equals( platform ) )
+            {
+                filename.append( "-" ).append( platform );
+            }
         }
-        else
-        {
-            // just in case we got something without a version
-            return name;
-        }
+        return filename.toString();
     }
-
-    static String normalize( String name )
-    {
-        return name.replaceFirst( "(-ruby|-java|-jruby|-universal-ruby|-universal-java|-universal-jruby)$", "" );
-    }
-
-    private final String nameWithVersion;
+    
+    private final String filename;
     private final String version;
+    private final String platform;
     
-    BaseGemFile( Layout layout, FileType type, String storage, String remote, String name )
+    public String getPlatform()
     {
-        super( layout, type, storage, remote, nameOnly( name ) );
-        this.nameWithVersion = normalize( name );
-        int last = nameWithVersion.lastIndexOf( '-' );
-        this.version = nameWithVersion.substring( last + 1 );
+        return platform;
+    }
+
+    BaseGemFile( Layout layout, FileType type, String storage, String remote, 
+                 String filename )
+    {
+        this( layout, type, storage, remote, filename, null, null );
     }
     
-    public String nameWithVersion()
+    BaseGemFile( Layout layout, FileType type, String storage, String remote, 
+                 String name, String version, String platform )
     {
-        return nameWithVersion;
+        super( layout, type, storage, remote, name );
+        this.filename = toFilename( name, version, platform );
+        this.version = version;
+        this.platform = platform;
+    }
+    
+    public String filename()
+    {
+        return filename;
     }
     
     public String version()
     {
         return version;
     }
+
+    public String platform()
+    {
+        return platform;
+    }        
+
 }

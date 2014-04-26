@@ -36,13 +36,16 @@ public interface RubygemsGateway {
 
     List<String> listVersions( String name, InputStream inputStream, long modified, boolean prerelease );
 
-    String gemname( Object spec );
+    String filename( Object spec );
 
+    String name( Object spec );
+    
     String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified );
 
-    Dependencies dependencies( InputStream inputStream, long modified );
+    DependencyData dependencies( InputStream inputStream, long modified );
 
     List<String> listAllVersions( String name, InputStream inputStream,
                                   long modified, boolean prerelease );
+
 
 }

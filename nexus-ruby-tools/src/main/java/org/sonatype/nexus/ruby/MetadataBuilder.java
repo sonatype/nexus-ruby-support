@@ -5,9 +5,9 @@ public class MetadataBuilder extends AbstractMetadataBuilder {
     
     private final StringBuilder xml;
     private boolean closed = false;
-    private final Dependencies deps;
+    private final DependencyData deps;
     
-    public MetadataBuilder( Dependencies deps )
+    public MetadataBuilder( DependencyData deps )
     {
         super( deps.modified() );
         this.deps = deps;

@@ -3,12 +3,12 @@ package org.sonatype.nexus.ruby;
 import org.jruby.embed.ScriptingContainer;
 
 
-public class DependenciesImpl extends ScriptWrapper implements Dependencies
+public class DependencyDataImpl extends ScriptWrapper implements DependencyData
 {   
     private final long modified;
     
-    public DependenciesImpl( ScriptingContainer scriptingContainer,
-                             Object dependencies, long modified )
+    public DependencyDataImpl( ScriptingContainer scriptingContainer,
+                               Object dependencies, long modified )
     {
         super( scriptingContainer, dependencies );
         this.modified = modified;

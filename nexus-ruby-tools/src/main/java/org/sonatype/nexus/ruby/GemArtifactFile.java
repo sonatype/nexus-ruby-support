@@ -23,17 +23,18 @@ public class GemArtifactFile extends RubygemsFile {
         return snapshot;
     }
 
-    public GemFile gem( Dependencies dependencies )
+    public GemFile gem( DependencyData dependencies )
     {
         String platform = dependencies.platform( version() );
-        if ( "ruby".equals( platform ) )
-        {
-            return layout.gemFile( name() + "-" + version() );
-        }
-        else
-        {
-            return layout.gemFile( name() + "-" + version() + "-" + platform );
-        }
+        return layout.gemFile( name(), version(), platform );
+//        if ( "ruby".equals( platform ) )
+//        {
+//            return layout.gemFile( name() + "-" + version() );
+//        }
+//        else
+//        {
+//            return layout.gemFile( name() + "-" + version() + "-" + platform );
+//        }
     }
 
     public DependencyFile dependency()

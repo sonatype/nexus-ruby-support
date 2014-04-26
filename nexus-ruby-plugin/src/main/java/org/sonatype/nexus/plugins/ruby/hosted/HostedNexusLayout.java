@@ -98,6 +98,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
                    ItemNotFoundException, IllegalOperationException,
                    AccessDeniedException
     {
+        repository.getLog().error( file.toString() );
         List<InputStream> gemspecs = new LinkedList<InputStream>();
         try{
             StorageFileItem specs = (StorageFileItem) retrieveSpecsIndex( repository, SpecsIndexType.RELEASE );        
@@ -112,10 +113,9 @@ public class HostedNexusLayout extends NexusLayout implements Layout
                                                       true ) );
                         
             for( String version: versions )
-            {
-                ResourceStoreRequest req = toResourceStoreRequest( gemspecFile( file.name(), 
-                                                                                // ruby platform is not part of the gemname 
-                                                                                version.replaceFirst( "-ruby$", "" ) ) ); 
+            {                                                        
+                // ruby platform is not part of the gemname 
+                ResourceStoreRequest req = toResourceStoreRequest( gemspecFile( file.name() + "-" + version.replaceFirst( "-ruby$", "" ) ) );
                 try
                 {
                     gemspecs.add( ((StorageFileItem) repository.retrieveItem( req ) ).getInputStream() );
@@ -172,11 +172,14 @@ public class HostedNexusLayout extends NexusLayout implements Layout
                   ItemNotFoundException, AccessDeniedException
     {
         InputStream is = null;
+        String name;
         try
         {
             StorageFileItem file = (StorageFileItem) repository.retrieveItem( toResourceStoreRequest( gem ) );
             is = file.getInputStream();
-            deleteSpecToIndex( repository, gateway.spec( is ) );
+            Object spec = gateway.spec( is );
+            name = gateway.name( spec );
+            deleteSpecToIndex( repository, spec );
         }
         catch ( IOException | AccessDeniedException e )
         {
@@ -187,7 +190,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
             IOUtil.close( is );
         }
 
-        createDependency( repository, gem.dependency() );
+        createDependency( repository, dependencyFile( name ) );
     }
 
     public void storeGem( RubyRepository repository,
@@ -202,7 +205,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
                                            repository.getApplicationTempDirectory() );
             IOUtil.copy( is, new FileOutputStream( tmpFile ) ); 
             Object spec = gateway.spec( new FileInputStream( tmpFile ) );
-            GemFile gemFile = gemFile( gateway.gemname( spec ) );
+            GemFile gemFile = gemFile( gateway.filename( spec ) );
 
             doStoreGem( repository, gemFile, spec );
           }
@@ -248,7 +251,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
         addSpecToIndex( repository, spec );
         
         // create a new dependency file including the new gem
-        createDependency( repository, gem.dependency() );
+        createDependency( repository, dependencyFile( gateway.name( spec ) ) );
     }
 
     @SuppressWarnings( "deprecation" )

@@ -10,7 +10,7 @@ import org.junit.Test;
 public class DefaultLayoutTest
     extends TestCase
 {
-    static class DependenciesMock implements Dependencies
+    static class DependenciesMock implements DependencyData
     {
         private final String platform;
 
@@ -72,7 +72,7 @@ public class DefaultLayoutTest
 
         GemArtifactFile file3 = (GemArtifactFile) file;
 
-        Dependencies deps = new DependenciesMock();
+        DependencyData deps = new DependenciesMock();
         assertThat( file3.version(), equalTo( "1.2.3" ) );
         assertThat( file3.gem( deps ).name(), equalTo( "jbundler" ) );
         assertThat( file3.gem( deps ).version(), equalTo( "1.2.3" ) );
@@ -96,7 +96,7 @@ public class DefaultLayoutTest
 
         GemArtifactFile file3 = (GemArtifactFile) file;
 
-        Dependencies deps = new DependenciesMock();
+        DependencyData deps = new DependenciesMock();
         assertThat( file3.version(), equalTo( "1.2.3" ) );
         assertThat( file3.gem( deps ).name(), equalTo( "jbundler" ) );
         assertThat( file3.gem( deps ).version(), equalTo( "1.2.3" ) );
@@ -120,10 +120,11 @@ public class DefaultLayoutTest
 
         PomFile file3 = (PomFile) file;
 
-        Dependencies deps = new DependenciesMock();
+        DependencyData deps = new DependenciesMock();
         assertThat( file3.version(), equalTo( "1.2.3" ) );
         assertThat( file3.gemspec( deps ).name(), equalTo( "jbundler" ) );
         assertThat( file3.gemspec( deps ).version(), equalTo( "1.2.3" ) );
+        assertThat( file3.gemspec( deps ).platform(), equalTo( "ruby" ) );
         assertThat( file3.isSnapshot(), equalTo( false ) );
     }
 
@@ -144,9 +145,9 @@ public class DefaultLayoutTest
 
         PomFile file3 = (PomFile) file;
 
-        Dependencies deps = new DependenciesMock();
+        DependencyData deps = new DependenciesMock();
         assertThat( file3.version(), equalTo( "1.2.3" ) );
-        assertThat( file3.gemspec( deps ).name(), equalTo( "jbundler" ) );
+        assertThat( file3.gemspec( deps ).filename(), equalTo( "jbundler-1.2.3" ) );
         assertThat( file3.gemspec( deps ).version(), equalTo( "1.2.3" ) );
         assertThat( file3.isSnapshot(), equalTo( true ) );
     }
@@ -223,15 +224,39 @@ public class DefaultLayoutTest
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/gems/j/jbundler-9.2.1.gem" ) );
         assertThat( file.remotePath(), equalTo( "/gems/jbundler-9.2.1.gem" ) );
-        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.name(), equalTo( "jbundler-9.2.1" ) );
         assertThat( file.type(), equalTo( FileType.GEM ) );
 
         GemFile file3 = (GemFile) file;
         
         assertThat( (GemFile) file, equalTo( file3.gemspec().gem() ) );
+        assertThat( file3.version(), equalTo( null ) );
+        assertThat( file3.platform(), equalTo( null ) );
+        assertThat( file3.filename(), equalTo( "jbundler-9.2.1" ) );
+        assertThat( file3.gemspec().name(), equalTo( "jbundler-9.2.1") );
+    }
+    
+    @Test
+    public void testGemfile2()
+        throws Exception
+    {
+        RubygemsFile file = layout.gemFile( "jbundler", "9.2.1", "java" );
+        assertNotNull( file );
+        assertNotNull( file.isGemFile() );
+        RubygemsFile file2 = layout.gemFile( "jbundler", "9.2.1", "java" );
+        assertThat( file, equalTo( file2 ) );
+        assertThat( file.storagePath(), equalTo( "/gems/j/jbundler-9.2.1-java.gem" ) );
+        assertThat( file.remotePath(), equalTo( "/gems/jbundler-9.2.1-java.gem" ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.GEM ) );
+
+        GemFile file3 = (GemFile) file;
+        
+        assertThat( (GemFile) file, equalTo( file3.gemspec().gem() ) );;
+        assertThat( file3.filename(), equalTo( "jbundler-9.2.1-java" ) );
+        assertThat( file3.name(), equalTo( "jbundler" ) );
         assertThat( file3.version(), equalTo( "9.2.1" ) );
-        assertThat( file3.nameWithVersion(), equalTo( "jbundler-9.2.1" ) );
-        assertThat( file3.dependency().name(), equalTo( "jbundler" ) );
+        assertThat( file3.platform(), equalTo( "java" ) );
         assertThat( file3.gemspec().name(), equalTo( "jbundler") );
     }
 
@@ -246,17 +271,41 @@ public class DefaultLayoutTest
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/quick/Marshal.4.8/j/jbundler-9.2.1.gemspec.rz" ) );
         assertThat( file.remotePath(), equalTo( "/quick/Marshal.4.8/jbundler-9.2.1.gemspec.rz" ) );
-        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.name(), equalTo( "jbundler-9.2.1" ) );
         assertThat( file.type(), equalTo( FileType.GEMSPEC ) );
 
         GemspecFile file3 = (GemspecFile) file;
         
         assertThat( (GemspecFile) file, equalTo( file3.gem().gemspec() ) );
-        assertThat( file3.version(), equalTo( "9.2.1" ) );
-        assertThat( file3.nameWithVersion(), equalTo( "jbundler-9.2.1" ) );
-        assertThat( file3.gem().name(), equalTo( "jbundler") );
+        assertThat( file3.version(), equalTo( null ) );
+        assertThat( file3.platform(), equalTo( null ) );
+        assertThat( file3.filename(), equalTo( "jbundler-9.2.1" ) );
+        assertThat( file3.gem().name(), equalTo( "jbundler-9.2.1") );
     }
 
+    @Test
+    public void testGemspecfile2()
+        throws Exception
+    {
+        RubygemsFile file = layout.gemspecFile( "jbundler", "9.2.1", "java" );
+        assertNotNull( file );
+        assertNotNull( file.isGemspecFile() );
+        RubygemsFile file2 = layout.gemspecFile( "jbundler", "9.2.1", "java" );
+        assertThat( file, equalTo( file2 ) );
+        assertThat( file.storagePath(), equalTo( "/quick/Marshal.4.8/j/jbundler-9.2.1-java.gemspec.rz" ) );
+        assertThat( file.remotePath(), equalTo( "/quick/Marshal.4.8/jbundler-9.2.1-java.gemspec.rz" ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.GEMSPEC ) );
+
+        GemspecFile file3 = (GemspecFile) file;
+        
+        assertThat( (GemspecFile) file, equalTo( file3.gem().gemspec() ) );;
+        assertThat( file3.filename(), equalTo( "jbundler-9.2.1-java" ) );
+        assertThat( file3.name(), equalTo( "jbundler" ) );
+        assertThat( file3.version(), equalTo( "9.2.1" ) );
+        assertThat( file3.platform(), equalTo( "java" ) );
+        assertThat( file3.gem().name(), equalTo( "jbundler") );
+    }
     @Test
     public void testDependencyFile()
         throws Exception

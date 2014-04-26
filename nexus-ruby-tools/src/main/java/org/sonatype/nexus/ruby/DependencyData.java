@@ -1,6 +1,6 @@
 package org.sonatype.nexus.ruby;
 
-public interface Dependencies
+public interface DependencyData
 {
 
     public abstract String[] versions( boolean prereleased );

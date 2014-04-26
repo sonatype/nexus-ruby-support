@@ -5,21 +5,19 @@ public interface Layout
 
     Directory directory( String path, String... items );
 
-    GemFile gemFile( String name, String version );
+    GemFile gemFile( String name, String version, String platform );
 
-    GemFile gemFile( String nameWithVersion );
+    GemFile gemFile( String filename );
 
-    GemspecFile gemspecFile( String name, String version );
+    GemspecFile gemspecFile( String name, String version, String platform );
 
-    GemspecFile gemspecFile( String nameWithVersion );
+    GemspecFile gemspecFile( String filename );
 
     DependencyFile dependencyFile( String name );
 
     BundlerApiFile bundlerApiFile( String namesCommaSeparated );
 
     ApiV1File apiV1File( String name );
-
-    RubygemsFile fromPath( String path );
 
     SpecsIndexFile specsIndex( String name, boolean isGzipped );
 
@@ -35,8 +33,10 @@ public interface Layout
     
     GemArtifactFile gemArtifact( String name, String version );
 
-    NotFoundFile notFound();
+    NotFoundFile notFound();// String path );
 
     Sha1File sha1( RubygemsFile file );
+
+    RubygemsFile fromPath( String path );
 
 }

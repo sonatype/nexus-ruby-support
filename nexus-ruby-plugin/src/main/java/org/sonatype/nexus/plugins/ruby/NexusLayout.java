@@ -30,7 +30,7 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.BundlerApiFile;
-import org.sonatype.nexus.ruby.Dependencies;
+import org.sonatype.nexus.ruby.DependencyData;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.GemArtifactFile;
@@ -114,24 +114,24 @@ public class NexusLayout
         return layout.directory( path, items );
     }
 
-    public GemFile gemFile( String name, String version )
+    public GemFile gemFile( String name, String version, String platform )
     {
-        return layout.gemFile( name, version );
+        return layout.gemFile( name, version, platform );
     }
 
-    public GemFile gemFile( String nameWithVersion )
+    public GemFile gemFile( String filename )
     {
-        return layout.gemFile( nameWithVersion );
+        return layout.gemFile( filename );
     }
 
-    public GemspecFile gemspecFile( String name, String version )
+    public GemspecFile gemspecFile( String name, String version, String platform )
     {
-        return layout.gemspecFile( name, version );
+        return layout.gemspecFile( name, version, platform );
     }
 
-    public GemspecFile gemspecFile( String nameWithVersion )
+    public GemspecFile gemspecFile( String filename )
     {
-        return layout.gemspecFile( nameWithVersion );
+        return layout.gemspecFile( filename );
     }
 
     public DependencyFile dependencyFile( String name )
@@ -457,7 +457,7 @@ public class NexusLayout
     }
 
     @SuppressWarnings( "deprecation" )
-    public Dependencies retrieveDependencies( RubyRepository repository, DependencyFile file )
+    public DependencyData retrieveDependencies( RubyRepository repository, DependencyFile file )
             throws org.sonatype.nexus.proxy.StorageException, AccessDeniedException, ItemNotFoundException, IllegalOperationException
     {
         StorageFileItem item = (StorageFileItem) repository.retrieveItem( toResourceStoreRequest( file ) );

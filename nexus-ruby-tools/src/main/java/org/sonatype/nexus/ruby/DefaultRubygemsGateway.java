@@ -50,9 +50,9 @@ public class DefaultRubygemsGateway
     }
     
     @Override
-    public Dependencies dependencies( InputStream is, long modified )
+    public DependencyData dependencies( InputStream is, long modified )
     {
-        return new DependenciesImpl( scriptingContainer, 
+        return new DependencyDataImpl( scriptingContainer, 
                                  callMethod( "dependencies", is,
                                              Object.class ), modified );
     }
@@ -308,9 +308,15 @@ public class DefaultRubygemsGateway
     }
 
     @Override
-    public String gemname( Object spec )
+    public String filename( Object spec )
     {
         return scriptingContainer.callMethod( spec, "file_name", String.class );
+    }
+
+    @Override
+    public String name( Object spec )
+    {
+        return scriptingContainer.callMethod( spec, "name", String.class );
     }
 
     @Override
