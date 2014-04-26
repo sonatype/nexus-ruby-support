@@ -12,7 +12,6 @@ import static org.sonatype.sisu.filetasks.builder.FileRef.path;
 import java.io.File;
 import java.io.IOException;
 
-import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.sonatype.nexus.bundle.launcher.NexusBundleConfiguration;
@@ -93,7 +92,7 @@ public class BundleITBase extends RubyNexusRunningITSupport
             assertFileDownload( "/maven/prereleases/rubygems/zip/maven-metadata.xml.sha1", 40 );
             assertFileDownload( "/maven/releases/rubygems/pre/maven-metadata.xml", 192 );
             assertFileDownload( "/maven/releases/rubygems/pre/maven-metadata.xml.sha1", 40 );
-            assertFileDownload( "/maven/releases/rubygems/hufflepuf/maven-metadata.xml", 229 );
+            assertFileDownload( "/maven/releases/rubygems/hufflepuf/maven-metadata.xml", 260 );
             assertFileDownload( "/maven/releases/rubygems/hufflepuf/maven-metadata.xml.sha1", 40 );
             assertFileDownload( "/maven/prereleases/rubygems/pre/maven-metadata.xml", 237 );
             assertFileDownload( "/maven/prereleases/rubygems/pre/maven-metadata.xml.sha1", 40 );
