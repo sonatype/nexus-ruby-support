@@ -1,5 +1,8 @@
 package org.sonatype.nexus.ruby;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.sonatype.nexus.ruby.cuba.Bootstrap;
 import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
 
@@ -245,5 +248,11 @@ public class DefaultLayout implements Layout
     public RubygemsFile fromPath( String path )
     {        
         return bootstrap.accept( path );
+    }
+
+    @Override
+    public InputStream getInputStream( RubygemsFile file ) throws IOException
+    {
+        return (InputStream) file.get();
     }
 }

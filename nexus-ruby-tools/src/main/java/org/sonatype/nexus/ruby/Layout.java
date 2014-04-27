@@ -1,5 +1,8 @@
 package org.sonatype.nexus.ruby;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public interface Layout
 {
 
@@ -38,5 +41,7 @@ public interface Layout
     Sha1File sha1( RubygemsFile file );
 
     RubygemsFile fromPath( String path );
+    
+    InputStream getInputStream( RubygemsFile file ) throws IOException;
 
 }
