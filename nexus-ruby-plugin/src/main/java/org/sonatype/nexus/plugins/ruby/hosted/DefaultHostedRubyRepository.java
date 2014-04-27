@@ -223,10 +223,21 @@ public class DefaultHostedRubyRepository
                    org.sonatype.nexus.proxy.StorageException
     {
         RubygemsFile file = get.fromPath( request.getRequestPath() );
-        StorageItem item = (StorageItem) file.get();
-        if ( item != null )
+        Object result = file.get();
+        if ( file.hasException() )
         {
-            return item;
+            if ( result instanceof IllegalOperationException )
+                throw (IllegalOperationException) result;
+            if ( result instanceof ItemNotFoundException )
+                throw (ItemNotFoundException) result;
+            if ( result instanceof RemoteAccessException )
+                throw (RemoteAccessException) result;
+            if ( result instanceof org.sonatype.nexus.proxy.StorageException )
+                throw (org.sonatype.nexus.proxy.StorageException) result;
+        }
+        if ( result != null )
+        {
+            return (StorageItem) result;
         }
         try
         {
