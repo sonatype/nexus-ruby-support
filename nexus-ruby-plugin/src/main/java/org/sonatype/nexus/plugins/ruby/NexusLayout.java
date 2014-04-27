@@ -63,6 +63,10 @@ public class NexusLayout
     }
 
     // delegate to layout
+    public InputStream getInputStream( RubygemsFile file ) throws IOException
+    {
+        return layout.getInputStream( file );
+    }
 
     public NotFoundFile notFound( String path )
     {
@@ -486,7 +490,7 @@ public class NexusLayout
     public StorageItem createPom( RubyRepository repository, ResourceStoreRequest request, PomFile file )
             throws org.sonatype.nexus.proxy.StorageException, AccessDeniedException, ItemNotFoundException, IllegalOperationException
     {
-        GemspecFile gemspec = file.gemspec( retrieveDependencies( repository, file.dependency() ) );
+        RubygemsFile gemspec = file.gemspec( retrieveDependencies( repository, file.dependency() ) );
         StorageFileItem item = (StorageFileItem) repository.retrieveItem( toResourceStoreRequest( gemspec ) );
         try
         {
