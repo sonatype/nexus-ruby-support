@@ -1,6 +1,5 @@
 package org.sonatype.nexus.ruby;
 
-import java.io.InputStream;
 
 public class RubygemsFile {
     
@@ -10,16 +9,18 @@ public class RubygemsFile {
     private final String remote;
     private final FileType type;
     
-    private InputStream inputStream;
+    private Object context;
+    private boolean isException = false;
     
-    public InputStream getInputStream()
+    public Object get()
     {
-        return inputStream;
+        return context;
     }
 
-    public void setInputStream( InputStream inputStream )
+    public void set( Object context )
     {
-        this.inputStream = inputStream;
+        this.context = context;
+        this.isException = false;
     }
 
     RubygemsFile( Layout layout, FileType type, String storage, String remote, String name )
@@ -170,5 +171,16 @@ public class RubygemsFile {
         if ( type != other.type )
             return false;
         return true;
+    }
+
+    public void setException( Exception e )
+    {
+        set( e );
+        this.isException = true;
+    }
+
+    public boolean hasException()
+    {
+        return isException;
     }
  }
