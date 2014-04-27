@@ -2,7 +2,6 @@ package org.sonatype.nexus.plugins.ruby.group;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -158,7 +157,6 @@ public class GroupNexusLayout extends NexusLayout implements Layout
         }
     }
 
-    @SuppressWarnings( "resource" )
     private void merge( RubyRepository repository,
                         DependencyFile file,
                         List<StorageItem> dependencies )
@@ -174,26 +172,9 @@ public class GroupNexusLayout extends NexusLayout implements Layout
                 streams.add( ( (StorageFileItem) item ).getInputStream() );
             }
             content = gateway.mergeDependencies( streams, true );
-            ContentLocator cl;
-            try
-            {
-                cl = new PreparedContentLocator( content,
-                                                 file.type().mime(),
-                                                 PreparedContentLocator.UNKNOWN_LENGTH );
-            }
-            catch( NoSuchMethodError e )
-            {
-                Constructor<PreparedContentLocator> c;
-                try
-                {
-                    c = PreparedContentLocator.class.getConstructor( new Class[] { InputStream.class, String.class } );
-                    cl = c.newInstance( content, file.type().mime() );
-                }
-                catch (Exception ee)
-                {
-                    throw e;
-                }
-            }
+            ContentLocator cl = newPreparedContentLocator( content,
+                                                           file.type().mime(),
+                                                           PreparedContentLocator.UNKNOWN_LENGTH );
             
             DefaultStorageFileItem item =
                     new DefaultStorageFileItem( repository,

@@ -64,9 +64,9 @@ public class NexusLayout
 
     // delegate to layout
 
-    public NotFoundFile notFound()
+    public NotFoundFile notFound( String path )
     {
-        return layout.notFound();
+        return layout.notFound( path );
     }
     
     public Sha1File sha1( RubygemsFile file )
@@ -223,15 +223,12 @@ public class NexusLayout
                 throw new org.sonatype.nexus.proxy.StorageException( e );
             }
         }
-        ContentLocator cl = new PreparedContentLocator( gateway.mergeDependencies( deps ),
-                                                        file.type().mime(), 
-                                                        PreparedContentLocator.UNKNOWN_LENGTH );
-        DefaultStorageFileItem result =
-                new DefaultStorageFileItem( repository, 
-                                            toResourceStoreRequest( file ),
-                                            true, false, cl );
-
-        return result;
+        ContentLocator cl = newPreparedContentLocator( gateway.mergeDependencies( deps ),
+                                                       file.type().mime(), 
+                                                       PreparedContentLocator.UNKNOWN_LENGTH );
+        return new DefaultStorageFileItem( repository, 
+                                           toResourceStoreRequest( file ),
+                                           true, false, cl );
     }    
     
     @SuppressWarnings( "deprecation" )
@@ -356,25 +353,9 @@ public class NexusLayout
              in = new GZIPInputStream( item.getInputStream() );
              IOUtil.copy( in, out );
              
-             try
-             {
-                 return new PreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), 
-                                                    "application/x-marshal-ruby",
-                                                    out.toByteArray().length ); 
-             }
-             catch( NoSuchMethodError e )
-             {
-                 try
-                 {
-                     Constructor<PreparedContentLocator> c = PreparedContentLocator.class.getConstructor( new Class[] { InputStream.class, String.class } );
-                     return c.newInstance( new ByteArrayInputStream( out.toByteArray() ), 
-                                           "application/x-marshal-ruby" );
-                 }
-                 catch (Exception ee)
-                 {
-                     throw e;
-                 }
-             }
+             return newPreparedContentLocator( new ByteArrayInputStream( out.toByteArray() ), 
+                                               "application/x-marshal-ruby",
+                                               out.toByteArray().length );
          }
          finally
          {
@@ -383,7 +364,6 @@ public class NexusLayout
          }
     }
     
-    @SuppressWarnings( "resource" )
     protected void storeSpecsIndex( RubyRepository repository, SpecsIndexFile file,
                                     InputStream content)
          throws LocalStorageException, UnsupportedStorageOperationException,
@@ -397,26 +377,9 @@ public class NexusLayout
             IOUtil.copy( content, out );
             // need to close gzip stream here
             out.close();
-            ContentLocator cl;
-            try
-            {
-                cl = new PreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ),
-                                                 "application/x-gzip",
-                                                 gzipped.size() );
-            }
-            catch( NoSuchMethodError e )
-            {
-                try
-                {
-                    Constructor<PreparedContentLocator> c = PreparedContentLocator.class.getConstructor( new Class[] { InputStream.class, String.class } );
-                    cl = c.newInstance( new ByteArrayInputStream( gzipped.toByteArray() ), 
-                                        "application/x-gzip" );
-                }
-                catch (Exception ee)
-                {
-                    throw e;
-                }
-            }
+            ContentLocator cl = newPreparedContentLocator( new ByteArrayInputStream( gzipped.toByteArray() ),
+                                                           "application/x-gzip",
+                                                           gzipped.size() );
             DefaultStorageFileItem item =
                     new DefaultStorageFileItem( repository,
                                                 toResourceStoreRequest( file ),
