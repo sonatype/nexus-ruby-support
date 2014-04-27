@@ -35,6 +35,6 @@ public class GemsCuba implements Cuba
         {
             return state.context.layout.directory( state.context.original );
         }
-        return state.context.layout.notFound();
+        return state.context.layout.notFound( state.context.original );
     }
 }

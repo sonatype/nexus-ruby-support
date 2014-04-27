@@ -59,9 +59,9 @@ public class DefaultLayout implements Layout
     }
 
     @Override
-    public NotFoundFile notFound()
+    public NotFoundFile notFound( String path )
     {
-        return new NotFoundFile( this );
+        return new NotFoundFile( this, path );
     }
     
     private String toPath( String name, String version, String timestamp, boolean snapshot )

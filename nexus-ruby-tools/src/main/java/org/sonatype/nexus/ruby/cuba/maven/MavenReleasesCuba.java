@@ -25,7 +25,7 @@ public class MavenReleasesCuba implements Cuba
         case "":
             return state.context.layout.directory( state.context.original, RUBYGEMS );
         default:
-            return state.context.layout.notFound();
+            return state.context.layout.notFound( state.context.original );
         }
     }
 }

@@ -38,7 +38,7 @@ public class State
                                        this.path.substring( 1 + name.length() ), 
                                        name ) );
         }
-        return context.layout.notFound();
+        return context.layout.notFound( context.original );
     }
     
     public String toString()

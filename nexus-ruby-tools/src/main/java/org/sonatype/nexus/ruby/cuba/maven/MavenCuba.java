@@ -32,7 +32,7 @@ public class MavenCuba implements Cuba
             return state.context.layout.directory( state.context.original, 
                                                    PRERELEASES, RELEASES );
         default:
-            return state.context.layout.notFound();
+            return state.context.layout.notFound( state.context.original );
         }
     }
 }

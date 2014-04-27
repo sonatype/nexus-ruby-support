@@ -26,7 +26,7 @@ public class QuickCuba implements Cuba
             return state.context.layout.directory( state.context.original, 
                                                    MARSHAL_4_8 );
         default:
-            return state.context.layout.notFound();
+            return state.context.layout.notFound( state.context.original );
         }
     }
 }

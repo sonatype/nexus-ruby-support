@@ -33,7 +33,7 @@ public interface Layout
     
     GemArtifactFile gemArtifact( String name, String version );
 
-    NotFoundFile notFound();// String path );
+    NotFoundFile notFound( String path );
 
     Sha1File sha1( RubygemsFile file );
 

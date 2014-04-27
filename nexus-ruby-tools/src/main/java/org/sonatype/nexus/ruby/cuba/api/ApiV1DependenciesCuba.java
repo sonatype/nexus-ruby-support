@@ -46,6 +46,6 @@ public class ApiV1DependenciesCuba implements Cuba
         {
             return state.context.layout.dependencyFile( m.group( 1 ) );
         }
-        return state.context.layout.notFound();
+        return state.context.layout.notFound( state.context.original );
     }
 }

@@ -16,20 +16,20 @@ public class MavenPrereleasesRubygemsArtifactIdCuba implements Cuba
     }
     
     @Override
-    public RubygemsFile on( State ctx )
+    public RubygemsFile on( State state )
     {
-        switch( ctx.part )
+        switch( state.part )
         {
         case "maven-metadata.xml":
-            return ctx.context.layout.mavenMetadata( name, true );
+            return state.context.layout.mavenMetadata( name, true );
         case "maven-metadata.xml.sha1":
-            MavenMetadataFile file = ctx.context.layout.mavenMetadata( name, true );
-            return ctx.context.layout.sha1( file );
+            MavenMetadataFile file = state.context.layout.mavenMetadata( name, true );
+            return state.context.layout.sha1( file );
         case "":
-            return ctx.context.layout.directory( ctx.context.original );
+            return state.context.layout.directory( state.context.original );
         default:
-            return ctx.nested( new MavenPrereleasesRubygemsArtifactIdVersionCuba( name,
-                                                                                  ctx.part.replace( "-SNAPSHOT", "" ) ) );
+            return state.nested( new MavenPrereleasesRubygemsArtifactIdVersionCuba( name,
+                                                                                  state.part.replace( "-SNAPSHOT", "" ) ) );
         }
     }
 }

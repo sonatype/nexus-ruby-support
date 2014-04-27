@@ -30,7 +30,7 @@ public class ApiV1Cuba implements Cuba
             return state.context.layout.directory( state.context.original,
                                                    new String[] { API_KEY, DEPENDENCIES } );
         default:
-            return state.context.layout.notFound();
+            return state.context.layout.notFound( state.context.original );
         }
     }
 }

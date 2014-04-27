@@ -17,11 +17,6 @@ public class Bootstrap
         this.layout = layout;
     }
     
-    public RubygemsFile notFound()
-    {
-        return new NotFoundFile( layout );
-    }
-
     public RubygemsFile accept( String original )
     {
         //normalize PATH-Separator from Windows platform to valid URL-Path

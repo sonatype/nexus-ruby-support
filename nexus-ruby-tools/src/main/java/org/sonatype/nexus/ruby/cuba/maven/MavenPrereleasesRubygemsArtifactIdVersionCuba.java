@@ -55,7 +55,7 @@ public class MavenPrereleasesRubygemsArtifactIdVersionCuba implements Cuba
         case "":
             return state.context.layout.directory( state.context.original );
         default:
-            return state.context.layout.notFound();
+            return state.context.layout.notFound( state.context.original );
         }
     }
 }

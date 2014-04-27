@@ -49,6 +49,6 @@ public class RootCuba implements Cuba
         {
             return state.context.layout.specsIndex( m.group( 1 ), m.group( 3 ) != null );
         }
-        return state.context.layout.notFound();
+        return state.context.layout.notFound( state.context.original );
     }
 }

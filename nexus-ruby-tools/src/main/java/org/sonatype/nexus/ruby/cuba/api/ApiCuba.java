@@ -27,7 +27,7 @@ public class ApiCuba implements Cuba
             String[] items = { V1 };
             return state.context.layout.directory( state.context.original, items );
         default:
-            return state.context.layout.notFound();
+            return state.context.layout.notFound( state.context.original );
         }
     }
 }

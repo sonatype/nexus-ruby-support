@@ -8,12 +8,12 @@ public class MavenReleasesRubygemsCuba implements Cuba
 {
     
     @Override
-    public RubygemsFile on( State ctx )
+    public RubygemsFile on( State state )
     {
-        if ( ctx.part.isEmpty() )
+        if ( state.part.isEmpty() )
         {
-            return ctx.context.layout.directory( ctx.context.original );
+            return state.context.layout.directory( state.context.original );
         }
-        return ctx.nested( new MavenReleasesRubygemsArtifactIdCuba( ctx.part ) );
+        return state.nested( new MavenReleasesRubygemsArtifactIdCuba( state.part ) );
     }
 }
