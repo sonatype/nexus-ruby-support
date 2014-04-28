@@ -80,6 +80,7 @@ public class BundleITBase extends RubyNexusRunningITSupport
         assertFileDownload( "/gems/zip-2.0.2.gem", 64000 );
         assertFileDownload( "/api/v1/dependencies/z/zip.json.rz", 80 );
         assertFileDownload( "/api/v1/dependencies/zip.json.rz", 80 );
+        assertFileDownload( "/api/v1/dependencies?gems=zip", 80 );
         assertFileDownload( "/quick/Marshal.4.8/z/zip-2.0.2.gemspec.rz", 359 );
         assertFileDownload( "/quick/Marshal.4.8/zip-2.0.2.gemspec.rz", 359 );    
         if ( ! client().getNexusStatus().getVersion().matches( "^2\\.6\\..*" ) )
