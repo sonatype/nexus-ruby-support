@@ -98,7 +98,6 @@ public class HostedNexusLayout extends NexusLayout implements Layout
                    ItemNotFoundException, IllegalOperationException,
                    AccessDeniedException
     {
-        repository.getLog().error( file.toString() );
         List<InputStream> gemspecs = new LinkedList<InputStream>();
         try{
             StorageFileItem specs = (StorageFileItem) retrieveSpecsIndex( repository, SpecsIndexType.RELEASE );        

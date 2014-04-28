@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class IOUtil  {
+public class IOUtil
+{
     public static void close( InputStream inputStream )
     {
         if ( inputStream == null )
@@ -21,6 +22,7 @@ public class IOUtil  {
             // ignore
         }
     }
+
     /**
      * Copy bytes from an <code>InputStream</code> to an <code>OutputStream</code>.
      * @param bufferSize Size of internal buffer to use.

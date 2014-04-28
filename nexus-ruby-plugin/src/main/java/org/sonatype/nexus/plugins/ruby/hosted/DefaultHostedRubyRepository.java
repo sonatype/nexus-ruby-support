@@ -180,7 +180,6 @@ public class DefaultHostedRubyRepository
                 ItemNotFoundException, AccessDeniedException
     {
         RubygemsFile file = layout.fromResourceStoreRequest( this, request );
-        getLog().error( file.toString() );
         if( file.type() == FileType.GEM )
         {
             layout.deleteGem( this, file.isGemFile() );
