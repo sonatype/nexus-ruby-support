@@ -1,13 +1,11 @@
 package org.sonatype.nexus.ruby;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 import org.jruby.embed.PathType;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.embed.osgi.OSGiScriptingContainer;
-import org.jruby.ir.instructions.GetClassVarContainerModuleInstr;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.osgi.framework.FrameworkUtil;
 

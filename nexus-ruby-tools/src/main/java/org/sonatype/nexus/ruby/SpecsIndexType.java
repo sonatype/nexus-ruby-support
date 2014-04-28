@@ -10,7 +10,6 @@ public enum SpecsIndexType {
         {
             name.append( name().toLowerCase().replaceFirst( "^release", "" ) )
                 .append( "_" );
-            
         }
         return name.append( "specs.4.8" ).toString();
     }

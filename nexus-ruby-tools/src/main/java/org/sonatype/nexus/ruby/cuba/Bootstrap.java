@@ -1,10 +1,7 @@
 package org.sonatype.nexus.ruby.cuba;
 
 import org.sonatype.nexus.ruby.Layout;
-import org.sonatype.nexus.ruby.NotFoundFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
-
-
 
 public class Bootstrap
 {
@@ -12,7 +9,7 @@ public class Bootstrap
     
     public final Layout layout;
     
-    Bootstrap( Layout layout, Cuba cuba ){
+    protected Bootstrap( Layout layout, Cuba cuba ){
         this.cuba = cuba;
         this.layout = layout;
     }
@@ -32,7 +29,7 @@ public class Bootstrap
         final String path;
         if ( index > -1 )
         {
-            query = original.substring( index + 1);
+            query = original.substring( index + 1 );
             path = original.substring( 0, index );
         }
         else

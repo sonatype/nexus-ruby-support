@@ -33,7 +33,7 @@ public class QuickMarshalCuba implements Cuba
         }
         if ( state.part.isEmpty() )
         {
-            state.context.layout.directory( state.context.original );
+            return state.context.layout.directory( state.context.original );
         }
         return state.context.layout.notFound( state.context.original );
     }

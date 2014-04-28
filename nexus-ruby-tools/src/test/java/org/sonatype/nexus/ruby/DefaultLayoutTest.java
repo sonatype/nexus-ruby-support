@@ -322,9 +322,22 @@ public class DefaultLayoutTest
         assertThat( file.name(), equalTo( "jbundler" ) );
         assertThat( file.type(), equalTo( FileType.DEPENDENCY ) );
     }
+
+    @Test
+    public void testBundlerApiFile1()
+        throws Exception
+    {
+        RubygemsFile file = layout.fromPath( "/api/v1/dependencies?gems=jbundler" );
+        assertNotNull( file );
+        assertNotNull( file.isDependencyFile() );
+        assertThat( file.storagePath(), equalTo( "/api/v1/dependencies/j/jbundler.json.rz" ) );
+        assertThat( file.remotePath(), equalTo( "/api/v1/dependencies?gems=jbundler" ) );
+        assertThat( file.name(), equalTo( "jbundler" ) );
+        assertThat( file.type(), equalTo( FileType.DEPENDENCY ) );
+    }
     
     @Test
-    public void testBundlerApiFile()
+    public void testBundlerApiFile2()
         throws Exception
     {
         RubygemsFile file = layout.fromPath( "/api/v1/dependencies?gems=jbundler,bundler" );
@@ -450,46 +463,55 @@ public class DefaultLayoutTest
         
         file = layout.fromPath( "/api/v1" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         file2 = layout.fromPath( "/api/v1/" );
         assertThat( file, equalTo( file2 ) );
         
         file = layout.fromPath( "/api/v1/dependencies" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         file2 = layout.fromPath( "/api/v1/dependencies/" );
         assertThat( file, equalTo( file2 ) );
         
         file = layout.fromPath( "/api/v1/dependencies/a/" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         file2 = layout.fromPath( "/api/v1/dependencies/a" );
         assertThat( file, equalTo( file2 ) );
 
         file = layout.fromPath( "/" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         file2 = layout.fromPath( "" );
         assertThat( file, equalTo( file2 ) );
 
         file = layout.fromPath( "/gems" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         file2 = layout.fromPath( "/gems/" );
         assertThat( file, equalTo( file2 ) );
         
         file = layout.fromPath( "/gems/v" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         file2 = layout.fromPath( "/gems/v/" );
         assertThat( file, equalTo( file2 ) );
 
         file = layout.fromPath( "/quick" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         file2 = layout.fromPath( "/quick/" );
         assertThat( file, equalTo( file2 ) );
         
         file = layout.fromPath( "/quick/Marshal.4.8" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         file2 = layout.fromPath( "/quick/Marshal.4.8/" );
         assertThat( file, equalTo( file2 ) );
         
         file = layout.fromPath( "/quick/Marshal.4.8/-" );
         assertNotNull( file );
+        assertNotNull( file.isDirectory() );
         file2 = layout.fromPath( "/quick/Marshal.4.8/-/" );
         assertThat( file, equalTo( file2 ) );
     }
