@@ -7,6 +7,7 @@ import java.lang.reflect.Constructor;
 import java.util.zip.GZIPInputStream;
 
 import org.codehaus.plexus.util.IOUtil;
+import org.jsoup.Connection.Request;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
@@ -33,6 +34,17 @@ public class NexusHostedGETLayout extends HostedGETLayout
     {
         super( gateway );
         this.repository = repository;
+    }
+    
+    public RubygemsFile fromPath( ResourceStoreRequest request )
+    {   
+        String path = request.getRequestPath();
+        // only request with gems=... are used by FileLayout
+        if ( request.getRequestUrl() != null && request.getRequestUrl().contains( "?gems=" ) )
+        {
+            path += request.getRequestUrl().substring( request.getRequestUrl().indexOf( '?' ) );
+        }
+        return fromPath( path );
     }
     
     protected void retrieve( RubygemsFile file )

@@ -17,7 +17,6 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
-import org.sonatype.nexus.plugins.ruby.GETLayout;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.DefaultRubygemsFacade;
@@ -40,7 +39,7 @@ import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
-import org.sonatype.nexus.ruby.SpecsIndexFile;
+import org.sonatype.nexus.ruby.layout.GETLayout;
 
 @Named( DefaultHostedRubyRepository.ID )
 public class DefaultHostedRubyRepository
@@ -61,7 +60,7 @@ public class DefaultHostedRubyRepository
 
     private final HostedNexusLayout layout;
 
-    private GETLayout get;
+    private final NexusHostedGETLayout get;
     
     @Inject
     public DefaultHostedRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
@@ -77,7 +76,7 @@ public class DefaultHostedRubyRepository
         this.facade = facade;
         this.repositoryKind = new DefaultRepositoryKind( HostedRubyRepository.class,
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
-        this.get = new GETLayout( this );
+        this.get = new NexusHostedGETLayout( gateway, this );
     }
 
     @Override
@@ -222,92 +221,51 @@ public class DefaultHostedRubyRepository
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
-        RubygemsFile file = get.fromPath( request.getRequestPath() );
+        RubygemsFile file = get.fromPath( request );
         Object result = file.get();
         if ( file.hasException() )
         {
             if ( result instanceof IllegalOperationException )
+            {
                 throw (IllegalOperationException) result;
+            }
             if ( result instanceof ItemNotFoundException )
+            {
                 throw (ItemNotFoundException) result;
+            }
             if ( result instanceof RemoteAccessException )
+            {
                 throw (RemoteAccessException) result;
+            }
             if ( result instanceof org.sonatype.nexus.proxy.StorageException )
+            {
                 throw (org.sonatype.nexus.proxy.StorageException) result;
+            }
+            if ( result instanceof IOException )
+            {
+                throw new org.sonatype.nexus.proxy.StorageException( (IOException) result );
+            }
+            throw new RuntimeException( (Exception) result );
         }
         if ( result != null )
         {
             return (StorageItem) result;
         }
-        try
+        
+        switch( file.type() )
         {
-            switch( file.type() )
+        case API_V1:
+            if ( "api_key".equals( file.isApiV1File().name() ) )
             {
-            case SHA1:
-                return layout.createSha1( this, request, file.isSha1File() );
-            case GEM_ARTIFACT:
-                return layout.retrieveGem( this, request, file.isGemArtifactFile() );
-            case POM:
-                return layout.createPom( this, request, file.isPomFile() );
-            case MAVEN_METADATA:
-                return layout.createMavenMetadata( this, request, file.isMavenMetadataFile() );
-            case MAVEN_METADATA_SNAPSHOT:
-                return layout.createMavenMetadataSnapshot( this, request, file.isMavenMetadataSnapshotFile() );
-            case BUNDLER_API:
-                return layout.createBundlerAPIResponse( this, file.isBundlerApiFile() );
-            case API_V1:
-                if ( "api_key".equals( file.isApiV1File().name() ) )
-                {
-                    // TODO not sure how
-                }
-                throw new ItemNotFoundException( reasonFor( request, this,
-                                                            "Can not serve path %s for repository %s", 
-                                                            request.getRequestPath(),
-                                                            RepositoryStringUtils.getHumanizedNameString( this ) ) );
-            case DEPENDENCY:
-                try
-                {
-                    return super.retrieveItem( fromTask, request );
-                }
-                catch( ItemNotFoundException e )
-                {
-                    layout.createDependency( this, file.isDependencyFile() );
-                    return super.retrieveItem( fromTask, request );                
-                }
-            case GEMSPEC:
-                try
-                {
-                    return super.retrieveItem( fromTask, request );
-                }
-                catch( ItemNotFoundException e )
-                {
-                    layout.createGemspec( this, file.isGemspecFile() );
-                    return super.retrieveItem( fromTask, request );                
-                }
-            case SPECS_INDEX:
-                SpecsIndexFile specs = file.isSpecIndexFile();
-                if ( ! specs.isGzipped() )
-                {
-                    return layout.retrieveUnzippedSpecsIndex( this, specs );
-                }
-                else
-                {
-                    try
-                    {
-                        return super.retrieveItem( fromTask, request );
-                    }
-                    catch (ItemNotFoundException e)
-                    {
-                        layout.createEmptySpecs( this, specs.specsType() );
-                    }
-                }
-            default:
-                return super.retrieveItem( fromTask, request );
+                // TODO not sure how
             }
-        }
-        catch( AccessDeniedException e )
-        {
-            throw new org.sonatype.nexus.proxy.StorageException( e );
+        case NOT_FOUND:
+            throw new ItemNotFoundException( reasonFor( request, this,
+                                                        "Can not serve path %s for repository %s", 
+                                                        request.getRequestPath(),
+                                                        RepositoryStringUtils.getHumanizedNameString( this ) ) );
+        default:
+            return super.retrieveItem( fromTask, request );
         }
     }
 
