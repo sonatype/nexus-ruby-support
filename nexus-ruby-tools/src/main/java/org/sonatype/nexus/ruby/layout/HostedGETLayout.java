@@ -1,11 +1,9 @@
 package org.sonatype.nexus.ruby.layout;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
 
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.FileType;
@@ -17,30 +15,22 @@ import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 
-public abstract class HostedGETLayout extends GETLayout
+public class HostedGETLayout extends GETLayout
 {
-    public HostedGETLayout( RubygemsGateway gateway )
+    public HostedGETLayout( RubygemsGateway gateway, StoreFacade store )
     {
-        super( gateway );
+        super( gateway, store );
     }
     
     @Override
     protected void ensureEmptySpecs( SpecsIndexFile specs )
     { 
         if ( specs.hasException() )
-        {
-            // create an empty index
-            ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
-            try( GZIPOutputStream out = new GZIPOutputStream( gzipped ) )
+        {    
+            try( InputStream content = gateway.emptyIndex() )
             {
-                try( InputStream is = gateway.emptyIndex() )
-                {
-                    IOUtil.copy( gateway.emptyIndex(), out );
-                    out.close();
-                }
-            
-                store( new java.io.ByteArrayInputStream( gzipped.toByteArray() ), specs );
-                retrieve( specs );
+                store.create( IOUtil.toGzipped( content ), specs );
+                store.retrieve( specs );
             }
             catch (IOException e)
             {
@@ -88,9 +78,9 @@ public abstract class HostedGETLayout extends GETLayout
             {
                 Object spec = gateway.spec( getInputStream( gemspec.gem() ) );
         
-                store( gateway.createGemspecRz( spec ), gemspec );
+                store.update( gateway.createGemspecRz( spec ), gemspec );
                 
-                retrieve( gemspec );
+                store.retrieve( gemspec );
             }
             catch( IOException e )
             {
@@ -115,24 +105,16 @@ public abstract class HostedGETLayout extends GETLayout
     {
         try
         {
-            RubygemsFile specs = fromPath( SpecsIndexType.RELEASE.filepathGzipped() );
-            if ( specs.hasException() || specs.type() != FileType.SPECS_INDEX )
-            {
-                throw new RuntimeException( "BUG " );
-            }
+            SpecsIndexFile specs = getSpecIndexFile( SpecsIndexType.RELEASE.filepathGzipped() );
             List<String> versions;
-            try ( InputStream is = new java.util.zip.GZIPInputStream( getInputStream( specs ) ) )
+            try ( InputStream is = wrapGZIP( specs ) )
             {
-                versions = gateway.listAllVersions( file.name(), is, getModified( specs ), false );
+                versions = gateway.listAllVersions( file.name(), is, store.getModified( specs ), false );
             }
-            specs = fromPath( SpecsIndexType.PRERELEASE.filepathGzipped() );
-            if ( specs.hasException() || specs.type() != FileType.SPECS_INDEX)
+            specs = getSpecIndexFile( SpecsIndexType.PRERELEASE.filepathGzipped() );
+            try ( InputStream is = wrapGZIP( specs ) )
             {
-                throw new RuntimeException( "BUG " );
-            }
-            try ( InputStream is = new java.util.zip.GZIPInputStream( getInputStream( specs ) ) )
-            {
-                versions.addAll( gateway.listAllVersions( file.name(), is, getModified( specs ), true ) );
+                versions.addAll( gateway.listAllVersions( file.name(), is, store.getModified( specs ), true ) );
             }
             
             List<InputStream> gemspecs = new LinkedList<InputStream>();
@@ -140,25 +122,35 @@ public abstract class HostedGETLayout extends GETLayout
             {                                                        
                 // ruby platform is not part of the gemname 
                 GemspecFile gemspec = gemspecFile( file.name() + "-" + version.replaceFirst( "-ruby$", "" ) );
-                gemspecs.add( getInputStream( gemspec ) );
+                gemspecs.add( store.getInputStream( gemspec ) );
             }
             
             if ( gemspecs.isEmpty() )
             {
-                delete( file );
+                store.delete( file );
             }
             else
             {
                 try ( InputStream is = gateway.createDependencies( gemspecs ) )
                 {
-                    store( is, file );
+                    store.update( is, file );
                 }
             }
-            retrieve( file );
+            store.retrieve( file );
         }
         catch( IOException e )
         {
             file.setException( e );
         }
+    }
+
+    protected SpecsIndexFile getSpecIndexFile( String path )
+    {
+        RubygemsFile specs = fromPath( path );
+        if ( specs.hasException() || specs.type() != FileType.SPECS_INDEX)
+        {
+            throw new RuntimeException( "BUG " );
+        }
+        return specs.isSpecIndexFile();
     }
 }

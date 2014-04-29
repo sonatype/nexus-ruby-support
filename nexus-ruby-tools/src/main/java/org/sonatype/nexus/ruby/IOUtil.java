@@ -1,21 +1,40 @@
 package org.sonatype.nexus.ruby;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class IOUtil
 {
-    public static void close( InputStream inputStream )
+    public static void close( InputStream input )
     {
-        if ( inputStream == null )
+        if ( input == null )
         {
             return;
         }
     
         try
         {
-            inputStream.close();
+            input.close();
+        }
+        catch( IOException ex )
+        {
+            // ignore
+        }
+    }
+    
+    public static void close( OutputStream output )
+    {
+        if ( output == null )
+        {
+            return;
+        }
+    
+        try
+        {
+            output.close();
         }
         catch( IOException ex )
         {
@@ -38,4 +57,24 @@ public class IOUtil
             output.write( buffer, 0, n );
         }
     }
+    
+    public static InputStream toGzipped( final InputStream input )
+        throws IOException
+    {
+        ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
+        GZIPOutputStream out = new GZIPOutputStream( gzipped );
+        try
+        {
+            copy( input, out );
+            out.close();
+            return new java.io.ByteArrayInputStream( gzipped.toByteArray() );
+        }
+        finally
+        {
+            close( input );
+            close( out );
+        }
+    }
+    
+    
 }

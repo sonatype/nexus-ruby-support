@@ -6,6 +6,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DefaultLayout;
@@ -25,32 +26,68 @@ import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.Sha1File;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 
-public abstract class GETLayout extends DefaultLayout
+public class GETLayout extends DefaultLayout
 {
 
     protected final RubygemsGateway gateway;
+    protected final StoreFacade store;
 
-    public GETLayout( RubygemsGateway gateway )
+    public GETLayout( RubygemsGateway gateway, StoreFacade store )
     {
         this.gateway = gateway;
+        this.store = store;
     }
 
-    protected abstract long getModified( RubygemsFile file );
+    protected void retrieveUnzipped( SpecsIndexFile specs )
+    {
+        SpecsIndexFile zipped = specs.zippedSpecsIndexFile();
+        try
+        {
+            retrieveZipped( zipped );
+            if ( ! specs.hasException() )
+            {
+                specs.set( wrapGZIP( zipped ) );
+            }
+        }
+        catch ( IOException e )
+        {
+            specs.setException( e );
+        }
+    }
 
-    protected abstract void retrieve( RubygemsFile file );
-
-    protected abstract void store( InputStream is, RubygemsFile file );
-
-    protected abstract void delete( RubygemsFile file );
-
-    protected abstract void setMemoryContext( RubygemsFile file, InputStream data, long length );
-
-    protected abstract void setGunzippedContext( SpecsIndexFile specs );
+    protected GZIPInputStream wrapGZIP( SpecsIndexFile specs ) throws IOException
+    {   
+        return new GZIPInputStream( store.getInputStream( specs ) );
+    }
+    
+    protected void retrieveZipped( SpecsIndexFile specs )
+    {
+        store.retrieve( specs );
+        if ( specs.hasException() )
+        {
+            ensureEmptySpecs( specs );
+        }
+    }
 
     protected void ensureEmptySpecs( SpecsIndexFile specs )
     { 
     }
 
+    @Override
+    public SpecsIndexFile specsIndex( String name, boolean isGzipped )
+    {
+        SpecsIndexFile specs = super.specsIndex( name, isGzipped );
+        if ( isGzipped )
+        {
+            retrieveZipped( specs );
+        }
+        else
+        {
+            retrieveUnzipped( specs );
+        }
+        return specs;
+    }
+ 
     @Override
     public BundlerApiFile bundlerApiFile( String namesCommaSeparated )
     {    
@@ -61,9 +98,9 @@ public abstract class GETLayout extends DefaultLayout
         {
             for( String name: file.isBundlerApiFile().gemnames() )
             {
-                deps.add( getInputStream( dependencyFile( name ) ) );
+                deps.add( store.getInputStream( dependencyFile( name ) ) );
             }
-            setMemoryContext( file, gateway.mergeDependencies( deps ) );
+            store.memory( gateway.mergeDependencies( deps ), file );
         }
         catch (IOException e)
         {
@@ -87,7 +124,7 @@ public abstract class GETLayout extends DefaultLayout
         {
             MetadataBuilder meta = new MetadataBuilder( retrieveDependencies( file.dependency() ) );
             meta.appendVersions( file.isPrerelease() );            
-            setMemoryContext( file, meta.toString() );
+            store.memory( meta.toString(), file );
         }
         catch (IOException e)
         {
@@ -97,22 +134,12 @@ public abstract class GETLayout extends DefaultLayout
         return file;
     }
 
-    protected void setMemoryContext( RubygemsFile file, String data )
-    {
-        setMemoryContext( file, new java.io.ByteArrayInputStream( data.getBytes() ), data.getBytes().length );
-    }
-
-    protected void setMemoryContext( RubygemsFile file, InputStream data )
-    {
-        setMemoryContext( file, data, -1 );
-    }
-
     @Override
     public MavenMetadataSnapshotFile mavenMetadataSnapshot( String name, String version )
     {
         MavenMetadataSnapshotFile file = super.mavenMetadataSnapshot( name, version );
-        MetadataSnapshotBuilder meta = new MetadataSnapshotBuilder( name, version, getModified( file.dependency() ) );
-        setMemoryContext( file, meta.toString() );
+        MetadataSnapshotBuilder meta = new MetadataSnapshotBuilder( name, version, store.getModified( file.dependency() ) );
+        store.memory( meta.toString(), file );
         return file;
     }
 
@@ -121,7 +148,7 @@ public abstract class GETLayout extends DefaultLayout
         try
         {
             GemspecFile gemspec = file.gemspec( retrieveDependencies( file.dependency() ) );
-            setMemoryContext( file, gateway.pom( getInputStream( gemspec ) ) );
+            store.memory( gateway.pom( store.getInputStream( gemspec ) ), file );
         }
         catch (IOException e)
         {
@@ -134,7 +161,7 @@ public abstract class GETLayout extends DefaultLayout
         try
         {
             GemFile gem = file.gem( retrieveDependencies( file.dependency() ) );
-            retrieve( gem );
+            store.retrieve( gem );
             file.set( gem.get() );
         }
         catch (IOException e)
@@ -181,7 +208,7 @@ public abstract class GETLayout extends DefaultLayout
         Sha1File sha = super.sha1( file );
         // go through the layout to "generate" any needed content on the way
         file = fromPath( file.storagePath() );
-        try( InputStream is = getInputStream( file ) )
+        try( InputStream is = store.getInputStream( file ) )
         {
             MessageDigest digest = MessageDigest.getInstance( "SHA1" );
             int i = is.read();
@@ -206,7 +233,7 @@ public abstract class GETLayout extends DefaultLayout
                     dig.append( Integer.toHexString( b ) );
                 }
             }
-            setMemoryContext( sha, dig.toString() );
+            store.memory( dig.toString(), sha );
         }
         catch ( NoSuchAlgorithmException e )
         {
@@ -221,14 +248,14 @@ public abstract class GETLayout extends DefaultLayout
 
     protected DependencyData retrieveDependencies( DependencyFile file ) throws IOException
     {
-        return gateway.dependencies( getInputStream( file ), getModified( file ) );
+        return gateway.dependencies( store.getInputStream( file ), store.getModified( file ) );
     }
 
     @Override
     public GemFile gemFile( String name, String version, String platform )
     {
         GemFile gem = super.gemFile( name, version, platform );
-        retrieve( gem );
+        store.retrieve( gem );
         return gem;
     }
 
@@ -236,7 +263,7 @@ public abstract class GETLayout extends DefaultLayout
     public GemFile gemFile( String filename )
     {
         GemFile gem = super.gemFile( filename );
-        retrieve( gem );
+        store.retrieve( gem );
         return gem;
     }
 
@@ -244,7 +271,7 @@ public abstract class GETLayout extends DefaultLayout
     public GemspecFile gemspecFile( String name, String version, String platform )
     {
         GemspecFile gemspec = super.gemspecFile( name, version, platform );
-        retrieve( gemspec );
+        store.retrieve( gemspec );
         return gemspec;
     }
 
@@ -252,7 +279,7 @@ public abstract class GETLayout extends DefaultLayout
     public GemspecFile gemspecFile( String filename )
     {
         GemspecFile gemspec = super.gemspecFile( filename );
-        retrieve( gemspec );
+        store.retrieve( gemspec );
         return gemspec;
     }
 
@@ -260,23 +287,7 @@ public abstract class GETLayout extends DefaultLayout
     public DependencyFile dependencyFile( String name )
     {        
         DependencyFile file = super.dependencyFile( name );
-        retrieve( file );
+        store.retrieve( file );
         return file;
-    }
-
-    @Override
-    public SpecsIndexFile specsIndex( String name, boolean isGzipped )
-    {
-        SpecsIndexFile specs = super.specsIndex( name, isGzipped );
-        if ( isGzipped )
-        {
-            retrieve( specs );
-            ensureEmptySpecs( specs );
-        }
-        else
-        {
-            setGunzippedContext( specs );
-        }
-        return specs;
     }
 }
