@@ -67,7 +67,7 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
 
     protected ScriptingContainer createScriptingContainer()
     {
-        return new ITestJRubyScriptingContainer();
+        return new ITestJRubyScriptingContainer( testData().resolveFile( ".gem" ).getParent() );
     }
 
     protected GemRunner gemRunner() {
