@@ -6,11 +6,11 @@ import org.sonatype.nexus.ruby.TestScriptingContainer;
 
 class ITestJRubyScriptingContainer extends TestScriptingContainer
 {
-    ITestJRubyScriptingContainer(){
-        super( "target/rubygems", null );
+    ITestJRubyScriptingContainer( String userHome ){
+        super( userHome, "target/rubygems", null );
     }
     
-    ITestJRubyScriptingContainer( File gemfile ){
-        super( "target/rubygems", gemfile.getAbsolutePath() );
+    ITestJRubyScriptingContainer( String userHome, File gemfile ){
+        super( userHome, "target/rubygems", gemfile.getAbsolutePath() );
     }
 }

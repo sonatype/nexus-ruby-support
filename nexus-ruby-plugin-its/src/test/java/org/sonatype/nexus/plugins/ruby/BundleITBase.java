@@ -33,7 +33,8 @@ public class BundleITBase extends RubyNexusRunningITSupport
     @Override
     protected ITestJRubyScriptingContainer createScriptingContainer()
     {
-        return new ITestJRubyScriptingContainer( new File( target, "project/Gemfile" ) );
+        return new ITestJRubyScriptingContainer( testData().resolveFile( ".gem" ).getParent(),
+                                                 new File( target, "project/Gemfile" ) );
     }
 
     @Test

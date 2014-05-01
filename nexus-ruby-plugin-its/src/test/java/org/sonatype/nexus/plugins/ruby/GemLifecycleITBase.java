@@ -32,6 +32,8 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
         assertThat( result, containsString( "Successfully installed pre-0.1.0.beta" ) );
     }
     
+    int numberOfInstalledGems = 1;
+    
     @Test
     public void uploadGemWithNexusGemCommand() throws Exception
     {
@@ -56,7 +58,7 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
         assertFileDownload( dependencyName, is( true ) );
         
         // now we have one remote gem
-        assertThat( numberOfLines( gemRunner().list( repoId ) ), is( 1 ) );
+        assertThat( numberOfLines( gemRunner().list( repoId ) ), is( numberOfInstalledGems ) );
 
         // reinstall the gem from repository
         assertThat( lastLine( gemRunner().install( repoId, "nexus" ) ), equalTo( "1 gem installed" ) );
@@ -64,7 +66,6 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
         File winGem = testData().resolveFile( "win.gem" );
         // mismatch filenames on upload
         assertThat( lastLine( gemRunner().nexus( config, winGem ) ), equalTo( "something went wrong" ) );
-        
         
         moreAsserts( gemName, gemspecName, dependencyName);
         
