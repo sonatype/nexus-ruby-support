@@ -108,9 +108,9 @@ public class NexusLayout
         return layout.mavenMetadata( name, prereleased );
     }
 
-    public SpecsIndexFile specsIndex( String path, boolean gzipped )
+    public SpecsIndexFile specsIndexFile( String path, boolean gzipped )
     {
-        return layout.specsIndex( path, gzipped );
+        return layout.specsIndexFile( path, gzipped );
     }
 
     public Directory directory( String path, String... items )
@@ -371,7 +371,7 @@ public class NexusLayout
     protected void storeSpecsIndex( RubyRepository repository, SpecsIndexFile file,
                                     InputStream content)
          throws LocalStorageException, UnsupportedStorageOperationException,
-                IllegalOperationException
+                IllegalOperationException, AccessDeniedException
     {
         OutputStream out = null;
         try

@@ -257,7 +257,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
     protected void storeGemspecRz( RubyRepository repository, Object spec,
                                    GemspecFile gemspec ) 
         throws org.sonatype.nexus.proxy.StorageException,
-               UnsupportedStorageOperationException, IllegalOperationException
+               UnsupportedStorageOperationException, IllegalOperationException, AccessDeniedException
     {
         ByteArrayInputStream is = null;
         try
@@ -350,7 +350,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
                           String mime,
                           ResourceStoreRequest request )
             throws org.sonatype.nexus.proxy.StorageException,
-                   UnsupportedStorageOperationException, IllegalOperationException
+                   UnsupportedStorageOperationException, IllegalOperationException, AccessDeniedException
     {
         ContentLocator contentLocator = newPreparedContentLocator( is, mime, length );        
         DefaultStorageFileItem gemspecFile = new DefaultStorageFileItem( repository,
@@ -366,7 +366,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
                                   SpecsIndexType type, 
                                   InputStream content )
           throws org.sonatype.nexus.proxy.StorageException,
-                 UnsupportedStorageOperationException, IllegalOperationException
+                 UnsupportedStorageOperationException, IllegalOperationException, AccessDeniedException
     {
         ResourceStoreRequest request = new ResourceStoreRequest( type.filepathGzipped() );
         ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
@@ -422,7 +422,7 @@ public class HostedNexusLayout extends NexusLayout implements Layout
     @SuppressWarnings( "deprecation" )
     public void createEmptySpecs( RubyRepository repository, SpecsIndexType type ) 
          throws org.sonatype.nexus.proxy.StorageException,
-                IllegalOperationException
+                IllegalOperationException, AccessDeniedException
     {
         // create an empty index
         try

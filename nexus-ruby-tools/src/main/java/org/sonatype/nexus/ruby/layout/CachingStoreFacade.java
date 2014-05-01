@@ -37,14 +37,13 @@ public class CachingStoreFacade extends FileSystemStoreFacade
     }
 
     @Override
-    public void retrieve( RubygemsFile file )
+    public boolean retrieve( RubygemsFile file )
     {
         switch( file.type() )
         {
         case DEPENDENCY:
         case SPECS_INDEX:
-            retrieveVolatile( file );
-            return;
+            return retrieveVolatile( file );
         default:
         }        
         if ( Files.notExists( toPath( file ) ) )
@@ -58,9 +57,10 @@ public class CachingStoreFacade extends FileSystemStoreFacade
                 file.setException( e );
             }
         }
+        return ! file.hasException();
     }
     
-    public void retrieveVolatile( RubygemsFile file )
+    public boolean retrieveVolatile( RubygemsFile file )
     {
         Path path = toPath( file );
         try
@@ -75,7 +75,8 @@ public class CachingStoreFacade extends FileSystemStoreFacade
         catch ( IOException e )
         {
             update( file, path );
-        }        
+        }
+        return ! file.hasException();
     }
     
     private Lock lock( RubygemsFile file )

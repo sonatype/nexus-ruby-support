@@ -76,7 +76,7 @@ public class HostedGETLayout extends GETLayout
         {
             try
             {
-                Object spec = gateway.spec( getInputStream( gemspec.gem() ) );
+                Object spec = gateway.spec( store.getInputStream( gemspec.gem() ) );
         
                 store.update( gateway.createGemspecRz( spec ), gemspec );
                 
@@ -105,14 +105,16 @@ public class HostedGETLayout extends GETLayout
     {
         try
         {
-            SpecsIndexFile specs = getSpecIndexFile( SpecsIndexType.RELEASE.filepathGzipped() );
+            SpecsIndexFile specs = getSpecIndexFile( SpecsIndexType.RELEASE );
+            store.retrieveUnzippped( specs );
             List<String> versions;
-            try ( InputStream is = wrapGZIP( specs ) )
+            try ( InputStream is = store.getInputStream( specs ) )
             {
                 versions = gateway.listAllVersions( file.name(), is, store.getModified( specs ), false );
             }
-            specs = getSpecIndexFile( SpecsIndexType.PRERELEASE.filepathGzipped() );
-            try ( InputStream is = wrapGZIP( specs ) )
+            specs = getSpecIndexFile( SpecsIndexType.PRERELEASE );
+            store.retrieveUnzippped( specs );
+            try ( InputStream is = store.getInputStream( specs ) )
             {
                 versions.addAll( gateway.listAllVersions( file.name(), is, store.getModified( specs ), true ) );
             }
@@ -144,9 +146,9 @@ public class HostedGETLayout extends GETLayout
         }
     }
 
-    protected SpecsIndexFile getSpecIndexFile( String path )
+    protected SpecsIndexFile getSpecIndexFile( SpecsIndexType specsType)
     {
-        RubygemsFile specs = fromPath( path );
+        RubygemsFile specs = fromPath( specsType.filepathGzipped() );
         if ( specs.hasException() || specs.type() != FileType.SPECS_INDEX)
         {
             throw new RuntimeException( "BUG " );

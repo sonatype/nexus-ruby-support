@@ -2,6 +2,7 @@ package org.sonatype.nexus.ruby;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.SecureRandom;
 
 import org.sonatype.nexus.ruby.cuba.Bootstrap;
 import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
@@ -36,6 +37,11 @@ public class DefaultLayout implements Layout
     private static final String MAVEN_RELEASED_RUBYGEMS = MAVEN_RELEASED + RUBYGEMS;
     
     
+    private final static SecureRandom random = new SecureRandom();
+    {
+        random.setSeed( System.currentTimeMillis() );
+    }
+    
     private final Bootstrap bootstrap = new DefaultBootstrap( this );
 
     @Override
@@ -49,7 +55,7 @@ public class DefaultLayout implements Layout
      */
     @Override
     public
-    SpecsIndexFile specsIndex( String name, boolean isGzipped )
+    SpecsIndexFile specsIndexFile( String name, boolean isGzipped )
     {
         String path = isGzipped ? 
                       join( SEPARATOR, name, SPECS_INDEX, GZ ) :
@@ -227,6 +233,7 @@ public class DefaultLayout implements Layout
     @Override
     public ApiV1File apiV1File( String name ){
         return new ApiV1File( this,
+                              join( API_V1, SEPARATOR, Long.toString( Math.abs( random.nextLong() ) ),  ".", name ),
                               join( API_V1, SEPARATOR, name ),
                               name );
     }
@@ -247,12 +254,22 @@ public class DefaultLayout implements Layout
     @Override
     public RubygemsFile fromPath( String path )
     {        
+        return fromPath( path, null );
+    }
+    
+    //@Override
+    public RubygemsFile fromPath( String path, String query )
+    {        
+        if( query != null )
+        {
+            path += "?" + query;
+        }
         return bootstrap.accept( path );
     }
 
     @Override
     public InputStream getInputStream( RubygemsFile file ) throws IOException
     {
-        return (InputStream) file.get();
+        throw new RuntimeException("do not use this");
     }
 }

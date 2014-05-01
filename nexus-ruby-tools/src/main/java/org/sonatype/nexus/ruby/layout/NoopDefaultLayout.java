@@ -1,16 +1,22 @@
 package org.sonatype.nexus.ruby.layout;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.GemArtifactFile;
+import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.MavenMetadataFile;
 import org.sonatype.nexus.ruby.MavenMetadataSnapshotFile;
 import org.sonatype.nexus.ruby.PomFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.Sha1File;
+import org.sonatype.nexus.ruby.SpecsIndexFile;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 
 public class NoopDefaultLayout extends DefaultLayout
 {
@@ -81,9 +87,32 @@ public class NoopDefaultLayout extends DefaultLayout
         return null;
     }
 
-    @Override
-    public ApiV1File apiV1File( String name )
+    protected SpecsIndexFile specsIndexFile( SpecsIndexType type ) throws IOException
     {
-        return null;
+        SpecsIndexFile specs = super.specsIndexFile( type.filename().replace( ".4.8", "" ), true );
+        
+        if ( ! store.retrieve( specs ) )
+        {
+            try( InputStream content = gateway.emptyIndex() )
+            {
+                if ( store.create( IOUtil.toGzipped( content ), specs ) )
+                {
+                    store.retrieve( specs );
+                }
+                if ( specs.hasException() )
+                {
+                    throw new IOException( specs.getException() );
+                }
+            }
+        }
+        return specs;
+    }
+
+    protected void delete( RubygemsFile file ) throws IOException
+    {
+        if ( !store.delete( file ) )
+        {
+            throw new IOException( file.getException() );
+        }
     }
 }

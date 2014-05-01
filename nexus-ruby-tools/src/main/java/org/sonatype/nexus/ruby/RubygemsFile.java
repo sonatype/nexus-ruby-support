@@ -10,7 +10,7 @@ public class RubygemsFile {
     private final FileType type;
     
     private Object context;
-    private boolean isException = false;
+    private Exception exception;
     
     public Object get()
     {
@@ -20,7 +20,6 @@ public class RubygemsFile {
     public void set( Object context )
     {
         this.context = context;
-        this.isException = false;
     }
 
     RubygemsFile( Layout layout, FileType type, String storage, String remote, String name )
@@ -120,6 +119,14 @@ public class RubygemsFile {
         {
             builder.append( ", name=" ).append( name );
         }
+        if ( hasException() )
+        {
+            builder.append( ", exception=" ).append( getException().getMessage() );
+        }
+        else if ( get() != null )
+        {
+            builder.append( ", payload=" ).append( get().toString() );
+        }
         builder.append( "]" );
         return builder.toString();
     }
@@ -175,12 +182,22 @@ public class RubygemsFile {
 
     public void setException( Exception e )
     {
-        set( e );
-        this.isException = true;
+        exception = e;
+    }
+
+    public Exception getException()
+    {
+        return exception;
     }
 
     public boolean hasException()
     {
-        return isException;
+        return exception != null;
+    }
+
+    public void reset()
+    {
+        set( null );
+        setException( null );
     }
 }

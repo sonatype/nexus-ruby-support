@@ -38,8 +38,9 @@ public interface RubyRepository
     @SuppressWarnings("deprecation")
     void storeItem( StorageItem item ) 
             throws UnsupportedStorageOperationException, IllegalOperationException, 
-            org.sonatype.nexus.proxy.StorageException;
+            org.sonatype.nexus.proxy.StorageException, AccessDeniedException;
 
     StorageFileItem retrieveDirectItem( ResourceStoreRequest resourceStoreRequest ) 
-            throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, StorageException, AccessDeniedException;
+            throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, 
+            org.sonatype.nexus.proxy.StorageException, AccessDeniedException;
 }

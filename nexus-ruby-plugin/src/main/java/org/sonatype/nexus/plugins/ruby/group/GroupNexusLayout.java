@@ -131,7 +131,7 @@ public class GroupNexusLayout extends NexusLayout implements Layout
                         SpecsIndexFile file,
                         List<StorageItem> items )
             throws UnsupportedStorageOperationException, LocalStorageException, 
-                   IOException, IllegalOperationException
+                   IOException, IllegalOperationException, AccessDeniedException
     {
         List<InputStream> streams = new LinkedList<InputStream>();
         try
@@ -161,7 +161,7 @@ public class GroupNexusLayout extends NexusLayout implements Layout
                         DependencyFile file,
                         List<StorageItem> dependencies )
           throws UnsupportedStorageOperationException, IllegalOperationException,
-                 IOException
+                 IOException, AccessDeniedException
     {
         List<InputStream> streams = new LinkedList<InputStream>();
         InputStream content = null;

@@ -11,7 +11,7 @@ public enum FileType {
     SPECS_INDEX( "application/x-ruby-marshal" ),
     DIRECTORY( "application/octet" ), 
     BUNDLER_API( "application/x-ruby-marshal" ), 
-    API_V1( null ), 
+    API_V1( "application/x-rubygems" ), 
     GEM_ARTIFACT( "application/x-rubygems" ), 
     NOT_FOUND( null ), 
     SHA1( "text/plain" );

@@ -20,7 +20,11 @@ module Nexus
       out.string
 
     rescue Gem::SystemExitException => e
-      raise err.string if e.exit_code != 0
+      begin
+        raise err.string if e.exit_code != 0
+      rescue RuntimeError
+        # happens when reaching user input
+      end
 
       out.string
 

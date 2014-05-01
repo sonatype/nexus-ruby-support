@@ -25,6 +25,10 @@ public class ScriptWrapper
         throw new RuntimeException( "not overwritten" );
     }
  
+    protected void callMethod( String methodName, Object singleArg ) {
+        scriptingContainer.callMethod( object, methodName, singleArg );
+    }
+
     protected <T> T callMethod( String methodName, Object singleArg, Class<T> returnType ) {
         return scriptingContainer.callMethod( object, methodName, singleArg, returnType );
     }

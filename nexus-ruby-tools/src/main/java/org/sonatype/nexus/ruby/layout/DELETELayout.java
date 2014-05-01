@@ -14,11 +14,11 @@ public class DELETELayout extends NoopDefaultLayout
     }
 
     @Override
-    public SpecsIndexFile specsIndex( String name, boolean isGzipped )
+    public SpecsIndexFile specsIndexFile( String name, boolean isGzipped )
     {
         if ( isGzipped )
         {
-            SpecsIndexFile file = super.specsIndex( name, isGzipped );
+            SpecsIndexFile file = super.specsIndexFile( name, isGzipped );
             store.delete( file );
             return file;
         }

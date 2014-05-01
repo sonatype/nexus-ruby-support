@@ -1,7 +1,5 @@
 package org.sonatype.nexus.plugins.ruby.hosted;
 
-import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,11 +33,11 @@ import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
-import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
-import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
-import org.sonatype.nexus.ruby.layout.GETLayout;
+import org.sonatype.nexus.ruby.layout.HostedDELETELayout;
+import org.sonatype.nexus.ruby.layout.HostedPOSTLayout;
+import org.sonatype.nexus.ruby.layout.NoopDefaultLayout;
 
 @Named( DefaultHostedRubyRepository.ID )
 public class DefaultHostedRubyRepository
@@ -58,25 +56,28 @@ public class DefaultHostedRubyRepository
 
     private final RepositoryKind repositoryKind;
 
-    private final HostedNexusLayout layout;
+    private final NexusHostedGETLayout getLayout;
 
-    private final NexusHostedGETLayout get;
-    
+    private final HostedPOSTLayout postLayout;
+
+    private final NoopDefaultLayout deleteLayout;
+
     @Inject
     public DefaultHostedRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
                                         HostedRubyRepositoryConfigurator configurator,
-                                        HostedNexusLayout layout,
                                         RubygemsGateway gateway,
                                         DefaultRubygemsFacade facade )
              throws LocalStorageException, ItemNotFoundException{
         this.contentClass = contentClass;
         this.configurator = configurator;
-        this.gateway = gateway;
-        this.layout = layout;
-        this.facade = facade;
         this.repositoryKind = new DefaultRepositoryKind( HostedRubyRepository.class,
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
-        this.get = new NexusHostedGETLayout( gateway, this );
+        this.gateway = gateway;
+        this.facade = facade;
+        NexusStoreFacade store = new NexusStoreFacade( this );
+        this.getLayout = new NexusHostedGETLayout( gateway, store );
+        this.postLayout = new HostedPOSTLayout( gateway, store );
+        this.deleteLayout = new HostedDELETELayout( gateway, store );
     }
 
     @Override
@@ -119,62 +120,41 @@ public class DefaultHostedRubyRepository
     @Override
     public void storeItem( StorageItem item )
             throws org.sonatype.nexus.proxy.StorageException,
-                UnsupportedStorageOperationException, IllegalOperationException
+                UnsupportedStorageOperationException, IllegalOperationException, AccessDeniedException
     {
+        // we need to bypass access control here !!!
         super.storeItem( false, item );
     }
-    
+
     @SuppressWarnings( "deprecation" )
     public void storeItem(ResourceStoreRequest request, InputStream is, Map<String, String> userAttributes)
             throws UnsupportedStorageOperationException, IllegalOperationException, 
                    org.sonatype.nexus.proxy.StorageException, AccessDeniedException
     {
-        RubygemsFile file = layout.fromResourceStoreRequestOrNull( request );
-        if ( file != null && !request.getRequestPath().equals( file.storagePath() ) )
+        RubygemsFile file = postLayout.fromPath( request.getRequestPath() );
+        if( file == null )
         {
-            request.setRequestPath( file.storagePath() );
-        }
-        super.storeItem( request, is, userAttributes );
-    }
-    
-    @SuppressWarnings( "deprecation" )
-    public void storeItem( boolean fromTask, StorageItem item )
-       throws UnsupportedStorageOperationException, 
-              org.sonatype.nexus.proxy.StorageException, 
-              IllegalOperationException
-    {
-        RubygemsFile file = layout.fromStorageItem( item );
+            throw new UnsupportedStorageOperationException( "only gem-files can be stored" );
+        } 
+        
         switch( file.type() )
         {
         case GEM:
-            try
-            {       
-                super.storeItem( fromTask, item );
-                layout.storeGem( this, file.isGemFile() );
+            request.setRequestPath( file.storagePath() );
+            try {
+                checkConditions(request, getResultingActionOnWrite(request));
             }
-            catch (ItemNotFoundException | AccessDeniedException e)
-            {
-                new org.sonatype.nexus.proxy.StorageException( e );
+            catch (ItemNotFoundException e) {
+              throw new AccessDeniedException(request, e.getMessage());
             }
-            break;
         case API_V1:
-            if ( "gems".equals( file.name() ) )
-            {
-                try
-                {
-                    layout.storeGem( this, ((StorageFileItem) item ).getInputStream() );
-                }
-                catch (IOException e)
-                {
-                    new org.sonatype.nexus.proxy.StorageException( e );
-                }
-            } 
-            break;
+            postLayout.storeRubygemsFile( is, file );
         default:
-            throw new UnsupportedStorageOperationException( "only gem-files can be stored" );
         }
+        
+        handleCommonExceptions( file );
     }
-
+    
     @SuppressWarnings("deprecation")
     @Override
     public void deleteItem( ResourceStoreRequest request )
@@ -182,17 +162,12 @@ public class DefaultHostedRubyRepository
                 UnsupportedStorageOperationException, IllegalOperationException,
                 ItemNotFoundException, AccessDeniedException
     {
-        RubygemsFile file = layout.fromResourceStoreRequest( this, request );
-        if( file.type() == FileType.GEM )
-        {
-            layout.deleteGem( this, file.isGemFile() );
-            super.deleteItem( layout.toResourceStoreRequest( file ) );
-            super.deleteItem( layout.toResourceStoreRequest( file.isGemFile().gemspec() ) );
-        }
-        else
+        RubygemsFile file = deleteLayout.fromPath( request.getRequestPath() );
+        if( file == null )
         {
             throw new UnsupportedStorageOperationException( "only gem-files can be deleted" );
         }
+        handleExceptions( file );
     }
 
     @Override
@@ -216,57 +191,61 @@ public class DefaultHostedRubyRepository
     @SuppressWarnings("deprecation")
     @Override
     public StorageItem retrieveItem( boolean fromTask, ResourceStoreRequest request )
-            throws //AccessDeniedException,
-                   IllegalOperationException,
+            throws IllegalOperationException,
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
-        RubygemsFile file = get.fromPath( request );
-        Object result = file.get();
-        if ( file.hasException() )
-        {
-            if ( result instanceof IllegalOperationException )
-            {
-                throw (IllegalOperationException) result;
-            }
-            if ( result instanceof ItemNotFoundException )
-            {
-                throw (ItemNotFoundException) result;
-            }
-            if ( result instanceof RemoteAccessException )
-            {
-                throw (RemoteAccessException) result;
-            }
-            if ( result instanceof org.sonatype.nexus.proxy.StorageException )
-            {
-                throw (org.sonatype.nexus.proxy.StorageException) result;
-            }
-            if ( result instanceof IOException )
-            {
-                throw new org.sonatype.nexus.proxy.StorageException( (IOException) result );
-            }
-            throw new RuntimeException( (Exception) result );
-        }
+        RubygemsFile file = getLayout.fromPath( request );
+        handleExceptions( file );
+        Object result = file.get(); 
         if ( result != null )
         {
             return (StorageItem) result;
         }
         
-        switch( file.type() )
+        // handle directories
+        return super.retrieveItem( fromTask, request );
+    }
+
+    @SuppressWarnings("deprecation")
+    protected void handleCommonExceptions( RubygemsFile file )
+         throws IllegalOperationException, RemoteAccessException,
+                org.sonatype.nexus.proxy.StorageException
+    {
+        Exception e = file.getException();
+        if ( e != null )
         {
-        case API_V1:
-            if ( "api_key".equals( file.isApiV1File().name() ) )
+            if ( e instanceof IllegalOperationException )
             {
-                // TODO not sure how
+                throw (IllegalOperationException) e;
             }
-        case NOT_FOUND:
-            throw new ItemNotFoundException( reasonFor( request, this,
-                                                        "Can not serve path %s for repository %s", 
-                                                        request.getRequestPath(),
-                                                        RepositoryStringUtils.getHumanizedNameString( this ) ) );
-        default:
-            return super.retrieveItem( fromTask, request );
+            if ( e instanceof RemoteAccessException )
+            {
+                throw (RemoteAccessException) e;
+            }
+            if ( e instanceof org.sonatype.nexus.proxy.StorageException )
+            {
+                throw (org.sonatype.nexus.proxy.StorageException) e;
+            }
+            if ( e instanceof IOException )
+            {
+                throw new org.sonatype.nexus.proxy.StorageException( (IOException) e );
+            }
+            throw new RuntimeException( e );
         }
+    }
+    
+    @SuppressWarnings( "deprecation" )
+    protected void handleExceptions( RubygemsFile file )
+            throws IllegalOperationException, ItemNotFoundException,
+            RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+    {
+        Exception e = file.getException();
+        if ( e != null && e instanceof ItemNotFoundException )
+        {
+            throw (ItemNotFoundException) e;
+        }
+        handleCommonExceptions( file );
     }
 
     @Override
@@ -283,11 +262,12 @@ public class DefaultHostedRubyRepository
     protected String getBaseDirectory() throws ItemNotFoundException,
             LocalStorageException
     {
+        // TODO use getApplicationConfiguration().getWorkingDirectory()
         return this.getLocalUrl().replace( "file:", "" );
     }
 
-    @SuppressWarnings( "deprecation" )
     @Override
+    @Deprecated
     public StorageItem retrieveJavaGem( RubygemFile gem )
             throws AccessDeniedException, IllegalOperationException,
                    ItemNotFoundException, RemoteAccessException,
@@ -296,8 +276,8 @@ public class DefaultHostedRubyRepository
         return facade.retrieveJavaGem( this, gem );
     }
  
-    @SuppressWarnings( "deprecation" )
     @Override
+    @Deprecated
     public StorageItem retrieveJavaGemspec( RubygemFile gem )
             throws AccessDeniedException, IllegalOperationException,
                    ItemNotFoundException, RemoteAccessException,

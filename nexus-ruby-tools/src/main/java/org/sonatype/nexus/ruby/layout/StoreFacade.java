@@ -4,17 +4,20 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.sonatype.nexus.ruby.RubygemsFile;
+import org.sonatype.nexus.ruby.SpecsIndexFile;
 
 public interface StoreFacade
 {
 
-    void create( InputStream is, RubygemsFile file );
+    boolean create( InputStream is, RubygemsFile file );
 
-    void retrieve( RubygemsFile file );
+    boolean retrieve( RubygemsFile file );
 
-    void update( InputStream is, RubygemsFile file );
+    boolean retrieveUnzippped( SpecsIndexFile file );
+    
+    boolean update( InputStream is, RubygemsFile file );
 
-    void delete( RubygemsFile file );
+    boolean delete( RubygemsFile file );
     
     void memory( InputStream data, RubygemsFile file );
 
@@ -23,5 +26,6 @@ public interface StoreFacade
     InputStream getInputStream( RubygemsFile file ) throws IOException;
 
     long getModified( RubygemsFile file );
+
 
 }

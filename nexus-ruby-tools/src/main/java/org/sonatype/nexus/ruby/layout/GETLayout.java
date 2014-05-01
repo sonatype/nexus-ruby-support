@@ -6,7 +6,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
 
 import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DefaultLayout;
@@ -41,23 +40,11 @@ public class GETLayout extends DefaultLayout
     protected void retrieveUnzipped( SpecsIndexFile specs )
     {
         SpecsIndexFile zipped = specs.zippedSpecsIndexFile();
-        try
+        retrieveZipped( zipped );
+        if ( ! specs.hasException() )
         {
-            retrieveZipped( zipped );
-            if ( ! specs.hasException() )
-            {
-                specs.set( wrapGZIP( zipped ) );
-            }
+            store.retrieveUnzippped( specs );
         }
-        catch ( IOException e )
-        {
-            specs.setException( e );
-        }
-    }
-
-    protected GZIPInputStream wrapGZIP( SpecsIndexFile specs ) throws IOException
-    {   
-        return new GZIPInputStream( store.getInputStream( specs ) );
     }
     
     protected void retrieveZipped( SpecsIndexFile specs )
@@ -74,9 +61,9 @@ public class GETLayout extends DefaultLayout
     }
 
     @Override
-    public SpecsIndexFile specsIndex( String name, boolean isGzipped )
+    public SpecsIndexFile specsIndexFile( String name, boolean isGzipped )
     {
-        SpecsIndexFile specs = super.specsIndex( name, isGzipped );
+        SpecsIndexFile specs = super.specsIndexFile( name, isGzipped );
         if ( isGzipped )
         {
             retrieveZipped( specs );

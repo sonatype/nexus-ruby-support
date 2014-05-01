@@ -2,7 +2,9 @@ package org.sonatype.nexus.ruby.layout;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
+import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
@@ -20,7 +22,7 @@ public class HostedDELETELayout extends NoopDefaultLayout
     }
 
     @Override
-    public SpecsIndexFile specsIndex( String name, boolean isGzipped )
+    public SpecsIndexFile specsIndexFile( String name, boolean isGzipped )
     {
         return null;
     }
@@ -44,6 +46,12 @@ public class HostedDELETELayout extends NoopDefaultLayout
     }
 
     @Override
+    public ApiV1File apiV1File( String name )
+    {
+        return null;
+    }
+    
+    @Override
     public GemFile gemFile( String name, String version, String platform )
     {
         GemFile file = super.gemFile( name, version, platform );
@@ -62,17 +70,15 @@ public class HostedDELETELayout extends NoopDefaultLayout
     private void deleteGemFile( GemFile file )
     {
         store.retrieve( file );
-        try( InputStream is = getInputStream( file ) )
+        try( InputStream is = store.getInputStream( file ) )
         {
             Object spec = gateway.spec( is );
-            DependencyFile deps = super.dependencyFile( gateway.name( spec ) );
-            store.retrieve( deps );
-            GemspecFile gemspec = super.gemspecFile( file.filename() );
-            store.retrieve( gemspec );
             
             deleteSpecFromIndex( spec );
-            store.delete( deps );
-            store.delete( gemspec );
+            
+            // delete dependencies so the next request will recreate it
+            delete( super.dependencyFile( gateway.name( spec ) ) );
+            delete( super.gemspecFile( file.filename() ) );
             store.delete( file );
         }
         catch (IOException e)
@@ -88,9 +94,12 @@ public class HostedDELETELayout extends NoopDefaultLayout
         {
             InputStream content = null;
             InputStream rin = null;
-            SpecsIndexFile specs = specsIndex( type.filename().replace( ".4.8", "" ), true );
-            store.retrieve( specs );
-            try( InputStream in = store.getInputStream( specs ) )
+            SpecsIndexFile specs = specsIndexFile( type );
+            if( specs.hasException() )
+            {
+                throw new IOException( specs.getException() );
+            }
+            try( InputStream in = new GZIPInputStream( store.getInputStream( specs ) ) )
             {
                 switch( type )
                 {
@@ -103,7 +112,7 @@ public class HostedDELETELayout extends NoopDefaultLayout
                     // if we delete the entry from latest we need to use the releases to 
                     // recreate the latest index
                     store.retrieve( release );
-                    rin = store.getInputStream( release );
+                    rin = new GZIPInputStream( store.getInputStream( release ) );
                     content = gateway.deleteSpec( spec, in, rin );
                 }
                 // if nothing was added the result is NULL

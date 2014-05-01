@@ -10,8 +10,10 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
+import java.util.zip.GZIPInputStream;
 
 import org.sonatype.nexus.ruby.RubygemsFile;
+import org.sonatype.nexus.ruby.SpecsIndexFile;
 
 public class FileSystemStoreFacade implements StoreFacade
 {
@@ -51,16 +53,38 @@ public class FileSystemStoreFacade implements StoreFacade
     }
 
     @Override
-    public void retrieve( RubygemsFile file )
+    public boolean retrieve( RubygemsFile file )
     {
         if ( Files.notExists( toPath( file ) ) )
         {
             file.set( new NoSuchFileException( toPath( file ).toString() ) );
+            return false;
         }
+        return true;
+    }
+    
+    @Override
+    public boolean retrieveUnzippped( SpecsIndexFile file )
+    {
+        if ( Files.notExists( toPath( file ) ) )
+        {
+            file.set( new NoSuchFileException( toPath( file ).toString() ) );
+            return false;
+        }
+        try
+        {
+            file.set( new GZIPInputStream( getInputStream( file ) ) );
+        }
+        catch (IOException e)
+        {
+            file.set( e );
+            return false;
+        }
+        return true;
     }
 
     @Override
-    public void create( InputStream is, RubygemsFile file )
+    public boolean create( InputStream is, RubygemsFile file )
     {
         Path target = toPath( file );
         Path mutex = target.resolveSibling( ".lock" );
@@ -70,15 +94,18 @@ public class FileSystemStoreFacade implements StoreFacade
             Files.createFile( mutex );
             Files.copy( is, source );
             Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
+            return true;
         }
         catch ( FileAlreadyExistsException e )
         {
             mutex = null;
             file.set( e );
+            return false;
         }
         catch ( IOException e )
         {
             file.set( e );
+            return false;
         }
         finally
         {
@@ -91,7 +118,7 @@ public class FileSystemStoreFacade implements StoreFacade
     }
 
     @Override
-    public void update( InputStream is, RubygemsFile file )
+    public boolean update( InputStream is, RubygemsFile file )
     {
         Path target = toPath( file );
         Path source = target.resolveSibling( "tmp." + random.nextLong() );
@@ -99,10 +126,12 @@ public class FileSystemStoreFacade implements StoreFacade
         {
             Files.copy( is, source );
             Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
+            return false;
         }
         catch ( IOException e )
         {
             file.set( e );
+            return false;
         }
         finally
         {
@@ -111,15 +140,17 @@ public class FileSystemStoreFacade implements StoreFacade
     }
 
     @Override
-    public void delete( RubygemsFile file )
+    public boolean delete( RubygemsFile file )
     {
         try
         {
             Files.delete( toPath( file ) );
+            return true;
         }
         catch (IOException e)
         {
             file.set( e );
+            return false;
         }
     }
 

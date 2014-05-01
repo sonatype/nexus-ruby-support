@@ -65,6 +65,19 @@ public class GemRunner extends ScriptWrapper
         args.add( "--no-ri" );
     }
 
+    public String push( String repoId, File gem )
+    {
+        List<String> args = new ArrayList<String>();
+        args.add( "push" );
+        args.add( "--key" );
+        args.add( "test" );
+        args.add( "--host" );
+        args.add( baseUrl + repoId );
+        args.add( gem.getAbsolutePath() );
+        
+        return callMethod( "exec", args.toArray(), String.class );
+    }
+
     public String list()
     {
         return list( null );
@@ -86,7 +99,7 @@ public class GemRunner extends ScriptWrapper
             }
             else
             {
-                System.err.println( ">>>>>>>>>>>>> repeated calls here do only show the cached first call" );
+                System.err.println( ">>>>>>>>>>>>> repeated calls here only show the cached first call" );
             }
             args.add( "-r" );
             setSource( args, repoId );
