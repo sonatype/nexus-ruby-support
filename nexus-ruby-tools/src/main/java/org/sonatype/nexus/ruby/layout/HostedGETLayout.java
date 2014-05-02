@@ -23,13 +23,16 @@ public class HostedGETLayout extends GETLayout
     }
     
     @Override
-    protected void ensureEmptySpecs( SpecsIndexFile specs )
+    protected void retrieveZipped( SpecsIndexFile specs )
     { 
+        super.retrieveZipped( specs );
         if ( specs.hasException() )
         {    
             try( InputStream content = gateway.emptyIndex() )
-            {
-                store.create( IOUtil.toGzipped( content ), specs );
+            {        
+                // just update in case so no need to deal with concurrency
+                // since once the file is there no update happen again
+                store.update( IOUtil.toGzipped( content ), specs );
                 store.retrieve( specs );
             }
             catch (IOException e)
@@ -78,6 +81,8 @@ public class HostedGETLayout extends GETLayout
             {
                 Object spec = gateway.spec( store.getInputStream( gemspec.gem() ) );
         
+                // just update in case so no need to deal with concurrency
+                // since once the file is there no update happen again
                 store.update( gateway.createGemspecRz( spec ), gemspec );
                 
                 store.retrieve( gemspec );
@@ -135,6 +140,8 @@ public class HostedGETLayout extends GETLayout
             {
                 try ( InputStream is = gateway.createDependencies( gemspecs ) )
                 {
+                    // just update in case so no need to deal with concurrency
+                    // since once the file is there no update happen again
                     store.update( is, file );
                 }
             }
@@ -146,7 +153,7 @@ public class HostedGETLayout extends GETLayout
         }
     }
 
-    protected SpecsIndexFile getSpecIndexFile( SpecsIndexType specsType)
+    protected SpecsIndexFile getSpecIndexFile( SpecsIndexType specsType )
     {
         RubygemsFile specs = fromPath( specsType.filepathGzipped() );
         if ( specs.hasException() || specs.type() != FileType.SPECS_INDEX)

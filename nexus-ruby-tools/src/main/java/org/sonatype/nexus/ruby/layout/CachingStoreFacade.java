@@ -2,7 +2,9 @@ package org.sonatype.nexus.ruby.layout;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -19,7 +21,7 @@ public class CachingStoreFacade extends FileSystemStoreFacade
 
     private final ConcurrentMap<String, Lock> locks = new ConcurrentSkipListMap<String, Lock>();
 
-    private final URL baseurl;
+    protected final String baseurl;
     private final long ttl;
     private final int timeout;
     
@@ -31,7 +33,7 @@ public class CachingStoreFacade extends FileSystemStoreFacade
     public CachingStoreFacade( File basedir, URL baseurl, long ttl )
     {
         super( basedir );
-        this.baseurl = baseurl;
+        this.baseurl = baseurl.toExternalForm().replaceFirst( "/$", "" );
         this.ttl = ttl;
         this.timeout = 60000;
     }
@@ -43,14 +45,17 @@ public class CachingStoreFacade extends FileSystemStoreFacade
         {
         case DEPENDENCY:
         case SPECS_INDEX:
-            return retrieveVolatile( file );
+            retrieveVolatile( file );
         default:
         }        
-        if ( Files.notExists( toPath( file ) ) )
+        if ( ! super.retrieve( file ) )
         {
             try
             {
-                update( new URL( baseurl, file.remotePath() ).openStream(), file );
+                URLConnection url = toUrl( file ).openConnection();
+                update( url.getInputStream(), file );
+                setLastModified( toPath( file ), url );
+                super.retrieve( file );
             }
             catch ( IOException e )
             {
@@ -74,7 +79,7 @@ public class CachingStoreFacade extends FileSystemStoreFacade
         }
         catch ( IOException e )
         {
-            update( file, path );
+            file.setException( e );
         }
         return ! file.hasException();
     }
@@ -101,8 +106,9 @@ public class CachingStoreFacade extends FileSystemStoreFacade
         {
             try
             {
-                update( new URL( baseurl, file.remotePath() ).openStream(), file );
-                Files.setLastModifiedTime( path, FileTime.fromMillis( System.currentTimeMillis() ) );
+                URLConnection url = toUrl( file ).openConnection();
+                update( url.getInputStream(), file );
+                setLastModified( path, url );
             }
             catch ( IOException e )
             {
@@ -132,5 +138,21 @@ public class CachingStoreFacade extends FileSystemStoreFacade
                 // ignore
             }
         }
+    }
+
+    protected void setLastModified( Path path, URLConnection url )
+            throws IOException
+    {
+        long mod = url.getLastModified();
+        if ( mod == 0 )
+        {
+            mod = System.currentTimeMillis();
+        }
+        Files.setLastModifiedTime( path, FileTime.fromMillis( mod ) );
+    }
+
+    protected URL toUrl( RubygemsFile file ) throws MalformedURLException
+    {
+        return new URL( baseurl + file.remotePath() );
     }
 }

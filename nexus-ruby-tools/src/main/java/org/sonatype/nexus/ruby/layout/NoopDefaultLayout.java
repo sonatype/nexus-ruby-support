@@ -3,7 +3,6 @@ package org.sonatype.nexus.ruby.layout;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.Directory;

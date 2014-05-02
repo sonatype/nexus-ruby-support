@@ -7,11 +7,12 @@ import junit.framework.TestCase;
 
 import org.junit.Test;
 import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
+import org.sonatype.nexus.ruby.layout.NoopDefaultLayout;
 
-public class DefaultBootstrapTest
+public class NoopDefaultLayoutTest
     extends TestCase
 {
-    private final DefaultBootstrap bootstrap = new DefaultBootstrap();
+    private final DefaultBootstrap bootstrap = new DefaultBootstrap( new NoopDefaultLayout( null, null ) );
     
     @Test
     public void testSpecsIndex()
@@ -36,7 +37,7 @@ public class DefaultBootstrapTest
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/maven-metadata.xml.sha1",
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.gem.sha1",
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.pom.sha1" }; 
-        assertFiletype( pathes, FileType.SHA1 );
+        assertNull( pathes );
     }
 
     @Test
@@ -45,7 +46,7 @@ public class DefaultBootstrapTest
     {        
         String[] pathes = { "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.gem", 
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.gem" };
-        assertFiletype( pathes, FileType.GEM_ARTIFACT );
+        assertNull( pathes );
     }
     
     @Test
@@ -54,7 +55,7 @@ public class DefaultBootstrapTest
     {        
         String[] pathes = { "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.pom", 
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.pom" };
-        assertFiletype( pathes, FileType.POM );
+        assertNull( pathes );
     }
     
     @Test
@@ -63,7 +64,7 @@ public class DefaultBootstrapTest
     {        
         String[] pathes = { "/maven/releases/rubygems/jbundler/maven-metadata.xml",
                             "/maven/prereleases/rubygems/jbundler/maven-metadata.xml" };
-        assertFiletype( pathes, FileType.MAVEN_METADATA );
+        assertNull( pathes );
     }
 
     @Test
@@ -71,7 +72,7 @@ public class DefaultBootstrapTest
         throws Exception
     {        
         String[] pathes = { "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/maven-metadata.xml" };
-        assertFiletype( pathes, FileType.MAVEN_METADATA_SNAPSHOT );
+        assertNull( pathes );
     }
 
     @Test
@@ -79,7 +80,7 @@ public class DefaultBootstrapTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/dependencies?gems=nexus,bundler" };
-        assertFiletype( pathes, FileType.BUNDLER_API );
+        assertNull( pathes );
     }
 
     
@@ -127,7 +128,7 @@ public class DefaultBootstrapTest
                             "/maven/prereleases/rubygems/jbundler",
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT", 
                           };
-        assertFiletype( pathes, FileType.DIRECTORY );
+        assertNull( pathes );
     }
     
     @Test
@@ -162,6 +163,13 @@ public class DefaultBootstrapTest
         for( String path : pathes )
         {
             assertThat( path, bootstrap.accept( path ).type(), equalTo( type ) );
+        }
+    }
+    protected void assertNull( String[] pathes )
+    {
+        for( String path : pathes )
+        {
+            assertThat( path, bootstrap.accept( path ), equalTo( null ) );
         }
     }
 }

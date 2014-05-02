@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.DependencyData;
@@ -50,14 +51,6 @@ public class GETLayout extends DefaultLayout
     protected void retrieveZipped( SpecsIndexFile specs )
     {
         store.retrieve( specs );
-        if ( specs.hasException() )
-        {
-            ensureEmptySpecs( specs );
-        }
-    }
-
-    protected void ensureEmptySpecs( SpecsIndexFile specs )
-    { 
     }
 
     @Override
@@ -143,7 +136,7 @@ public class GETLayout extends DefaultLayout
         }
     }
 
-    protected void setGemArtifactContext( GemArtifactFile file )
+    protected void setGemArtifactPayload( GemArtifactFile file )
     {
         try
         {
@@ -177,7 +170,7 @@ public class GETLayout extends DefaultLayout
     public GemArtifactFile gemArtifactSnapshot( String name, String version, String timestamp )
     {
         GemArtifactFile file = super.gemArtifactSnapshot( name, version, timestamp );
-        setGemArtifactContext( file );
+        setGemArtifactPayload( file );
         return file;
     }
 
@@ -185,7 +178,7 @@ public class GETLayout extends DefaultLayout
     public GemArtifactFile gemArtifact( String name, String version )
     {
         GemArtifactFile file = super.gemArtifact( name, version );
-        setGemArtifactContext( file );
+        setGemArtifactPayload( file );
         return file;
     }
 
@@ -276,5 +269,18 @@ public class GETLayout extends DefaultLayout
         DependencyFile file = super.dependencyFile( name );
         store.retrieve( file );
         return file;
+    }
+    
+    @Override
+    public ApiV1File apiV1File( String name )
+    {
+        if ( "api_key".equals( name ) )
+        {
+            return super.apiV1File( name );
+        }
+        else
+        {
+            return null;
+        }
     }
 }

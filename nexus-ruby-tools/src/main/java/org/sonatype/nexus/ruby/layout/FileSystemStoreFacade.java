@@ -32,7 +32,7 @@ public class FileSystemStoreFacade implements StoreFacade
     {
         if ( file.hasException() )
         {
-            throw new IOException( (Exception) file.get() );
+            throw new IOException( file.getException() );
         }
         if ( file.get() == null )
         {
@@ -57,8 +57,16 @@ public class FileSystemStoreFacade implements StoreFacade
     {
         if ( Files.notExists( toPath( file ) ) )
         {
-            file.set( new NoSuchFileException( toPath( file ).toString() ) );
+            file.setException( new NoSuchFileException( toPath( file ).toString() ) );
             return false;
+        }
+        try
+        {
+            file.set( getInputStream( file ) );
+        }
+        catch ( IOException e )
+        {
+            file.setException( e );
         }
         return true;
     }
@@ -66,18 +74,19 @@ public class FileSystemStoreFacade implements StoreFacade
     @Override
     public boolean retrieveUnzippped( SpecsIndexFile file )
     {
-        if ( Files.notExists( toPath( file ) ) )
+        SpecsIndexFile zipped = file.zippedSpecsIndexFile();
+        if ( Files.notExists( toPath( zipped ) ) )
         {
-            file.set( new NoSuchFileException( toPath( file ).toString() ) );
+            file.setException( new NoSuchFileException( toPath( zipped ).toString() ) );
             return false;
         }
         try
         {
-            file.set( new GZIPInputStream( getInputStream( file ) ) );
+            file.set( new GZIPInputStream( getInputStream( zipped ) ) );
         }
         catch (IOException e)
         {
-            file.set( e );
+            file.setException( e );
             return false;
         }
         return true;
@@ -88,23 +97,26 @@ public class FileSystemStoreFacade implements StoreFacade
     {
         Path target = toPath( file );
         Path mutex = target.resolveSibling( ".lock" );
-        Path source = target.resolveSibling( "tmp." + random.nextLong() );
+        Path source = target.resolveSibling( "tmp." + Math.abs( random.nextLong() ) );
         try
         {
             Files.createFile( mutex );
+            createDirectory( source.getParent() );
             Files.copy( is, source );
             Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
+            file.set( Files.newInputStream( target ) );
+            file.setException( null );
             return true;
         }
         catch ( FileAlreadyExistsException e )
         {
             mutex = null;
-            file.set( e );
+            file.setException( e );
             return false;
         }
         catch ( IOException e )
         {
-            file.set( e );
+            file.setException( e );
             return false;
         }
         finally
@@ -121,21 +133,32 @@ public class FileSystemStoreFacade implements StoreFacade
     public boolean update( InputStream is, RubygemsFile file )
     {
         Path target = toPath( file );
-        Path source = target.resolveSibling( "tmp." + random.nextLong() );
+        Path source = target.resolveSibling( "tmp." + Math.abs( random.nextLong() ) );
         try
         {
+            createDirectory( source.getParent() );
             Files.copy( is, source );
             Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
-            return false;
+            file.set( Files.newInputStream( target ) );
+            file.setException( null );
+            return true;
         }
         catch ( IOException e )
         {
-            file.set( e );
+            file.setException( e );
             return false;
         }
         finally
         {
             source.toFile().delete();
+        }
+    }
+
+    protected void createDirectory( Path parent ) throws IOException
+    {
+        if ( !Files.exists( parent ) )
+        {
+            Files.createDirectories( parent );
         }
     }
 
@@ -149,7 +172,7 @@ public class FileSystemStoreFacade implements StoreFacade
         }
         catch (IOException e)
         {
-            file.set( e );
+            file.setException( e );
             return false;
         }
     }

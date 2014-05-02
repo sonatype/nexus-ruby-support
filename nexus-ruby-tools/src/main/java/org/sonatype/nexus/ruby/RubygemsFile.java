@@ -121,7 +121,8 @@ public class RubygemsFile {
         }
         if ( hasException() )
         {
-            builder.append( ", exception=" ).append( getException().getMessage() );
+            builder.append( ", exception=" ).append( getException().getClass().getSimpleName() )
+                   .append( ": " ).append( getException().getMessage() );
         }
         else if ( get() != null )
         {

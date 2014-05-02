@@ -1,5 +1,6 @@
 package org.sonatype.nexus.ruby.layout;
 
+import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
@@ -26,6 +27,12 @@ public class DELETELayout extends NoopDefaultLayout
         {
             return null;
         }
+    }
+    
+    @Override
+    public ApiV1File apiV1File( String name )
+    {
+        return null;
     }
 
     @Override
