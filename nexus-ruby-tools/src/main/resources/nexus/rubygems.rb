@@ -144,14 +144,9 @@ module Nexus
       result = []
       gemspecs.each do |gemspec|
         spec = Marshal.load( Gem.inflate( read_binary( gemspec ) ) )
-        if spec.platform.respond_to? :os
-          platform =  spec.platform.os.to_s
-        else
-          platform = spec.platform.to_s
-        end
         result << dependency_data( spec.name, 
                                    spec.version.to_s,
-                                   platform, 
+                                   spec.platform.to_s, 
                                    deps_from( spec ) )
       end
       Marshal.dump( result ).bytes.to_a
@@ -179,9 +174,9 @@ module Nexus
     end
     private :dependency_data
 
-    def dependencies( file )
+    def dependencies( name, file )
       data = Marshal.load( read_binary( file ) )
-      Dependencies.new( data.first[ :name ], data ) unless data.empty?
+      Dependencies.new( name, data )
     end
 
     def list_all_versions( name, source, modified, prerelease = false )

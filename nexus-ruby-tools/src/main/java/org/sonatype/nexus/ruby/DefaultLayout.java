@@ -1,11 +1,6 @@
 package org.sonatype.nexus.ruby;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.SecureRandom;
-
-import org.sonatype.nexus.ruby.cuba.Bootstrap;
-import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
 
 //@Singleton @Named( DefaultLayout.ID )
 public class DefaultLayout implements Layout
@@ -41,8 +36,6 @@ public class DefaultLayout implements Layout
     {
         random.setSeed( System.currentTimeMillis() );
     }
-    
-    private final Bootstrap bootstrap = new DefaultBootstrap( this );
 
     @Override
     public Sha1File sha1( RubygemsFile file )
@@ -247,29 +240,10 @@ public class DefaultLayout implements Layout
         }
         return builder.toString();
     }
-    
-    /* (non-Javadoc)
-     * @see org.sonatype.nexus.ruby.Layout#fromPath(java.lang.String)
-     */
-    @Override
-    public RubygemsFile fromPath( String path )
-    {        
-        return fromPath( path, null );
-    }
-    
-    //@Override
-    public RubygemsFile fromPath( String path, String query )
-    {        
-        if( query != null )
-        {
-            path += "?" + query;
-        }
-        return bootstrap.accept( path );
-    }
 
     @Override
-    public InputStream getInputStream( RubygemsFile file ) throws IOException
+    public SpecsIndexFile specsIndexFile( SpecsIndexType type, boolean isGzipped )
     {
-        throw new RuntimeException("do not use this");
+        return this.specsIndexFile( type.filename().replace( ".4.8", "" ), isGzipped );
     }
 }

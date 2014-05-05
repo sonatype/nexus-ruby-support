@@ -1,7 +1,5 @@
 package org.sonatype.nexus.ruby;
 
-import java.io.IOException;
-import java.io.InputStream;
 
 public interface Layout
 {
@@ -24,6 +22,8 @@ public interface Layout
 
     SpecsIndexFile specsIndexFile( String name, boolean isGzipped );
 
+    SpecsIndexFile specsIndexFile( SpecsIndexType type, boolean isGzipped );
+
     MavenMetadataFile mavenMetadata( String name, boolean prereleased );
 
     MavenMetadataSnapshotFile mavenMetadataSnapshot( String name, String version );
@@ -39,9 +39,4 @@ public interface Layout
     NotFoundFile notFound( String path );
 
     Sha1File sha1( RubygemsFile file );
-
-    RubygemsFile fromPath( String path );
-    
-    InputStream getInputStream( RubygemsFile file ) throws IOException;
-
 }

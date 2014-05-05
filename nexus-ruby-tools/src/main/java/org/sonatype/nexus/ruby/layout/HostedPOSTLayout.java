@@ -31,7 +31,7 @@ public class HostedPOSTLayout extends NoopDefaultLayout
 
     public RubygemsFile storeFromPath( InputStream is, String path )
     {
-        RubygemsFile file = fromPath( path );
+        RubygemsFile file = null;//fromPath( path );
         storeRubygemsFile( is, file );
         return file;
     }

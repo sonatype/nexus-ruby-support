@@ -27,7 +27,7 @@ public class DELETELayoutTest
         String[] pathes = { "/specs.4.8.gz",
                             "/prerelease_specs.4.8.gz",
                             "/latest_specs.4.8.gz" }; 
-        assertIOException( pathes, FileType.SPECS_INDEX );
+        assertFound( pathes, FileType.SPECS_INDEX );
     }
     
     @Test
@@ -112,7 +112,7 @@ public class DELETELayoutTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/dependencies?gems=nexus", "/api/v1/dependencies/jbundler.json.rz", "/api/v1/dependencies/b/bundler.json.rz" };
-        assertIOException( pathes, FileType.DEPENDENCY );
+        assertFound( pathes, FileType.DEPENDENCY );
     }
 
     @Test
@@ -120,7 +120,7 @@ public class DELETELayoutTest
         throws Exception
     {        
         String[] pathes = { "/quick/Marshal.4.8/jbundler.gemspec.rz", "/quick/Marshal.4.8/b/bundler.gemspec.rz" };
-        assertIOException( pathes, FileType.GEMSPEC );
+        assertFound( pathes, FileType.GEMSPEC );
     }
     
     @Test
@@ -128,7 +128,7 @@ public class DELETELayoutTest
         throws Exception
     {        
         String[] pathes = { "/gems/jbundler.gem", "/gems/b/bundler.gem" };
-        assertIOException( pathes, FileType.GEM );
+        assertFound( pathes, FileType.GEM );
     }
    
     @Test
@@ -183,13 +183,14 @@ public class DELETELayoutTest
         }
     }
     
-    protected void assertIOException( String[] pathes, FileType type )
+    protected void assertFound( String[] pathes, FileType type )
     {
         for( String path : pathes )
         {
             RubygemsFile file = bootstrap.accept( path );
+            System.err.println( file );
             assertThat( path, file.type(), equalTo( type ) );
-            assertThat( path, file.getException(), is( instanceOf( IOException.class ) ) );
+            assertThat( path, file.exists(), is( true ) );
         }
     }
     

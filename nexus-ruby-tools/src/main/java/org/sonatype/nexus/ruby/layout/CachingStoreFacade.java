@@ -55,6 +55,7 @@ public class CachingStoreFacade extends FileSystemStoreFacade
                 URLConnection url = toUrl( file ).openConnection();
                 update( url.getInputStream(), file );
                 setLastModified( toPath( file ), url );
+                file.resetState();
                 super.retrieve( file );
             }
             catch ( IOException e )

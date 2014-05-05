@@ -13,8 +13,13 @@ public class Bootstrap
         this.cuba = cuba;
         this.layout = layout;
     }
-    
+
     public RubygemsFile accept( String original )
+    {
+        return accept( original, null );
+    }
+
+    public RubygemsFile accept( String original, String query )
     {
         //normalize PATH-Separator from Windows platform to valid URL-Path
         //    https://github.com/sonatype/nexus-ruby-support/issues/38
@@ -23,21 +28,30 @@ public class Bootstrap
         {
             original = "/" + original;
         }
-        
-        int index = original.indexOf( "?" );
-        final String query;
-        final String path;
-        if ( index > -1 )
-        {
-            query = original.substring( index + 1 );
-            path = original.substring( 0, index );
+        String path = original;
+        if ( query == null )
+        { 
+            if ( original.contains( "?" ) )
+            {
+                int index = original.indexOf( "?" );
+                if ( index > -1 )
+                {
+                    query = original.substring( index + 1 );
+                    path = original.substring( 0, index );
+                }
+            }
+            else
+            {
+                query = "";
+            }
         }
-        else
+                
+        RubygemsFile result = new State( new Context( layout, original, query ), path, null ).nested( cuba );
+        if ( result != null && ! result.exists() )
         {
-            query = "";
-            path = original;
+            return layout.notFound( path );
         }
-        return new State( new Context( layout, original, query ), path, null ).nested( cuba );
+        return result;
     }   
     
     public String toString()

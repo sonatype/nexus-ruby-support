@@ -26,7 +26,7 @@ public class HostedGETLayout extends GETLayout
     protected void retrieveZipped( SpecsIndexFile specs )
     { 
         super.retrieveZipped( specs );
-        if ( specs.hasException() )
+        if ( specs.notExists() )
         {    
             try( InputStream content = gateway.emptyIndex() )
             {        
@@ -59,8 +59,8 @@ public class HostedGETLayout extends GETLayout
     public GemspecFile gemspecFile( String filename )
     {
         GemspecFile gemspec = super.gemspecFile( filename );
-        
-        if ( gemspec.hasException() )
+
+        if ( gemspec.notExists() )
         {
             createGemspec( gemspec );
         }
@@ -71,9 +71,9 @@ public class HostedGETLayout extends GETLayout
     protected void createGemspec( GemspecFile gemspec )
     {
         GemFile gem = gemspec.gem();
-        if( gem.hasException() )
+        if( gem.notExists() )
         {
-            gemspec.setException( (Exception) gem.get() );
+            gemspec.setNotExists();
         }
         else
         {
@@ -84,7 +84,7 @@ public class HostedGETLayout extends GETLayout
                 // just update in case so no need to deal with concurrency
                 // since once the file is there no update happen again
                 store.update( gateway.createGemspecRz( spec ), gemspec );
-                
+
                 store.retrieve( gemspec );
             }
             catch( IOException e )
@@ -98,7 +98,7 @@ public class HostedGETLayout extends GETLayout
     {        
         DependencyFile file = super.dependencyFile( name );
 
-        if ( file.hasException() )
+        if ( file.notExists() )
         {
             createDependency( file );
         }
@@ -110,14 +110,14 @@ public class HostedGETLayout extends GETLayout
     {
         try
         {
-            SpecsIndexFile specs = getSpecIndexFile( SpecsIndexType.RELEASE );
+            SpecsIndexFile specs = specsIndexFile( SpecsIndexType.RELEASE, true );
             store.retrieveUnzippped( specs );
             List<String> versions;
             try ( InputStream is = store.getInputStream( specs ) )
             {
                 versions = gateway.listAllVersions( file.name(), is, store.getModified( specs ), false );
             }
-            specs = getSpecIndexFile( SpecsIndexType.PRERELEASE );
+            specs = specsIndexFile( SpecsIndexType.PRERELEASE, true );
             store.retrieveUnzippped( specs );
             try ( InputStream is = store.getInputStream( specs ) )
             {
@@ -132,18 +132,11 @@ public class HostedGETLayout extends GETLayout
                 gemspecs.add( store.getInputStream( gemspec ) );
             }
             
-            if ( gemspecs.isEmpty() )
+            try ( InputStream is = gateway.createDependencies( gemspecs ) )
             {
-                store.delete( file );
-            }
-            else
-            {
-                try ( InputStream is = gateway.createDependencies( gemspecs ) )
-                {
-                    // just update in case so no need to deal with concurrency
-                    // since once the file is there no update happen again
-                    store.update( is, file );
-                }
+                // just update in case so no need to deal with concurrency
+                // since once the file is there no update happen again
+                store.update( is, file );
             }
             store.retrieve( file );
         }
@@ -151,15 +144,5 @@ public class HostedGETLayout extends GETLayout
         {
             file.setException( e );
         }
-    }
-
-    protected SpecsIndexFile getSpecIndexFile( SpecsIndexType specsType )
-    {
-        RubygemsFile specs = fromPath( specsType.filepathGzipped() );
-        if ( specs.hasException() || specs.type() != FileType.SPECS_INDEX)
-        {
-            throw new RuntimeException( "BUG " );
-        }
-        return specs.isSpecIndexFile();
     }
 }

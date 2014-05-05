@@ -9,6 +9,10 @@ public class Sha1File extends RubygemsFile {
     {
         super( layout, FileType.SHA1, storage, remote, source.name() );
         this.source = source;
+        if( source.notExists() )
+        {
+            setNotExists();
+        }
     }
 
     public RubygemsFile getSource()

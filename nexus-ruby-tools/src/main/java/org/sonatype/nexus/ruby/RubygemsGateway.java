@@ -42,7 +42,7 @@ public interface RubygemsGateway {
     
     String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified );
 
-    DependencyData dependencies( InputStream inputStream, long modified );
+    DependencyData dependencies( InputStream inputStream, String name, long modified );
 
     List<String> listAllVersions( String name, InputStream inputStream,
                                   long modified, boolean prerelease );

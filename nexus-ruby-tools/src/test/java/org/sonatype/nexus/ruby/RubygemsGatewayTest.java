@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -103,7 +105,21 @@ public class RubygemsGatewayTest
         assertEquals( "versions size", 1, versions.size() );
         assertEquals( "version", "3.2.11", versions.get( 0 ) );
     }
-    
+
+    @Test
+    public void testEmptyDependencies() throws Exception
+    {
+        File empty = new File( "target/empty" );
+        
+        dumpStream( gateway.createDependencies( new ArrayList<InputStream>() ), empty );
+        
+        int size = scriptingContainer.callMethod( check, 
+                "specs_size", 
+                empty.getAbsolutePath(), 
+                Integer.class ); 
+        assertEquals( "specsfile size", 0, size );
+    }
+
     @Test
     public void testEmptySpecs() throws Exception
     {

@@ -49,4 +49,10 @@ public class DependencyDataImpl extends ScriptWrapper implements DependencyData
     {
         return modified;
     }
+    
+    @Override
+    public String toString()
+    {
+        return callMethod( "inspect", String.class );
+    }
 }

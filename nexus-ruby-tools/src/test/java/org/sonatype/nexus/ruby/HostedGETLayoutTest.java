@@ -28,11 +28,11 @@ import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
 import org.sonatype.nexus.ruby.layout.CachingStoreFacade;
 import org.sonatype.nexus.ruby.layout.FileSystemStoreFacade;
-import org.sonatype.nexus.ruby.layout.GETLayout;
+import org.sonatype.nexus.ruby.layout.HostedGETLayout;
 import org.sonatype.nexus.ruby.layout.StoreFacade;
 
 @RunWith(Parameterized.class)
-public class GETLayoutTest
+public class HostedGETLayoutTest
     extends TestCase
 {
     private static File proxyBase() throws IOException
@@ -41,12 +41,21 @@ public class GETLayoutTest
         FileUtils.deleteDirectory( base );
         return base;
     }
+
+    private static File hostedBase() throws IOException
+    {
+        File source = new File( "src/test/hostedrepo" );
+        File base = new File( "target/repo" );
+        FileUtils.deleteDirectory( base );
+        FileUtils.copyDirectory( source, base, true );
+        return base;
+    }
     
     @Parameters
     public static Collection<Object[]> stores() throws IOException{
         return Arrays.asList( new Object[][]{ 
-            { new FileSystemStoreFacade( new File( "src/test/repo" ) ) },
-            { new CachingStoreFacade( proxyBase(),  new File( "src/test/repo" ).toURI().toURL() )
+            { new FileSystemStoreFacade( hostedBase() ) },
+            { new CachingStoreFacade( proxyBase(), hostedBase().toURI().toURL() )
               {
 
                   protected URL toUrl( RubygemsFile file ) throws MalformedURLException
@@ -60,10 +69,10 @@ public class GETLayoutTest
 
     private final DefaultBootstrap bootstrap;
 
-    public GETLayoutTest( StoreFacade store )
+    public HostedGETLayoutTest( StoreFacade store )
     {
-        bootstrap = new DefaultBootstrap( new GETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                         store ) );
+        bootstrap = new DefaultBootstrap( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+                                                               store ) );
      
     }
     
@@ -91,26 +100,29 @@ public class GETLayoutTest
     public void testSha1()
         throws Exception
     {        
-        String[] pathes = { "/maven/releases/rubygems/zip/maven-metadata.xml.sha1",
-                            "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem.sha1",
+        String[] pathes = { "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem.sha1",
                             "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom.sha1",
-                            "/maven/prereleases/rubygems/pre/maven-metadata.xml.sha1",
-                            "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/maven-metadata.xml.sha1",
                             "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-123213123.gem.sha1",
                             "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-123213123.pom.sha1",
-                            "/maven/releases/rubygems/pre/maven-metadata.xml.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1" }; 
-        String[] shas = { "3498b89783698a7590890fc4159e84ea80ab2cbe", "6fabc32da123f7013b2db804273df428a50bc6a4", 
-                          "a289cc8017a52822abf270722f7b003d039baef9", "24f33a26c5edd889ce3dcfd9e038af900ba10564", 
-                          "d1ef40d6775396c6bec855037a1ff6dcb34afdbd", "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "fb3e466464613ee33b5e2366d0eac789df6af583", "81bed0dbaef593e31578f5814304f991f55ff7d4",
+        String[] shas = { "6fabc32da123f7013b2db804273df428a50bc6a4", 
+                          "a289cc8017a52822abf270722f7b003d039baef9", 
+                          "b7311d2f46398dbe40fd9643f3d4e5d473574335",
+                          "fb3e466464613ee33b5e2366d0eac789df6af583",
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335", 
                           // TODO this one is wrong since it should be different from the snapshot pom !!!
                           "fb3e466464613ee33b5e2366d0eac789df6af583" };
 
         assertFiletypeWithPayload( pathes, FileType.SHA1, shas );
-    }
+        
+        // these files carry a timestamp of creation of the json.rz file
+        pathes = new String[] { "/maven/releases/rubygems/zip/maven-metadata.xml.sha1",
+                                "/maven/prereleases/rubygems/pre/maven-metadata.xml.sha1",
+                                "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/maven-metadata.xml.sha1",
+                                "/maven/releases/rubygems/pre/maven-metadata.xml.sha1" }; 
+        assertFiletypeWithPayload( pathes, FileType.SHA1, ByteArrayInputStream.class );
+    }   
 
     @Test
     public void testGemArtifact()

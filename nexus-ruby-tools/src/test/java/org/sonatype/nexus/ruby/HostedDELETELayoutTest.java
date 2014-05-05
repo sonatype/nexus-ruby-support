@@ -21,6 +21,8 @@ import java.util.zip.GZIPInputStream;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -28,11 +30,12 @@ import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
 import org.sonatype.nexus.ruby.layout.CachingStoreFacade;
 import org.sonatype.nexus.ruby.layout.FileSystemStoreFacade;
-import org.sonatype.nexus.ruby.layout.GETLayout;
+import org.sonatype.nexus.ruby.layout.HostedDELETELayout;
+import org.sonatype.nexus.ruby.layout.HostedGETLayout;
 import org.sonatype.nexus.ruby.layout.StoreFacade;
 
 @RunWith(Parameterized.class)
-public class GETLayoutTest
+public class HostedDELETELayoutTest
     extends TestCase
 {
     private static File proxyBase() throws IOException
@@ -41,12 +44,21 @@ public class GETLayoutTest
         FileUtils.deleteDirectory( base );
         return base;
     }
+
+    private static File hostedBase() throws IOException
+    {
+        File source = new File( "src/test/hostedrepo" );
+        File base = new File( "target/repo" );
+        FileUtils.deleteDirectory( base );
+        FileUtils.copyDirectory( source, base, true );
+        return base;
+    }
     
     @Parameters
     public static Collection<Object[]> stores() throws IOException{
         return Arrays.asList( new Object[][]{ 
-            { new FileSystemStoreFacade( new File( "src/test/repo" ) ) },
-            { new CachingStoreFacade( proxyBase(),  new File( "src/test/repo" ).toURI().toURL() )
+            { new FileSystemStoreFacade( hostedBase() ) },
+            { new CachingStoreFacade( proxyBase(), hostedBase().toURI().toURL() )
               {
 
                   protected URL toUrl( RubygemsFile file ) throws MalformedURLException
@@ -59,12 +71,20 @@ public class GETLayoutTest
     }
 
     private final DefaultBootstrap bootstrap;
+    private final DefaultBootstrap deleteBootstrap;
 
-    public GETLayoutTest( StoreFacade store )
+    public HostedDELETELayoutTest( StoreFacade store )
     {
-        bootstrap = new DefaultBootstrap( new GETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                         store ) );
-     
+        bootstrap = new DefaultBootstrap( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+                                                               store ) );
+        deleteBootstrap = new DefaultBootstrap( new HostedDELETELayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+                                                                        store ) );
+    }
+    
+    @Before
+    public void deleteGems()
+    {
+        deleteBootstrap.accept( "/gems/zip-2.0.2.gem" );
     }
     
     @Test
@@ -91,35 +111,40 @@ public class GETLayoutTest
     public void testSha1()
         throws Exception
     {        
-        String[] pathes = { "/maven/releases/rubygems/zip/maven-metadata.xml.sha1",
-                            "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem.sha1",
-                            "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom.sha1",
-                            "/maven/prereleases/rubygems/pre/maven-metadata.xml.sha1",
-                            "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/maven-metadata.xml.sha1",
-                            "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-123213123.gem.sha1",
+        String[] pathes = { "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-123213123.gem.sha1",
                             "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-123213123.pom.sha1",
-                            "/maven/releases/rubygems/pre/maven-metadata.xml.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1" }; 
-        String[] shas = { "3498b89783698a7590890fc4159e84ea80ab2cbe", "6fabc32da123f7013b2db804273df428a50bc6a4", 
-                          "a289cc8017a52822abf270722f7b003d039baef9", "24f33a26c5edd889ce3dcfd9e038af900ba10564", 
-                          "d1ef40d6775396c6bec855037a1ff6dcb34afdbd", "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "fb3e466464613ee33b5e2366d0eac789df6af583", "81bed0dbaef593e31578f5814304f991f55ff7d4",
+        String[] shas = { "b7311d2f46398dbe40fd9643f3d4e5d473574335",
+                          "fb3e466464613ee33b5e2366d0eac789df6af583",
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335", 
                           // TODO this one is wrong since it should be different from the snapshot pom !!!
                           "fb3e466464613ee33b5e2366d0eac789df6af583" };
 
         assertFiletypeWithPayload( pathes, FileType.SHA1, shas );
-    }
+        
+        pathes = new String[] { "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem.sha1",
+                                "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom.sha1" };
+        assertNotFound( pathes );
+        
+        // these files carry a timestamp of creation of the json.rz file
+        pathes = new String[] { "/maven/prereleases/rubygems/pre/maven-metadata.xml.sha1",
+                                "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/maven-metadata.xml.sha1",
+                                "/maven/releases/rubygems/pre/maven-metadata.xml.sha1" }; 
+        assertFiletypeWithPayload( pathes, FileType.SHA1, ByteArrayInputStream.class );
+    }   
 
     @Test
     public void testGemArtifact()
         throws Exception
     {        
-        String[] pathes = { "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem", 
-                            "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem", 
+        String[] pathes = { "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem", 
                             "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-123213123.gem" };
         assertFiletypeWithPayload( pathes, FileType.GEM_ARTIFACT, InputStream.class );
+        
+        pathes = new String[] { "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem" };
+        assertNotFound( pathes );
+        
         pathes = new String[] { "/maven/releases/rubygems/hufflepuf/0.1.0/hufflepuf-0.1.0.gem",
                                 "/maven/releases/rubygems/hufflepuf/0.1.0/hufflepuf-0.2.0.gem" };
         RubygemsFile[] result = assertFiletypeWithPayload( pathes, FileType.GEM_ARTIFACT, InputStream.class );
@@ -135,10 +160,11 @@ public class GETLayoutTest
     public void testPom()
         throws Exception
     {        
-        String[] pathes = { "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom",
-                            "/maven/releases/rubygems/pre/0.1.0.beta/jbundler-0.1.0.beta.pom",
+        String[] pathes = { "/maven/releases/rubygems/pre/0.1.0.beta/jbundler-0.1.0.beta.pom",
                             "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/jbundler-0.1.0.beta-123213123.pom" };
         assertFiletypeWithPayload( pathes, FileType.POM, ByteArrayInputStream.class );
+        pathes = new String[] { "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom" };
+        assertNotFound( pathes );
     }
     
     @Test
@@ -154,12 +180,11 @@ public class GETLayoutTest
                 + "  <artifactId>zip</artifactId>\n"
                 + "  <versioning>\n"
                 + "    <versions>\n"
-                + "      <version>2.0.2</version>\n"
                 + "    </versions>\n"
                 + "    <lastUpdated>2014</lastUpdated>\n"
                 + "  </versioning>\n"
                 + "</metadata>\n",
-
+               
                   "<metadata>\n"
                 + "  <groupId>rubygems</groupId>\n"
                 + "  <artifactId>pre</artifactId>\n"
@@ -257,8 +282,10 @@ public class GETLayoutTest
     public void testGemspec()
         throws Exception
     {        
-        String[] pathes = { "/quick/Marshal.4.8/zip-2.0.2.gemspec.rz", "/quick/Marshal.4.8/z/zip-2.0.2.gemspec.rz" };
-        assertFiletypeWithPayload( pathes, FileType.GEMSPEC, InputStream.class );
+        String[] pathes = { "/quick/Marshal.4.8/pre-0.1.0.beta.gemspec.rz", "/quick/Marshal.4.8/p/pre-0.1.0.beta.gemspec.rz" };
+        assertFiletypeWithPayload( pathes, FileType.GEMSPEC, InputStream.class ); 
+        pathes = new String[] { "/quick/Marshal.4.8/zip-2.0.2.gemspec.rz", "/quick/Marshal.4.8/z/zip-2.0.2.gemspec.rz" };
+        assertNotFound( pathes );
     }
     
     @Test
@@ -266,7 +293,9 @@ public class GETLayoutTest
         throws Exception
     {        
         String[] pathes = { "/gems/pre-0.1.0.beta.gem", "/gems/p/pre-0.1.0.beta.gem" };
-        assertFiletypeWithPayload( pathes, FileType.GEM, InputStream.class );
+        assertFiletypeWithPayload( pathes, FileType.GEM, InputStream.class ); 
+        pathes = new String[] { "/gems/zip-2.0.2.gem", "/gems/zip-2.0.2.gem" };
+        assertNotFound( pathes );
     }
    
     @Test
@@ -375,15 +404,31 @@ public class GETLayoutTest
         }
     }
     
-    protected void assertIOException( String[] pathes, FileType type )
+    protected void assertNotFound( String[] pathes )
     {
-        for( String path : pathes )
-        {
-            RubygemsFile file = bootstrap.accept( path );
-            assertThat( path, file.type(), equalTo( type ) );
-            assertThat( path, file.getException(), is( instanceOf( IOException.class ) ) );
-        }
+        assertFiletypeWithNullPayload( pathes, FileType.NOT_FOUND );
     }
+
+//
+//    protected void assertNotFound( String[] pathes, FileType type )
+//    {
+//        for( String path : pathes )
+//        {
+//            RubygemsFile file = bootstrap.accept( path );
+//            assertThat( path, file.type(), equalTo( type ) );
+//            assertThat( path, file.exists(), is( false ) );
+//        }
+//    }
+//    protected void assertIOException( String[] pathes, FileType type )
+//    {
+//        for( String path : pathes )
+//        {
+//            RubygemsFile file = bootstrap.accept( path );
+//            assertThat( path, file.type(), equalTo( type ) );
+//            assertThat( path, file.get(), nullValue() );
+//            assertThat( path, file.getException(), is( instanceOf( IOException.class ) ) );
+//        }
+//    }
 
     protected void assertNull( String[] pathes )
     {

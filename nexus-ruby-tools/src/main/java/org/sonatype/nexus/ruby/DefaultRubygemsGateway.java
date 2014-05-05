@@ -48,11 +48,11 @@ public class DefaultRubygemsGateway
     }
     
     @Override
-    public DependencyData dependencies( InputStream is, long modified )
+    public DependencyData dependencies( InputStream is, String name, long modified )
     {
         return new DependencyDataImpl( scriptingContainer, 
-                                 callMethod( "dependencies", is,
-                                             Object.class ), modified );
+                                       callMethod( "dependencies", new Object[]{ name, is }, Object.class ),
+                                       modified );
     }
 
     @Override
@@ -204,9 +204,12 @@ public class DefaultRubygemsGateway
         try
         {
             @SuppressWarnings( "unchecked" )
-            List<Long> array = (List<Long>) callMethod( "create_dependencies",
-                                                        gemspecs.toArray(),
-                                                        List.class );
+            List<Long> array = (List<Long>) ( gemspecs.size() == 0 ? 
+                                              callMethod( "create_dependencies",
+                                                          List.class ) :
+                                              callMethod( "create_dependencies",
+                                                          gemspecs.toArray(),
+                                                          List.class ) );
         
             return array == null ? null : new ByteArrayInputStream( array );
         }

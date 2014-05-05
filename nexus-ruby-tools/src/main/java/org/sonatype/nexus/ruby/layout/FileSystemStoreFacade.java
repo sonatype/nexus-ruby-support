@@ -38,7 +38,12 @@ public class FileSystemStoreFacade implements StoreFacade
         {
             return Files.newInputStream( toPath( file ) );
         }
-        return (InputStream) file.get();
+        else
+        {
+            InputStream is = (InputStream) file.get();
+            file.resetState();
+            return is;
+        }
     }
 
     protected Path toPath( RubygemsFile file )
@@ -54,10 +59,12 @@ public class FileSystemStoreFacade implements StoreFacade
 
     @Override
     public boolean retrieve( RubygemsFile file )
-    {
+    {              
+        file.resetState();
+
         if ( Files.notExists( toPath( file ) ) )
         {
-            file.setException( new NoSuchFileException( toPath( file ).toString() ) );
+            file.setNotExists();
             return false;
         }
         try
@@ -68,6 +75,7 @@ public class FileSystemStoreFacade implements StoreFacade
         {
             file.setException( e );
         }
+        System.err.println( file );
         return true;
     }
     
@@ -75,9 +83,10 @@ public class FileSystemStoreFacade implements StoreFacade
     public boolean retrieveUnzippped( SpecsIndexFile file )
     {
         SpecsIndexFile zipped = file.zippedSpecsIndexFile();
-        if ( Files.notExists( toPath( zipped ) ) )
+        retrieve( zipped );
+        if (!zipped.exists() )
         {
-            file.setException( new NoSuchFileException( toPath( zipped ).toString() ) );
+            file.setNotExists();
             return false;
         }
         try
@@ -167,7 +176,7 @@ public class FileSystemStoreFacade implements StoreFacade
     {
         try
         {
-            Files.delete( toPath( file ) );
+            Files.deleteIfExists( toPath( file ) );
             return true;
         }
         catch (IOException e)

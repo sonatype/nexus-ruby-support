@@ -1,5 +1,6 @@
 package org.sonatype.nexus.ruby.layout;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -51,6 +52,7 @@ public class GETLayout extends DefaultLayout
     protected void retrieveZipped( SpecsIndexFile specs )
     {
         store.retrieve( specs );
+        System.err.println( specs );
     }
 
     @Override
@@ -102,7 +104,7 @@ public class GETLayout extends DefaultLayout
         MavenMetadataFile file = super.mavenMetadata( name, prereleased );
         try
         {
-            MetadataBuilder meta = new MetadataBuilder( retrieveDependencies( file.dependency() ) );
+            MetadataBuilder meta = new MetadataBuilder( newDependencies( file.dependency() ) );
             meta.appendVersions( file.isPrerelease() );            
             store.memory( meta.toString(), file );
         }
@@ -127,8 +129,15 @@ public class GETLayout extends DefaultLayout
     {
         try
         {
-            GemspecFile gemspec = file.gemspec( retrieveDependencies( file.dependency() ) );
-            store.memory( gateway.pom( store.getInputStream( gemspec ) ), file );
+            GemspecFile gemspec = file.gemspec( newDependencies( file.dependency() ) );
+            if ( gemspec.notExists() )
+            {
+                file.setNotExists();
+            }
+            else
+            {
+                store.memory( gateway.pom( store.getInputStream( gemspec ) ), file );
+            }
         }
         catch (IOException e)
         {
@@ -139,10 +148,17 @@ public class GETLayout extends DefaultLayout
     protected void setGemArtifactPayload( GemArtifactFile file )
     {
         try
-        {
-            GemFile gem = file.gem( retrieveDependencies( file.dependency() ) );
-            store.retrieve( gem );
-            file.set( gem.get() );
+        {   
+            GemFile gem = file.gem( newDependencies( file.dependency() ) );
+            if ( gem == null )
+            {
+                file.setNotExists();
+            }
+            else
+            {
+                store.retrieve( gem );
+                file.set( gem.get() );
+            }
         }
         catch (IOException e)
         {
@@ -187,7 +203,8 @@ public class GETLayout extends DefaultLayout
     {
         Sha1File sha = super.sha1( file );
         // go through the layout to "generate" any needed content on the way
-        file = fromPath( file.storagePath() );
+        // TODO remove
+        //file = fromPath( file.storagePath() );
         try( InputStream is = store.getInputStream( file ) )
         {
             MessageDigest digest = MessageDigest.getInstance( "SHA1" );
@@ -226,9 +243,9 @@ public class GETLayout extends DefaultLayout
         return sha;
     }
 
-    protected DependencyData retrieveDependencies( DependencyFile file ) throws IOException
+    protected DependencyData newDependencies( DependencyFile file ) throws IOException
     {
-        return gateway.dependencies( store.getInputStream( file ), store.getModified( file ) );
+        return gateway.dependencies( store.getInputStream( file ), file.name(), store.getModified( file ) );
     }
 
     @Override

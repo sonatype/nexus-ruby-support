@@ -11,6 +11,7 @@ public class RubygemsFile {
     
     private Object context;
     private Exception exception;
+    private boolean exists = true;
     
     public Object get()
     {
@@ -119,6 +120,15 @@ public class RubygemsFile {
         {
             builder.append( ", name=" ).append( name );
         }
+        builder.append( ", state=" );
+        if ( exists() )
+        {
+            builder.append( "found" );
+        }
+        else
+        {
+            builder.append( "not-exists" );
+        }            
         if ( hasException() )
         {
             builder.append( ", exception=" ).append( getException().getClass().getSimpleName() )
@@ -196,9 +206,25 @@ public class RubygemsFile {
         return exception != null;
     }
 
-    public void reset()
+    public void resetState()
     {
+        exists = true;
         set( null );
         setException( null );
+    }
+
+    public void setNotExists()
+    {
+        this.exists = false;
+    }
+
+    public boolean exists()
+    {
+        return exists;
+    }
+    
+    public boolean notExists()
+    {
+        return !exists;
     }
 }
