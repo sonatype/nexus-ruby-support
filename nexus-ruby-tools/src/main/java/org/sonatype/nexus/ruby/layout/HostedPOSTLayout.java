@@ -69,6 +69,8 @@ public class HostedPOSTLayout extends NoopDefaultLayout
             
             // delete dependencies so the next request will recreate it
             delete( super.dependencyFile( gateway.name( spec ) ) );
+            // delete gemspec so the next request will recreate it
+            delete( super.gemspecFile( gateway.filename( spec ).replaceFirst( ".gem$", "" ) ) );
         }
         catch (IOException e)
         {

@@ -33,16 +33,18 @@ public class FileSystemStoreFacade implements StoreFacade
         {
             throw new IOException( file.getException() );
         }
+        InputStream is;
         if ( file.get() == null )
         {
-            return Files.newInputStream( toPath( file ) );
+            is = Files.newInputStream( toPath( file ) );
         }
         else
         {
-            InputStream is = (InputStream) file.get();
-            file.resetState();
-            return is;
+            is = (InputStream) file.get();
         }
+        // reset state since we have a payload and no exceptions
+        file.resetState();
+        return is;
     }
 
     protected Path toPath( RubygemsFile file )
@@ -103,16 +105,15 @@ public class FileSystemStoreFacade implements StoreFacade
     public boolean create( InputStream is, RubygemsFile file )
     {
         Path target = toPath( file );
-        Path mutex = target.resolveSibling( ".lock" );
+        Path mutex = target.resolveSibling( target.getFileName() + ".lock" );
         Path source = target.resolveSibling( "tmp." + Math.abs( random.nextLong() ) );
         try
         {
-            Files.createFile( mutex );
             createDirectory( source.getParent() );
+            Files.createFile( mutex );
             Files.copy( is, source );
             Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
             file.set( Files.newInputStream( target ) );
-            file.setException( null );
             return true;
         }
         catch ( FileAlreadyExistsException e )
@@ -147,7 +148,6 @@ public class FileSystemStoreFacade implements StoreFacade
             Files.copy( is, source );
             Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
             file.set( Files.newInputStream( target ) );
-            file.setException( null );
             return true;
         }
         catch ( IOException e )

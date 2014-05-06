@@ -3,12 +3,10 @@ package org.sonatype.nexus.ruby.cuba.maven;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.sonatype.nexus.ruby.GemArtifactFile;
 import org.sonatype.nexus.ruby.MavenMetadataSnapshotFile;
-import org.sonatype.nexus.ruby.PomFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
-import org.sonatype.nexus.ruby.cuba.State;
 import org.sonatype.nexus.ruby.cuba.Cuba;
+import org.sonatype.nexus.ruby.cuba.State;
 
 public class MavenPrereleasesRubygemsArtifactIdVersionCuba implements Cuba
 {

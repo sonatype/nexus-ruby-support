@@ -2,10 +2,10 @@ package org.sonatype.nexus.ruby;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
 import java.io.File;
-import java.io.IOException;
 
 import junit.framework.TestCase;
 

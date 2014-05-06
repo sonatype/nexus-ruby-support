@@ -6,11 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.sonatype.nexus.ruby.DependencyFile;
-import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
 import org.sonatype.nexus.ruby.IOUtil;
-import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
