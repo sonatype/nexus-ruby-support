@@ -20,9 +20,9 @@ import org.sonatype.nexus.ruby.SpecsIndexType;
 public class NoopDefaultLayout extends DefaultLayout
 {
     protected final RubygemsGateway gateway;
-    protected final StoreFacade store;
+    protected final Storage store;
 
-    public NoopDefaultLayout( RubygemsGateway gateway, StoreFacade store )
+    public NoopDefaultLayout( RubygemsGateway gateway, Storage store )
     {
         this.gateway = gateway;
         this.store = store;

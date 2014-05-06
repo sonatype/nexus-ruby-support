@@ -14,12 +14,12 @@ import java.util.zip.GZIPInputStream;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 
-public class FileSystemStoreFacade implements StoreFacade
+public class FileSystemStorage implements Storage
 {
     private final SecureRandom random = new SecureRandom();
     private final File basedir;
     
-    public FileSystemStoreFacade( File basedir )
+    public FileSystemStorage( File basedir )
     {
         this.basedir = basedir;
         this.random.setSeed( System.currentTimeMillis() );

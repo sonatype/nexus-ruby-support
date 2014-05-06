@@ -30,9 +30,9 @@ public class GETLayout extends DefaultLayout
 {
 
     protected final RubygemsGateway gateway;
-    protected final StoreFacade store;
+    protected final Storage store;
 
-    public GETLayout( RubygemsGateway gateway, StoreFacade store )
+    public GETLayout( RubygemsGateway gateway, Storage store )
     {
         this.gateway = gateway;
         this.store = store;

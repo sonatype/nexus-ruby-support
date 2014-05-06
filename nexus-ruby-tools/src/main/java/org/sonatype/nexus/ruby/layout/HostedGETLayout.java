@@ -15,7 +15,7 @@ import org.sonatype.nexus.ruby.SpecsIndexType;
 
 public class HostedGETLayout extends GETLayout
 {
-    public HostedGETLayout( RubygemsGateway gateway, StoreFacade store )
+    public HostedGETLayout( RubygemsGateway gateway, Storage store )
     {
         super( gateway, store );
     }

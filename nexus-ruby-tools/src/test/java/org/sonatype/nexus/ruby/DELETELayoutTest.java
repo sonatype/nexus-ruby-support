@@ -12,13 +12,13 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.DELETELayout;
-import org.sonatype.nexus.ruby.layout.FileSystemStoreFacade;
+import org.sonatype.nexus.ruby.layout.FileSystemStorage;
 
 public class DELETELayoutTest
     extends TestCase
 {
     private final DefaultRubygemsFileSystem bootstrap =
-            new DefaultRubygemsFileSystem( new DELETELayout( null, new FileSystemStoreFacade( new File( "target" ) ) ) );
+            new DefaultRubygemsFileSystem( new DELETELayout( null, new FileSystemStorage( new File( "target" ) ) ) );
     
     @Test
     public void testSpecsZippedIndex()

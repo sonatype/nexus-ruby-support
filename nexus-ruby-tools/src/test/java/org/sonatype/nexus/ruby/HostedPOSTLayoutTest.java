@@ -28,11 +28,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
-import org.sonatype.nexus.ruby.layout.CachingStoreFacade;
-import org.sonatype.nexus.ruby.layout.FileSystemStoreFacade;
+import org.sonatype.nexus.ruby.layout.CachingStorage;
+import org.sonatype.nexus.ruby.layout.FileSystemStorage;
 import org.sonatype.nexus.ruby.layout.HostedGETLayout;
 import org.sonatype.nexus.ruby.layout.HostedPOSTLayout;
-import org.sonatype.nexus.ruby.layout.StoreFacade;
+import org.sonatype.nexus.ruby.layout.Storage;
 
 @RunWith(Parameterized.class)
 public class HostedPOSTLayoutTest
@@ -54,8 +54,8 @@ public class HostedPOSTLayoutTest
     @Parameters
     public static Collection<Object[]> stores() throws IOException{
         return Arrays.asList( new Object[][]{ 
-            { new FileSystemStoreFacade( hostedBase() ) },
-            { new CachingStoreFacade( proxyBase(), hostedBase().toURI().toURL() )
+            { new FileSystemStorage( hostedBase() ) },
+            { new CachingStorage( proxyBase(), hostedBase().toURI().toURL() )
               {
 
                   protected URL toUrl( RubygemsFile file ) throws MalformedURLException
@@ -71,17 +71,17 @@ public class HostedPOSTLayoutTest
     private final DefaultRubygemsFileSystem hostedFileSystem;
     private final boolean isHosted;
 
-    public HostedPOSTLayoutTest( StoreFacade store ) throws IOException
+    public HostedPOSTLayoutTest( Storage store ) throws IOException
     {
         fileSystem = 
                 new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
                                                                          store ) );
-        if ( store instanceof CachingStoreFacade )
+        if ( store instanceof CachingStorage )
         {
             isHosted = false;
             hostedFileSystem =
                     new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ),
-                                                                        new FileSystemStoreFacade( hostedBase() ) ) ); 
+                                                                        new FileSystemStorage( hostedBase() ) ) ); 
         }
         else
         {

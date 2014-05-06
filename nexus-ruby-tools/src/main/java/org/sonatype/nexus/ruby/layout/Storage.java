@@ -6,7 +6,7 @@ import java.io.InputStream;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 
-public interface StoreFacade
+public interface Storage
 {
 
     boolean create( InputStream is, RubygemsFile file );

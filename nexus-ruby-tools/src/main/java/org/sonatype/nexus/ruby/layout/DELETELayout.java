@@ -9,7 +9,7 @@ import org.sonatype.nexus.ruby.SpecsIndexFile;
 
 public class DELETELayout extends NoopDefaultLayout
 {
-    public DELETELayout( RubygemsGateway gateway, StoreFacade store )
+    public DELETELayout( RubygemsGateway gateway, Storage store )
     {
         super( gateway, store );
     }

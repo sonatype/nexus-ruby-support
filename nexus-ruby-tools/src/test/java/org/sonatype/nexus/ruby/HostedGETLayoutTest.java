@@ -26,10 +26,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
-import org.sonatype.nexus.ruby.layout.CachingStoreFacade;
-import org.sonatype.nexus.ruby.layout.FileSystemStoreFacade;
+import org.sonatype.nexus.ruby.layout.CachingStorage;
+import org.sonatype.nexus.ruby.layout.FileSystemStorage;
 import org.sonatype.nexus.ruby.layout.HostedGETLayout;
-import org.sonatype.nexus.ruby.layout.StoreFacade;
+import org.sonatype.nexus.ruby.layout.Storage;
 
 @RunWith(Parameterized.class)
 public class HostedGETLayoutTest
@@ -54,8 +54,8 @@ public class HostedGETLayoutTest
     @Parameters
     public static Collection<Object[]> stores() throws IOException{
         return Arrays.asList( new Object[][]{ 
-            { new FileSystemStoreFacade( hostedBase() ) },
-            { new CachingStoreFacade( proxyBase(), hostedBase().toURI().toURL() )
+            { new FileSystemStorage( hostedBase() ) },
+            { new CachingStorage( proxyBase(), hostedBase().toURI().toURL() )
               {
 
                   protected URL toUrl( RubygemsFile file ) throws MalformedURLException
@@ -69,7 +69,7 @@ public class HostedGETLayoutTest
 
     private final DefaultRubygemsFileSystem bootstrap;
 
-    public HostedGETLayoutTest( StoreFacade store )
+    public HostedGETLayoutTest( Storage store )
     {
         bootstrap = new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
                                                                store ) );

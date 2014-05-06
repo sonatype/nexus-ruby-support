@@ -16,7 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.sonatype.nexus.ruby.RubygemsFile;
 
-public class CachingStoreFacade extends FileSystemStoreFacade
+public class CachingStorage extends FileSystemStorage
 {
 
     private final ConcurrentMap<String, Lock> locks = new ConcurrentSkipListMap<String, Lock>();
@@ -25,12 +25,12 @@ public class CachingStoreFacade extends FileSystemStoreFacade
     private final long ttl;
     private final int timeout;
     
-    public CachingStoreFacade( File basedir, URL baseurl )
+    public CachingStorage( File basedir, URL baseurl )
     {
         this( basedir, baseurl, 3600000 );
     }
 
-    public CachingStoreFacade( File basedir, URL baseurl, long ttl )
+    public CachingStorage( File basedir, URL baseurl, long ttl )
     {
         super( basedir );
         this.baseurl = baseurl.toExternalForm().replaceFirst( "/$", "" );

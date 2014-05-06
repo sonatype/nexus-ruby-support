@@ -16,7 +16,7 @@ import org.sonatype.nexus.ruby.SpecsIndexType;
 public class HostedDELETELayout extends NoopDefaultLayout
 {
 
-    public HostedDELETELayout( RubygemsGateway gateway, StoreFacade store )
+    public HostedDELETELayout( RubygemsGateway gateway, Storage store )
     {
         super( gateway, store );
     }

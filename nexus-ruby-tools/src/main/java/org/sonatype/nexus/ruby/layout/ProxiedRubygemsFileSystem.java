@@ -7,7 +7,7 @@ import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 public class ProxiedRubygemsFileSystem extends DefaultRubygemsFileSystem
 {
     public ProxiedRubygemsFileSystem( RubygemsGateway gateway,
-                                     StoreFacade store )
+                                     Storage store )
     {
         super( new DefaultLayout(),
                new GETLayout( gateway, store ),

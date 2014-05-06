@@ -24,7 +24,7 @@ import org.sonatype.nexus.ruby.SpecsIndexType;
 public class HostedPOSTLayout extends NoopDefaultLayout
 {
 
-    public HostedPOSTLayout( RubygemsGateway gateway, StoreFacade store )
+    public HostedPOSTLayout( RubygemsGateway gateway, Storage store )
     {
         super( gateway, store );
     }
