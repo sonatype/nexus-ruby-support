@@ -86,10 +86,10 @@ public class GroupNexusLayout extends NexusLayout implements Layout
          }
          catch ( ItemNotFoundException e )
          {
-             // Ignored. there are situations like after creating such a repo
+             // Ignored. there are situations like a freshly created repo
          }
          
-         boolean outdated = true; // outdate is true if there are no local-specs 
+         boolean outdated = true; // outdated is true if there are no local-specs 
          if ( localItem != null )
          {
              // using the timestamp from the file since localSpecsItem.getModified() produces something but

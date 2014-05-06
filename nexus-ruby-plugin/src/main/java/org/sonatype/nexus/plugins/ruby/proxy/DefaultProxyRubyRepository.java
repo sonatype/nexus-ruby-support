@@ -13,13 +13,13 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
+import org.sonatype.nexus.plugins.ruby.NexusRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.NexusStoreFacade;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.plugins.ruby.fs.DefaultRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.plugins.ruby.fs.RubygemsFacade;
-import org.sonatype.nexus.plugins.ruby.hosted.NexusRubygemsFileSystem;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
@@ -60,7 +60,7 @@ public class DefaultProxyRubyRepository
 
     private final RubygemsFacade facade;
 
-    private NexusRubygemsFileSystem fileSystem;
+    private NexusRubygemsFacade fileSystem;
     
     @Inject
     public DefaultProxyRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
@@ -74,7 +74,7 @@ public class DefaultProxyRubyRepository
         this.facade = facade;
         this.repositoryKind = new DefaultRepositoryKind( ProxyRubyRepository.class,
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) ); 
-        this.fileSystem = new NexusRubygemsFileSystem( new ProxiedRubygemsFileSystem( gateway, new NexusStoreFacade( this ) ) );
+        this.fileSystem = new NexusRubygemsFacade( new ProxiedRubygemsFileSystem( gateway, new NexusStoreFacade( this ) ) );
     }
 
     @Override

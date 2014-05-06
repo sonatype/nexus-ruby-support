@@ -128,7 +128,6 @@ public class NexusStoreFacade implements StoreFacade
     @Override
     public boolean update( InputStream is, RubygemsFile file ) 
     {
-        repository.getLog().error( "store " + file );
         file.resetState();
         ResourceStoreRequest request = new ResourceStoreRequest( file.storagePath() );
         ContentLocator contentLocator = newPreparedContentLocator( is, file.type().mime(), ContentLocator.UNKNOWN_LENGTH );        

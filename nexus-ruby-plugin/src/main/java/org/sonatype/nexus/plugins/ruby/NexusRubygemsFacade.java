@@ -1,4 +1,4 @@
-package org.sonatype.nexus.plugins.ruby.hosted;
+package org.sonatype.nexus.plugins.ruby;
 
 import java.io.InputStream;
 
@@ -6,26 +6,41 @@ import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.RubygemsFileSystem;
 
-public class NexusRubygemsFileSystem  
+public class NexusRubygemsFacade  
 {
     
     private final RubygemsFileSystem filesystem;
 
-    public NexusRubygemsFileSystem( RubygemsFileSystem filesystem )
+    public NexusRubygemsFacade( RubygemsFileSystem filesystem )
     {
         this.filesystem = filesystem;
     } 
     
     public RubygemsFile get( ResourceStoreRequest request )
     {   
-        String path = request.getRequestPath();
+        return filesystem.get( request.getRequestPath(), getQuery( request ) );
+    }
+
+    protected String getQuery( ResourceStoreRequest request )
+    {
         String query = "";
         // only request with ...?gems=... are used by the Layout
         if ( request.getRequestUrl() != null && request.getRequestUrl().contains( "?gems=" ) )
         {
             query = request.getRequestUrl().substring( request.getRequestUrl().indexOf( '?' ) + 1 );
         }
-        return filesystem.get( path, query );
+        return query;
+    }
+
+    public RubygemsFile file( ResourceStoreRequest request )
+    {
+        if( request.getRequestPath().contains( "?gems=" ) )
+        {
+            int index = request.getRequestPath().indexOf( '?' );
+            return filesystem.file( request.getRequestPath().substring( 0, index ), 
+                                    request.getRequestPath().substring( index + 1 ) );
+        }
+        return filesystem.file( request.getRequestPath(), getQuery( request ) );
     }
 
     public RubygemsFile file( String path )

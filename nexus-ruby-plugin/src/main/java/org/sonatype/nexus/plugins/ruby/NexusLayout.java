@@ -47,6 +47,7 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.Sha1File;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
+import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.util.DigesterUtils;
 
 public class NexusLayout
@@ -60,12 +61,6 @@ public class NexusLayout
     {
         this.layout = layout;
         this.gateway = gateway;
-    }
-
-    // delegate to layout
-    public InputStream getInputStream( RubygemsFile file ) throws IOException
-    {
-        return layout.getInputStream( file );
     }
 
     public NotFoundFile notFound( String path )
@@ -112,6 +107,11 @@ public class NexusLayout
     {
         return layout.specsIndexFile( path, gzipped );
     }
+    
+    public SpecsIndexFile specsIndexFile( SpecsIndexType type, boolean gzipped )
+    {
+        return layout.specsIndexFile( type, gzipped );
+    }
 
     public Directory directory( String path, String... items )
     {
@@ -153,9 +153,10 @@ public class NexusLayout
         return layout.apiV1File( name );
     }
 
-    public RubygemsFile fromPath( String path )
+
+    public void addGem( InputStream is, RubygemsFile gem )
     {
-        return layout.fromPath( path );
+        layout.addGem( is, gem );
     }
 
     // nexus specific methods using ruby-repository
@@ -192,7 +193,7 @@ public class NexusLayout
             {
                 path += request.getRequestUrl().substring( request.getRequestUrl().indexOf( '?' ) );
             }
-            file = fromPath( path );
+            file = null;//fromPath( path );
             // this request.getRequestContext().put needs to be compiled with nexus-2.7.x to work for 2.8.x
             request.getRequestContext().put( RubygemsFile.class.getName(), file );
         }
@@ -430,7 +431,7 @@ public class NexusLayout
         StorageFileItem item = (StorageFileItem) repository.retrieveItem( toResourceStoreRequest( file ) );
         try
         {
-            return gateway.dependencies( item.getInputStream(), item.getModified() );
+            return gateway.dependencies( item.getInputStream(), file.name(), item.getModified() );
         }
         catch (IOException e)
         {

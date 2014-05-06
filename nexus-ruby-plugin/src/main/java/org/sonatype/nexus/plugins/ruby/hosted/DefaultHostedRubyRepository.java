@@ -15,6 +15,7 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
+import org.sonatype.nexus.plugins.ruby.NexusRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.NexusStoreFacade;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
@@ -38,8 +39,6 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.layout.HostedRubygemsFileSystem;
 
-import com.yammer.metrics.stats.EWMA;
-
 @Named( DefaultHostedRubyRepository.ID )
 public class DefaultHostedRubyRepository
     extends AbstractRepository
@@ -57,7 +56,7 @@ public class DefaultHostedRubyRepository
 
     private final RepositoryKind repositoryKind;
 
-    private final NexusRubygemsFileSystem fileSystem;
+    private final NexusRubygemsFacade fileSystem;
 
     @Inject
     public DefaultHostedRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
@@ -71,7 +70,7 @@ public class DefaultHostedRubyRepository
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
         this.gateway = gateway;
         this.facade = facade;
-        this.fileSystem = new NexusRubygemsFileSystem( new HostedRubygemsFileSystem( gateway, new NexusStoreFacade( this ) ) );
+        this.fileSystem = new NexusRubygemsFacade( new HostedRubygemsFileSystem( gateway, new NexusStoreFacade( this ) ) );
     }
 
     @Override
