@@ -96,7 +96,8 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
 
         assertFileDownload( gemName, is( false ) );
         assertFileDownload( gemspecName, is( false ) );
-        assertFileDownload( dependencyName, is( false ) );
+        // the dependency files exist also for none-existing gems
+        assertFileDownload( dependencyName, is( true ) );
         
         // TODO specs index files
     }

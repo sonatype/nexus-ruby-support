@@ -107,7 +107,7 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
             // just ignore it and let matcher test
         }
         // from version 2.4.0-03 onwards count empty files as non-existing
-        assertThat( target.exists() && target.length() > 0, matcher );
+        assertThat( name, target.exists() && target.length() > 0, matcher );
     
         target.deleteOnExit();
         
@@ -118,12 +118,12 @@ public abstract class RubyNexusRunningITSupport extends NexusRunningITSupport {
         try
         {
             client().getSubsystem( Content.class ).delete( new Location( repoId, name ) );
-            assertThat( true, matcher );
+            assertThat( name, true, matcher );
         }
         catch (Exception e)
         {
             // just ignore it and let matcher test
-            assertThat( false, matcher );
+            assertThat( name, false, matcher );
         }
     }
 

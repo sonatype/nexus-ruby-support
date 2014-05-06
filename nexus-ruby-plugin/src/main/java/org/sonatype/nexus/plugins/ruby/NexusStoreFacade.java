@@ -1,4 +1,4 @@
-package org.sonatype.nexus.plugins.ruby.hosted;
+package org.sonatype.nexus.plugins.ruby;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -48,8 +48,12 @@ public class NexusStoreFacade implements StoreFacade
             file.set( repository.retrieveDirectItem( new ResourceStoreRequest( file.storagePath() ) ) );
             return true;
         }
-        catch ( @SuppressWarnings( "deprecation" ) org.sonatype.nexus.proxy.StorageException
-               | AccessDeniedException | IllegalOperationException | ItemNotFoundException e )
+        catch ( ItemNotFoundException e )
+        {
+            file.markAsNotExists();
+            return false;
+        }
+        catch ( IOException | AccessDeniedException | IllegalOperationException e )
         {
             file.setException( e );
             return false;
@@ -83,7 +87,8 @@ public class NexusStoreFacade implements StoreFacade
     {
         InputStream in = null;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-         try {
+         try
+         {
              in = new GZIPInputStream( item.getInputStream() );
              IOUtil.copy( in, out );
              
@@ -101,7 +106,8 @@ public class NexusStoreFacade implements StoreFacade
     @Override
     public InputStream getInputStream( RubygemsFile file ) throws IOException
     {
-        if ( file.get() == null ){
+        if ( file.get() == null )
+        {
             retrieve( file );
         }
         return ((StorageFileItem) file.get() ).getInputStream();
@@ -122,7 +128,8 @@ public class NexusStoreFacade implements StoreFacade
     @Override
     public boolean update( InputStream is, RubygemsFile file ) 
     {
-        file.reset();
+        repository.getLog().error( "store " + file );
+        file.resetState();
         ResourceStoreRequest request = new ResourceStoreRequest( file.storagePath() );
         ContentLocator contentLocator = newPreparedContentLocator( is, file.type().mime(), ContentLocator.UNKNOWN_LENGTH );        
         DefaultStorageFileItem fileItem = new DefaultStorageFileItem( repository, request,

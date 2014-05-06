@@ -1,4 +1,4 @@
-package org.sonatype.nexus.plugins.ruby.fs;
+package org.sonatype.nexus.plugins.ruby.proxy;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -15,12 +15,16 @@ import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
 import org.sonatype.nexus.ruby.RubygemsFile;
+import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
+import org.sonatype.nexus.ruby.cuba.RubygemsFileSystem;
 
 @Singleton
 @Named( "rubyfile" )
 public class RubyFSLocalRepositoryStorage 
     extends DefaultFSLocalRepositoryStorage
 {
+   
+    private final RubygemsFileSystem fileSystem = new DefaultRubygemsFileSystem();
 
     @Inject
     public RubyFSLocalRepositoryStorage( Wastebasket wastebasket,
@@ -33,7 +37,7 @@ public class RubyFSLocalRepositoryStorage
     public void storeItem( Repository repository, StorageItem item )
             throws UnsupportedStorageOperationException, LocalStorageException
     {
-        RubygemsFile file = (RubygemsFile) item.getResourceStoreRequest().getRequestContext().get( RubygemsFile.class.getName() );
+        RubygemsFile file = fileSystem.file( item.getResourceStoreRequest().getRequestPath() );
         if ( file != null )
         {
             item.getResourceStoreRequest().setRequestPath( file.storagePath() ); 
