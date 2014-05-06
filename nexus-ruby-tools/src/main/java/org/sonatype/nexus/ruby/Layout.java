@@ -1,5 +1,7 @@
 package org.sonatype.nexus.ruby;
 
+import java.io.InputStream;
+
 
 public interface Layout
 {
@@ -39,4 +41,6 @@ public interface Layout
     NotFoundFile notFound( String path );
 
     Sha1File sha1( RubygemsFile file );
+
+    void addGem( InputStream is, RubygemsFile file );
 }

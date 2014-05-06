@@ -10,15 +10,15 @@ import java.io.IOException;
 import junit.framework.TestCase;
 
 import org.junit.Test;
-import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
+import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.DELETELayout;
 import org.sonatype.nexus.ruby.layout.FileSystemStoreFacade;
 
 public class DELETELayoutTest
     extends TestCase
 {
-    private final DefaultBootstrap bootstrap =
-            new DefaultBootstrap( new DELETELayout( null, new FileSystemStoreFacade( new File( "target" ) ) ) );
+    private final DefaultRubygemsFileSystem bootstrap =
+            new DefaultRubygemsFileSystem( new DELETELayout( null, new FileSystemStoreFacade( new File( "target" ) ) ) );
     
     @Test
     public void testSpecsZippedIndex()
@@ -176,7 +176,7 @@ public class DELETELayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), equalTo( null ) );
             assertThat( path, file.hasException(), is( false ) );
@@ -187,8 +187,7 @@ public class DELETELayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
-            System.err.println( file );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.exists(), is( true ) );
         }
@@ -198,7 +197,7 @@ public class DELETELayoutTest
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.accept( path ), equalTo( null ) );
+            assertThat( path, bootstrap.get( path ), equalTo( null ) );
         }
     }
 }

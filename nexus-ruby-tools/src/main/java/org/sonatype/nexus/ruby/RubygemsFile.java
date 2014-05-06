@@ -3,6 +3,11 @@ package org.sonatype.nexus.ruby;
 
 public class RubygemsFile {
     
+    public static enum State
+    {
+        OK, NOT_EXISTS, ERROR, NO_PAYLOAD
+    }
+ 
     protected final Layout layout;
     private final String name;
     private final String storage;
@@ -10,19 +15,8 @@ public class RubygemsFile {
     private final FileType type;
     
     private Object context;
-    private Exception exception;
-    private boolean exists = true;
+    private State state = State.NO_PAYLOAD;
     
-    public Object get()
-    {
-        return context;
-    }
-
-    public void set( Object context )
-    {
-        this.context = context;
-    }
-
     RubygemsFile( Layout layout, FileType type, String storage, String remote, String name )
     {
         this.layout = layout;
@@ -120,15 +114,7 @@ public class RubygemsFile {
         {
             builder.append( ", name=" ).append( name );
         }
-        builder.append( ", state=" );
-        if ( exists() )
-        {
-            builder.append( "found" );
-        }
-        else
-        {
-            builder.append( "not-exists" );
-        }            
+        builder.append( ", state=" ).append( state.name() );
         if ( hasException() )
         {
             builder.append( ", exception=" ).append( getException().getClass().getSimpleName() )
@@ -191,40 +177,68 @@ public class RubygemsFile {
         return true;
     }
 
+    public Object get()
+    {
+        return context;
+    }
+
+    public void set( Object context )
+    {
+        state = context == null ? State.NO_PAYLOAD : State.OK;
+        this.context = context;
+    }
+    
     public void setException( Exception e )
     {
-        exception = e;
+        set( e );
+        state = State.ERROR;
     }
 
     public Exception getException()
     {
-        return exception;
+        if( hasException() )
+        {
+            return (Exception) context;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     public boolean hasException()
     {
-        return exception != null;
+        return state == State.ERROR;
     }
 
     public void resetState()
     {
-        exists = true;
-        set( null );
-        setException( null );
+        context = null;
+        state = State.NO_PAYLOAD;
     }
 
-    public void setNotExists()
+    public void markAsNotExists()
     {
-        this.exists = false;
+        state = State.NOT_EXISTS;
     }
 
     public boolean exists()
     {
-        return exists;
+        return state == State.OK || state == State.NO_PAYLOAD;
     }
     
     public boolean notExists()
     {
-        return !exists;
+        return state == State.NOT_EXISTS;
+    }
+    
+    public boolean hasNoPayload()
+    {
+        return state == State.NO_PAYLOAD;
+    }
+
+    public State getState()
+    {
+        return state;
     }
 }

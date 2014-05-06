@@ -1,6 +1,5 @@
 package org.sonatype.nexus.ruby.layout;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -52,7 +51,6 @@ public class GETLayout extends DefaultLayout
     protected void retrieveZipped( SpecsIndexFile specs )
     {
         store.retrieve( specs );
-        System.err.println( specs );
     }
 
     @Override
@@ -132,7 +130,7 @@ public class GETLayout extends DefaultLayout
             GemspecFile gemspec = file.gemspec( newDependencies( file.dependency() ) );
             if ( gemspec.notExists() )
             {
-                file.setNotExists();
+                file.markAsNotExists();
             }
             else
             {
@@ -152,7 +150,7 @@ public class GETLayout extends DefaultLayout
             GemFile gem = file.gem( newDependencies( file.dependency() ) );
             if ( gem == null )
             {
-                file.setNotExists();
+                file.markAsNotExists();
             }
             else
             {

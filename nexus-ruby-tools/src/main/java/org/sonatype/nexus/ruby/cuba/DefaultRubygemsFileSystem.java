@@ -14,19 +14,25 @@ import org.sonatype.nexus.ruby.cuba.maven.MavenReleasesRubygemsCuba;
 import org.sonatype.nexus.ruby.cuba.quick.QuickCuba;
 import org.sonatype.nexus.ruby.cuba.quick.QuickMarshalCuba;
 
-public class DefaultBootstrap extends Bootstrap
+public class DefaultRubygemsFileSystem extends RubygemsFileSystem
 {
-    public DefaultBootstrap( Layout layout )
+    public DefaultRubygemsFileSystem( Layout fileLayout, Layout getLayout, Layout postLayout, Layout deleteLayout )
     {
-        super( layout,
+        super( fileLayout, getLayout, postLayout, deleteLayout,
                // TODO move to javax.inject
                new RootCuba( new ApiCuba( new ApiV1Cuba( new ApiV1DependenciesCuba() ) ),
                              new QuickCuba( new QuickMarshalCuba() ),
                              new GemsCuba(),
                              new MavenCuba( new MavenReleasesCuba( new MavenReleasesRubygemsCuba() ), 
                                             new MavenPrereleasesCuba( new MavenPrereleasesRubygemsCuba() ) ) ) );
-    }    
-    public DefaultBootstrap()
+    }
+
+    public DefaultRubygemsFileSystem( Layout layout )
+    {
+        this( layout, layout, layout, layout );
+    }
+    
+    public DefaultRubygemsFileSystem()
     {
         this( new DefaultLayout() );
     }

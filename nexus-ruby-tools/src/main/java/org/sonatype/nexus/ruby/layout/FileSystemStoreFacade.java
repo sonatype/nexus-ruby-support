@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
@@ -64,7 +63,7 @@ public class FileSystemStoreFacade implements StoreFacade
 
         if ( Files.notExists( toPath( file ) ) )
         {
-            file.setNotExists();
+            file.markAsNotExists();
             return false;
         }
         try
@@ -75,7 +74,6 @@ public class FileSystemStoreFacade implements StoreFacade
         {
             file.setException( e );
         }
-        System.err.println( file );
         return true;
     }
     
@@ -86,7 +84,7 @@ public class FileSystemStoreFacade implements StoreFacade
         retrieve( zipped );
         if (!zipped.exists() )
         {
-            file.setNotExists();
+            file.markAsNotExists();
             return false;
         }
         try

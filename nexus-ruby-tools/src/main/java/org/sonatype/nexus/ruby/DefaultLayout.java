@@ -1,5 +1,6 @@
 package org.sonatype.nexus.ruby;
 
+import java.io.InputStream;
 import java.security.SecureRandom;
 
 //@Singleton @Named( DefaultLayout.ID )
@@ -245,5 +246,11 @@ public class DefaultLayout implements Layout
     public SpecsIndexFile specsIndexFile( SpecsIndexType type, boolean isGzipped )
     {
         return this.specsIndexFile( type.filename().replace( ".4.8", "" ), isGzipped );
+    }
+
+    @Override
+    public void addGem( InputStream is, RubygemsFile file )
+    {
+        throw new RuntimeException( "not implemented !" );  
     }
 }

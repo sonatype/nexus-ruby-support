@@ -73,7 +73,7 @@ public class HostedGETLayout extends GETLayout
         GemFile gem = gemspec.gem();
         if( gem.notExists() )
         {
-            gemspec.setNotExists();
+            gemspec.markAsNotExists();
         }
         else
         {

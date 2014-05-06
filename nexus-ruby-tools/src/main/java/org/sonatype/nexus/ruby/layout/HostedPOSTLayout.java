@@ -8,8 +8,8 @@ import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.Directory;
+import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.GemArtifactFile;
-import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
 import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.MavenMetadataFile;
@@ -29,24 +29,13 @@ public class HostedPOSTLayout extends NoopDefaultLayout
         super( gateway, store );
     }
 
-    public RubygemsFile storeFromPath( InputStream is, String path )
+    @Override
+    public void addGem( InputStream is, RubygemsFile file )
     {
-        RubygemsFile file = null;//fromPath( path );
-        storeRubygemsFile( is, file );
-        return file;
-    }
-
-    public void storeRubygemsFile( InputStream is, RubygemsFile file )
-    {
-        if ( file != null && !file.hasException() )
+        if ( file.type() != FileType.GEM && file.type() != FileType.API_V1 )
         {
-            // assume it is either GemFile or ApiV1File with command gem
-            addGemFile( is, file );
+            throw new RuntimeException( "not allowed to store " + file );
         }
-    }
-
-    private void addGemFile( InputStream is, RubygemsFile file )
-    {
         try
         {
             if ( !store.create( is, file ) )

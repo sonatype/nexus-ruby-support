@@ -6,12 +6,12 @@ import static org.hamcrest.Matchers.equalTo;
 import junit.framework.TestCase;
 
 import org.junit.Test;
-import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
+import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 
 public class DefaultBootstrapTest
     extends TestCase
 {
-    private final DefaultBootstrap bootstrap = new DefaultBootstrap();
+    private final DefaultRubygemsFileSystem bootstrap = new DefaultRubygemsFileSystem();
     
     @Test
     public void testSpecsIndex()
@@ -161,7 +161,7 @@ public class DefaultBootstrapTest
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.accept( path ).type(), equalTo( type ) );
+            assertThat( path, bootstrap.get( path ).type(), equalTo( type ) );
         }
     }
 }

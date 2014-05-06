@@ -14,7 +14,6 @@ public class BundleRunner extends ScriptWrapper
     
     protected Object newScript()
     {
-        System.err.println( scriptingContainer.getEnvironment() );
         IRubyObject runnerClass = scriptingContainer.parse( PathType.CLASSPATH, "nexus/bundle_runner.rb" ).run();
         return scriptingContainer.callMethod( runnerClass, "new", IRubyObject.class );
     }

@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
+import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.CachingStoreFacade;
 import org.sonatype.nexus.ruby.layout.FileSystemStoreFacade;
 import org.sonatype.nexus.ruby.layout.HostedDELETELayout;
@@ -70,21 +70,21 @@ public class HostedDELETELayoutTest
         } );
     }
 
-    private final DefaultBootstrap bootstrap;
-    private final DefaultBootstrap deleteBootstrap;
+    private final DefaultRubygemsFileSystem bootstrap;
+    private final DefaultRubygemsFileSystem deleteBootstrap;
 
     public HostedDELETELayoutTest( StoreFacade store )
     {
-        bootstrap = new DefaultBootstrap( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+        bootstrap = new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
                                                                store ) );
-        deleteBootstrap = new DefaultBootstrap( new HostedDELETELayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+        deleteBootstrap = new DefaultRubygemsFileSystem( new HostedDELETELayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
                                                                         store ) );
     }
     
     @Before
     public void deleteGems()
     {
-        deleteBootstrap.accept( "/gems/zip-2.0.2.gem" );
+        deleteBootstrap.get( "/gems/zip-2.0.2.gem" );
     }
     
     @Test
@@ -343,7 +343,7 @@ public class HostedDELETELayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), notNullValue() );
             assertThat( path, file.hasException(), is( false ) );
@@ -355,7 +355,7 @@ public class HostedDELETELayoutTest
         int index = 0;
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), is( instanceOf( ByteArrayInputStream.class ) ) );
             assertThat( path, file.hasException(), is( false ) );
@@ -384,7 +384,7 @@ public class HostedDELETELayoutTest
         int index = 0;
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), is( instanceOf( payload ) ) );
             assertThat( path, file.hasException(), is( false ) );
@@ -397,7 +397,7 @@ public class HostedDELETELayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), nullValue() );
             assertThat( path, file.hasException(), is( false ) );
@@ -434,7 +434,7 @@ public class HostedDELETELayoutTest
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.accept( path ), nullValue() );
+            assertThat( path, bootstrap.get( path ), nullValue() );
         }
     }
 }

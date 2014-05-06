@@ -11,7 +11,7 @@ public class Sha1File extends RubygemsFile {
         this.source = source;
         if( source.notExists() )
         {
-            setNotExists();
+            markAsNotExists();
         }
     }
 

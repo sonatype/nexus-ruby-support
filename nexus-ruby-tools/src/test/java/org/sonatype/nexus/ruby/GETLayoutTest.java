@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
+import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.CachingStoreFacade;
 import org.sonatype.nexus.ruby.layout.FileSystemStoreFacade;
 import org.sonatype.nexus.ruby.layout.GETLayout;
@@ -58,11 +58,11 @@ public class GETLayoutTest
         } );
     }
 
-    private final DefaultBootstrap bootstrap;
+    private final DefaultRubygemsFileSystem bootstrap;
 
     public GETLayoutTest( StoreFacade store )
     {
-        bootstrap = new DefaultBootstrap( new GETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+        bootstrap = new DefaultRubygemsFileSystem( new GETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
                                                          store ) );
      
     }
@@ -314,7 +314,7 @@ public class GETLayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), notNullValue() );
             assertThat( path, file.hasException(), is( false ) );
@@ -326,7 +326,7 @@ public class GETLayoutTest
         int index = 0;
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), is( instanceOf( ByteArrayInputStream.class ) ) );
             assertThat( path, file.hasException(), is( false ) );
@@ -355,7 +355,7 @@ public class GETLayoutTest
         int index = 0;
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), is( instanceOf( payload ) ) );
             assertThat( path, file.hasException(), is( false ) );
@@ -368,7 +368,7 @@ public class GETLayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), nullValue() );
             assertThat( path, file.hasException(), is( false ) );
@@ -379,7 +379,7 @@ public class GETLayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.accept( path );
+            RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.getException(), is( instanceOf( IOException.class ) ) );
         }
@@ -389,7 +389,7 @@ public class GETLayoutTest
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.accept( path ), nullValue() );
+            assertThat( path, bootstrap.get( path ), nullValue() );
         }
     }
 }

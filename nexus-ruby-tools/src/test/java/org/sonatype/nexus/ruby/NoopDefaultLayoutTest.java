@@ -6,13 +6,13 @@ import static org.hamcrest.Matchers.equalTo;
 import junit.framework.TestCase;
 
 import org.junit.Test;
-import org.sonatype.nexus.ruby.cuba.DefaultBootstrap;
+import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.NoopDefaultLayout;
 
 public class NoopDefaultLayoutTest
     extends TestCase
 {
-    private final DefaultBootstrap bootstrap = new DefaultBootstrap( new NoopDefaultLayout( null, null ) );
+    private final DefaultRubygemsFileSystem bootstrap = new DefaultRubygemsFileSystem( new NoopDefaultLayout( null, null ) );
     
     @Test
     public void testSpecsIndex()
@@ -162,14 +162,14 @@ public class NoopDefaultLayoutTest
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.accept( path ).type(), equalTo( type ) );
+            assertThat( path, bootstrap.get( path ).type(), equalTo( type ) );
         }
     }
     protected void assertNull( String[] pathes )
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.accept( path ), equalTo( null ) );
+            assertThat( path, bootstrap.get( path ), equalTo( null ) );
         }
     }
 }
