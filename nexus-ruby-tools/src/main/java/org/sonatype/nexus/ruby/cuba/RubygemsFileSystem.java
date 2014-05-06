@@ -92,11 +92,11 @@ public class RubygemsFileSystem
 
     public void post( InputStream is, RubygemsFile file )
     {
-        if ( file != null && file.hasNoPayload() )
-        {
+        //if ( file != null && file.hasNoPayload() )
+        //{
             // assume file is either GemFile or ApiV1File with command gem
             postLayout.addGem( is, file );
-        }
+        //}
     }
 
     public RubygemsFile delete( String original )

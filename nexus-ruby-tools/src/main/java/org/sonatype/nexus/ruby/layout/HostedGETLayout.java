@@ -45,7 +45,7 @@ public class HostedGETLayout extends GETLayout
     {
         GemspecFile gemspec = super.gemspecFile( name, version, platform );
         
-        if ( gemspec.hasException() )
+        if ( gemspec.notExists() )
         {
             createGemspec( gemspec );
         }
