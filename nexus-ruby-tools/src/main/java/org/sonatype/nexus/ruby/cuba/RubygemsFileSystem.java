@@ -34,6 +34,11 @@ public class RubygemsFileSystem
         return visit( fileLayout, path, "" );
     }
 
+    public RubygemsFile file( String path, String query )
+    {
+        return visit( fileLayout, path, query );
+    }
+
     public RubygemsFile get( String path )
     {
         return visit( getLayout, path, null );
