@@ -17,14 +17,12 @@ import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHo
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
-import org.sonatype.nexus.plugins.ruby.fs.RubygemFile;
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
@@ -164,18 +162,6 @@ public class DefaultRubyGroupRepository
                                                     request.getRequestPath(),
                                                     RepositoryStringUtils.getHumanizedNameString( this ) ) );
     }
- 
-    @Override
-    public StorageItem retrieveJavaGem( RubygemFile gem )
-    {
-        throw new RuntimeException( "BUG: not implemented for group repositories" );
-    }
-
-    @Override
-    public StorageItem retrieveJavaGemspec( RubygemFile gem )
-    {
-        throw new RuntimeException( "BUG: not implemented for group repositories" );
-    }
     
     @SuppressWarnings("deprecation")
     @Override
@@ -215,9 +201,8 @@ public class DefaultRubyGroupRepository
     @Override
     public StorageFileItem retrieveDirectItem( ResourceStoreRequest resourceStoreRequest )
             throws IllegalOperationException, ItemNotFoundException,
-            RemoteAccessException, StorageException, AccessDeniedException
+            RemoteAccessException, AccessDeniedException
     {
-        // TODO Auto-generated method stub
         return null;
     }
 }

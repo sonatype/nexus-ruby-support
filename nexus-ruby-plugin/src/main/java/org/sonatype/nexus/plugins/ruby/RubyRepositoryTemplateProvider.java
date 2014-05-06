@@ -9,8 +9,6 @@ import org.sonatype.nexus.plugins.ruby.hosted.DefaultHostedRubyRepository;
 import org.sonatype.nexus.plugins.ruby.hosted.DefaultHostedRubyRepositoryTemplate;
 import org.sonatype.nexus.plugins.ruby.proxy.DefaultProxyRubyRepository;
 import org.sonatype.nexus.plugins.ruby.proxy.DefaultProxyRubyRepositoryTemplate;
-import org.sonatype.nexus.plugins.ruby.shadow.GemArtifactShadowRepository;
-import org.sonatype.nexus.plugins.ruby.shadow.GemArtifactShadowRepositoryTemplate;
 import org.sonatype.nexus.templates.TemplateSet;
 import org.sonatype.nexus.templates.repository.AbstractRepositoryTemplateProvider;
 
@@ -34,8 +32,6 @@ public class RubyRepositoryTemplateProvider
                     "Rubygems (proxy)" ) );
             templates.add( new DefaultRubyGroupRepositoryTemplate( this, DefaultRubyGroupRepository.ID,
                     "Rubygems (group)" ) );
-            templates.add( new GemArtifactShadowRepositoryTemplate( this, GemArtifactShadowRepository.ID,
-                    "Gem Artifacts" ) );
 
         }
         catch ( Exception e )

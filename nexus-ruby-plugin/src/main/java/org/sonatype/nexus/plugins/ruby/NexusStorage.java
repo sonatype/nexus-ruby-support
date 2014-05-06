@@ -22,14 +22,14 @@ import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
 import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
-import org.sonatype.nexus.ruby.layout.StoreFacade;
+import org.sonatype.nexus.ruby.layout.Storage;
 
-public class NexusStoreFacade implements StoreFacade
+public class NexusStorage implements Storage
 {
 
     private final RubyRepository repository;
     
-    public NexusStoreFacade( RubyRepository repository )
+    public NexusStorage( RubyRepository repository )
     {
         this.repository = repository;
     }
@@ -75,7 +75,7 @@ public class NexusStoreFacade implements StoreFacade
             specs.set( unzippedItem );
             return true;
         }
-        catch (IOException | AccessDeniedException | IllegalOperationException | ItemNotFoundException e)
+        catch ( IOException | AccessDeniedException | IllegalOperationException | ItemNotFoundException e )
         {
             specs.setException( e );
             return false;
@@ -136,11 +136,11 @@ public class NexusStoreFacade implements StoreFacade
 
         try
         {
-            repository.storeItem( fileItem );
+            // we need to bypass access control here !!!
+            repository.storeItem( false, fileItem );
             return true;
         }
-        catch ( @SuppressWarnings( "deprecation" ) org.sonatype.nexus.proxy.StorageException
-                | UnsupportedStorageOperationException | IllegalOperationException | AccessDeniedException e )
+        catch ( IOException | UnsupportedStorageOperationException | IllegalOperationException e )
         {
             file.setException( e );
             return false;
@@ -178,8 +178,7 @@ public class NexusStoreFacade implements StoreFacade
             repository.deleteItem( false, request );
             return true;
         }
-        catch ( org.sonatype.nexus.proxy.StorageException
-                | UnsupportedStorageOperationException | IllegalOperationException e )
+        catch ( IOException | UnsupportedStorageOperationException | IllegalOperationException e )
         {
             file.setException( e );
             return false;
