@@ -5,7 +5,7 @@ public class RubygemsFile {
     
     public static enum State
     {
-        OK, NOT_EXISTS, ERROR, NO_PAYLOAD, TEMP_UNAVAILABLE, FORBIDDEN, PAYLOAD
+        NEW_INSTANCE, NOT_EXISTS, ERROR, NO_PAYLOAD, TEMP_UNAVAILABLE, FORBIDDEN, PAYLOAD
     }
  
     protected final Layout layout;
@@ -15,7 +15,7 @@ public class RubygemsFile {
     private final FileType type;
     
     private Object context;
-    private State state = State.OK;
+    private State state = State.NEW_INSTANCE;
     
     RubygemsFile( Layout layout, FileType type, String storage, String remote, String name )
     {
@@ -159,12 +159,12 @@ public class RubygemsFile {
     public void resetState()
     {
         context = null;
-        state = State.NO_PAYLOAD;
+        state = State.NEW_INSTANCE;
     }
 
     public boolean exists()
     {
-        return state == State.OK || state == State.NO_PAYLOAD || state == State.PAYLOAD;
+        return state == State.NEW_INSTANCE || state == State.NO_PAYLOAD || state == State.PAYLOAD;
     }
     
     public boolean notExists()
