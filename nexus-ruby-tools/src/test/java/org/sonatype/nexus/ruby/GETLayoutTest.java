@@ -27,7 +27,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.CachingStorage;
-import org.sonatype.nexus.ruby.layout.FileSystemStorage;
+import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.GETLayout;
 import org.sonatype.nexus.ruby.layout.Storage;
 
@@ -45,7 +45,7 @@ public class GETLayoutTest
     @Parameters
     public static Collection<Object[]> stores() throws IOException{
         return Arrays.asList( new Object[][]{ 
-            { new FileSystemStorage( new File( "src/test/repo" ) ) },
+            { new SimpleStorage( new File( "src/test/repo" ) ) },
             { new CachingStorage( proxyBase(),  new File( "src/test/repo" ).toURI().toURL() )
               {
 
@@ -74,7 +74,7 @@ public class GETLayoutTest
         String[] pathes = { "/specs.4.8.gz",
                             "/prerelease_specs.4.8.gz",
                             "/latest_specs.4.8.gz" }; 
-        assertFiletypeWithPayload( pathes, FileType.SPECS_INDEX, InputStream.class );
+        assertFiletypeWithPayload( pathes, FileType.SPECS_INDEX_ZIPPED, InputStream.class );
     }
     
     @Test
@@ -125,7 +125,7 @@ public class GETLayoutTest
         RubygemsFile[] result = assertFiletypeWithPayload( pathes, FileType.GEM_ARTIFACT, InputStream.class );
         for( RubygemsFile file: result )
         {
-            GemArtifactFile a = file.isGemArtifactFile();
+            GemArtifactFile a = (GemArtifactFile) file;
             assertThat( a.gem( null ).filename(), is( "hufflepuf-" + a.version() + "-universal-java-1.5" ) );
         }
         

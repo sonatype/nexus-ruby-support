@@ -2,25 +2,54 @@ package org.sonatype.nexus.ruby;
 
 public enum FileType {
 
-    GEM( "application/x-rubygems" ),
-    GEMSPEC( "application/x-ruby-marshal" ),
-    DEPENDENCY( "application/json" ),
-    MAVEN_METADATA( "application/xml" ),
-    MAVEN_METADATA_SNAPSHOT( "application/xml" ),
-    POM( "application/xml" ),
-    SPECS_INDEX( "application/x-ruby-marshal" ),
-    DIRECTORY( "application/octet" ), 
-    BUNDLER_API( "application/x-ruby-marshal" ), 
-    API_V1( "application/x-rubygems" ), 
-    GEM_ARTIFACT( "application/x-rubygems" ), 
-    NOT_FOUND( null ), 
-    SHA1( "text/plain" );
+    GEM( "binary/octet-stream", true ),
+    GEMSPEC( "binary/octet-stream", true ),
+    DEPENDENCY( "application/octet-stream", true ),
+    MAVEN_METADATA( "application/xml", "utf-8", true ),
+    MAVEN_METADATA_SNAPSHOT( "application/xml", "utf-8", true ),
+    POM( "application/xml", "utf-8", true ),
+    SPECS_INDEX( "application/octet-stream", true ),
+    SPECS_INDEX_ZIPPED( "application/gzip", true ),
+    DIRECTORY( "text/html", "utf-8" ), 
+    BUNDLER_API( "application/octet-stream", true ), 
+    API_V1( "text/plain", "ASCII" ), // for the api_key 
+    GEM_ARTIFACT( "binary/octet-stream", true ), 
+    SHA1( "text/plain", "ASCII" ),
+    NOT_FOUND( null ),
+    FORBIDDEN( null ),
+    TEMP_UNAVAILABLE( null );
 
-    private FileType(String mime){
-        this.mime = mime;
+    private final String encoding;
+    private final String mime;
+    private final boolean varyAccept;
+
+    private FileType( String mime ){
+        this( mime, null, false );
     }
 
-    private final String mime;
+    private FileType( String mime, boolean varyAccept ){
+        this( mime, null, varyAccept );
+    }
+    
+    private FileType( String mime, String encoding ){
+        this( mime, encoding, false );
+    }
+    
+    private FileType( String mime, String encoding, boolean varyAccept ){
+        this.mime = mime;
+        this.encoding = encoding;
+        this.varyAccept = varyAccept;
+    }
+
+    public boolean isVaryAccept()
+    {
+        return varyAccept;
+    }
+
+    public String encoding()
+    {
+        return encoding;
+    }
 
     public String mime()
     {

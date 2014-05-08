@@ -6,20 +6,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
 import java.util.zip.GZIPInputStream;
 
+import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
+import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
-public class FileSystemStorage implements Storage
+public class SimpleStorage implements Storage
 {
     private final SecureRandom random = new SecureRandom();
     private final File basedir;
     
-    public FileSystemStorage( File basedir )
+    public SimpleStorage( File basedir )
     {
         this.basedir = basedir;
         this.random.setSeed( System.currentTimeMillis() );
@@ -59,35 +62,72 @@ public class FileSystemStorage implements Storage
     }
 
     @Override
-    public boolean retrieve( RubygemsFile file )
+    public void retrieve( RubygemsFile file )
     {              
         file.resetState();
 
         if ( Files.notExists( toPath( file ) ) )
         {
             file.markAsNotExists();
-            return false;
         }
         try
         {
             file.set( getInputStream( file ) );
         }
+        catch ( NoSuchFileException e )
+        {
+            file.markAsNotExists();
+        }
         catch ( IOException e )
         {
             file.setException( e );
         }
-        return true;
+    }
+   
+    @Override
+    public void retrieve( DependencyFile file )
+    {
+        retrieve( (RubygemsFile) file );
     }
     
     @Override
-    public boolean retrieveUnzippped( SpecsIndexFile file )
+    public void retrieve( SpecsIndexZippedFile file )
     {
-        SpecsIndexFile zipped = file.zippedSpecsIndexFile();
+        retrieve( (RubygemsFile) file );
+    }
+
+//    @Override
+//    public boolean retrieve( SpecsIndexZippedFile file )
+//    {
+//        retrieve( (RubygemsFile) file );
+//        if ( file.hasPayload() )
+//        {
+//            try
+//            {
+//                file.set( getInputStream( file ) );
+//                return true;
+//            }
+//            catch (IOException e)
+//            {
+//                file.setException( e );
+//                return false;
+//            }
+//        }
+//        return false;
+//    }
+    
+    @Override
+    public void retrieve( SpecsIndexFile file )
+    {
+        SpecsIndexZippedFile zipped = file.zippedSpecsIndexFile();
         retrieve( zipped );
-        if (!zipped.exists() )
+        if ( zipped.notExists() )
         {
             file.markAsNotExists();
-            return false;
+        }
+        if ( zipped.hasException() )
+        {
+            file.setException( zipped.getException() );
         }
         try
         {
@@ -96,13 +136,11 @@ public class FileSystemStorage implements Storage
         catch (IOException e)
         {
             file.setException( e );
-            return false;
         }
-        return true;
     }
 
     @Override
-    public boolean create( InputStream is, RubygemsFile file )
+    public void create( InputStream is, RubygemsFile file )
     {
         Path target = toPath( file );
         Path mutex = target.resolveSibling( target.getFileName() + ".lock" );
@@ -114,18 +152,15 @@ public class FileSystemStorage implements Storage
             Files.copy( is, source );
             Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
             file.set( Files.newInputStream( target ) );
-            return true;
         }
         catch ( FileAlreadyExistsException e )
         {
             mutex = null;
-            file.setException( e );
-            return false;
+            file.markAsTempUnavailable();
         }
         catch ( IOException e )
         {
             file.setException( e );
-            return false;
         }
         finally
         {
@@ -138,7 +173,7 @@ public class FileSystemStorage implements Storage
     }
 
     @Override
-    public boolean update( InputStream is, RubygemsFile file )
+    public void update( InputStream is, RubygemsFile file )
     {
         Path target = toPath( file );
         Path source = target.resolveSibling( "tmp." + Math.abs( random.nextLong() ) );
@@ -148,12 +183,10 @@ public class FileSystemStorage implements Storage
             Files.copy( is, source );
             Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
             file.set( Files.newInputStream( target ) );
-            return true;
         }
         catch ( IOException e )
         {
             file.setException( e );
-            return false;
         }
         finally
         {
@@ -170,17 +203,15 @@ public class FileSystemStorage implements Storage
     }
 
     @Override
-    public boolean delete( RubygemsFile file )
+    public void delete( RubygemsFile file )
     {
         try
         {
             Files.deleteIfExists( toPath( file ) );
-            return true;
         }
         catch (IOException e)
         {
             file.setException( e );
-            return false;
         }
     }
 

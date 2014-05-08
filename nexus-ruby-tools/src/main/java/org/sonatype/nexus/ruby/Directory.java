@@ -8,6 +8,7 @@ public class Directory extends RubygemsFile
                String remote, String name, String... items )
     {
         super( layout, FileType.DIRECTORY, storage, remote, name );
+        set( null );// no payload
         this.items = items;
     }
 

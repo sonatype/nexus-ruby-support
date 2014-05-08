@@ -12,6 +12,7 @@ import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
+import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
 public class HostedDELETELayout extends NoopDefaultLayout
 {
@@ -22,7 +23,7 @@ public class HostedDELETELayout extends NoopDefaultLayout
     }
 
     @Override
-    public SpecsIndexFile specsIndexFile( String name, boolean isGzipped )
+    public SpecsIndexFile specsIndexFile( String name )
     {
         return null;
     }
@@ -89,16 +90,12 @@ public class HostedDELETELayout extends NoopDefaultLayout
 
     private void deleteSpecFromIndex( Object spec ) throws IOException
     {
-        SpecsIndexFile release = null;
+        SpecsIndexZippedFile release = null;
         for (SpecsIndexType type : SpecsIndexType.values())
         {
             InputStream content = null;
             InputStream rin = null;
-            SpecsIndexFile specs = specsIndexFile( type );
-            if( specs.hasException() )
-            {
-                throw new IOException( specs.getException() );
-            }
+            SpecsIndexZippedFile specs = ensureSpecsIndexZippedFile( type );
             try( InputStream in = new GZIPInputStream( store.getInputStream( specs ) ) )
             {
                 switch( type )

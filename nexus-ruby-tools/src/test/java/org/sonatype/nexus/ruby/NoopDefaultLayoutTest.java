@@ -13,19 +13,27 @@ public class NoopDefaultLayoutTest
     extends TestCase
 {
     private final DefaultRubygemsFileSystem bootstrap = new DefaultRubygemsFileSystem( new NoopDefaultLayout( null, null ) );
+
+    @Test
+    public void testSpecsZippedIndex()
+        throws Exception
+    {        
+        String[] pathes = { "/specs.4.8.gz",
+                            "/prerelease_specs.4.8.gz",
+                            "/latest_specs.4.8.gz" }; 
+        assertFiletype( pathes, FileType.SPECS_INDEX_ZIPPED );
+    }
     
     @Test
     public void testSpecsIndex()
         throws Exception
     {        
         String[] pathes = { "/specs.4.8",
-                            "/specs.4.8.gz",
                             "/prerelease_specs.4.8",
-                            "/prerelease_specs.4.8.gz",
-                            "/latest_specs.4.8",
-                            "/latest_specs.4.8.gz" }; 
+                            "/latest_specs.4.8" }; 
         assertFiletype( pathes, FileType.SPECS_INDEX );
     }
+    
     @Test
     public void testSha1()
         throws Exception

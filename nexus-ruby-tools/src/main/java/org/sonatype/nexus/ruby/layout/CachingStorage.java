@@ -1,6 +1,7 @@
 package org.sonatype.nexus.ruby.layout;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -14,9 +15,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
+import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
-public class CachingStorage extends FileSystemStorage
+public class CachingStorage extends SimpleStorage
 {
 
     private final ConcurrentMap<String, Lock> locks = new ConcurrentSkipListMap<String, Lock>();
@@ -39,36 +42,59 @@ public class CachingStorage extends FileSystemStorage
     }
 
     @Override
-    public boolean retrieve( RubygemsFile file )
+    public void retrieve( DependencyFile file )
     {
-        switch( file.type() )
+        retrieveVolatile( file );
+    }
+
+    @Override
+    public void retrieve( SpecsIndexZippedFile file )
+    {
+        retrieveVolatile( file );
+    }
+
+    @Override
+    public void retrieve( RubygemsFile file )
+    {
+        super.retrieve( file );
+        
+        if ( file.notExists() )
         {
-        case DEPENDENCY:
-        case SPECS_INDEX:
-            retrieveVolatile( file );
-        default:
-        }        
-        if ( ! super.retrieve( file ) )
+            download( file );
+        }
+    }
+
+    private void download( RubygemsFile file )
+    {
+        try
         {
-            try
+            URLConnection url = toUrl( file ).openConnection();
+            create( url.getInputStream(), file );
+            if ( file.hasPayload() )
             {
-                URLConnection url = toUrl( file ).openConnection();
-                update( url.getInputStream(), file );
                 setLastModified( toPath( file ), url );
                 file.resetState();
                 super.retrieve( file );
             }
-            catch ( IOException e )
-            {
-                file.setException( e );
-            }
         }
-        return ! file.hasException();
+        catch ( FileNotFoundException e )
+        {
+            file.markAsNotExists();
+        }
+        catch ( IOException e )
+        {
+            file.setException( e );
+        }
     }
     
     public boolean retrieveVolatile( RubygemsFile file )
     {
         Path path = toPath( file );
+        if( Files.notExists( path ) )
+        {
+            download( file );
+            return file.hasPayload();
+        }
         try
         {
             long mod = Files.getLastModifiedTime( path ).toMillis();
@@ -77,12 +103,16 @@ public class CachingStorage extends FileSystemStorage
             {
                 update( file, path );
             }
+            else
+            {
+                retrieve( (RubygemsFile) file );
+            }
         }
         catch ( IOException e )
         {
             file.setException( e );
         }
-        return ! file.hasException();
+        return file.hasPayload();
     }
     
     private Lock lock( RubygemsFile file )
@@ -126,7 +156,7 @@ public class CachingStorage extends FileSystemStorage
             {
                 if ( ! lock.tryLock( timeout, TimeUnit.MILLISECONDS ) )
                 {
-                    file.setException( new IOException( "timeout" ) );
+                    file.markAsTempUnavailable();
                 }
                 else
                 {

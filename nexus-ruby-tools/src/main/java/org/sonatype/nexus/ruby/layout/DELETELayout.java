@@ -6,6 +6,7 @@ import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
+import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
 public class DELETELayout extends NoopDefaultLayout
 {
@@ -15,18 +16,17 @@ public class DELETELayout extends NoopDefaultLayout
     }
 
     @Override
-    public SpecsIndexFile specsIndexFile( String name, boolean isGzipped )
+    public SpecsIndexFile specsIndexFile( String name )
     {
-        if ( isGzipped )
-        {
-            SpecsIndexFile file = super.specsIndexFile( name, isGzipped );
-            store.delete( file );
-            return file;
-        }
-        else
-        {
-            return null;
-        }
+        return null;
+    }
+
+    @Override
+    public SpecsIndexZippedFile specsIndexZippedFile( String name )
+    {
+        SpecsIndexZippedFile file = super.specsIndexZippedFile( name );
+        store.delete( file );
+        return file;
     }
     
     @Override

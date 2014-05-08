@@ -29,7 +29,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.CachingStorage;
-import org.sonatype.nexus.ruby.layout.FileSystemStorage;
+import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.HostedGETLayout;
 import org.sonatype.nexus.ruby.layout.HostedPOSTLayout;
 import org.sonatype.nexus.ruby.layout.Storage;
@@ -54,7 +54,7 @@ public class HostedPOSTLayoutTest
     @Parameters
     public static Collection<Object[]> stores() throws IOException{
         return Arrays.asList( new Object[][]{ 
-            { new FileSystemStorage( hostedBase() ) },
+            { new SimpleStorage( hostedBase() ) },
             { new CachingStorage( proxyBase(), hostedBase().toURI().toURL() )
               {
 
@@ -81,7 +81,7 @@ public class HostedPOSTLayoutTest
             isHosted = false;
             hostedFileSystem =
                     new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ),
-                                                                        new FileSystemStorage( hostedBase() ) ) ); 
+                                                                        new SimpleStorage( hostedBase() ) ) ); 
         }
         else
         {
@@ -124,7 +124,7 @@ public class HostedPOSTLayoutTest
         String[] pathes = { "/specs.4.8.gz",
                             "/prerelease_specs.4.8.gz",
                             "/latest_specs.4.8.gz" }; 
-        assertFiletypeWithPayload( pathes, FileType.SPECS_INDEX, InputStream.class );
+        assertFiletypeWithPayload( pathes, FileType.SPECS_INDEX_ZIPPED, InputStream.class );
     }
     
     @Test

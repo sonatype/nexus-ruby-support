@@ -5,7 +5,7 @@ public class RubygemsFile {
     
     public static enum State
     {
-        OK, NOT_EXISTS, ERROR, NO_PAYLOAD
+        OK, NOT_EXISTS, ERROR, NO_PAYLOAD, TEMP_UNAVAILABLE, FORBIDDEN, PAYLOAD
     }
  
     protected final Layout layout;
@@ -15,7 +15,7 @@ public class RubygemsFile {
     private final FileType type;
     
     private Object context;
-    private State state = State.NO_PAYLOAD;
+    private State state = State.OK;
     
     RubygemsFile( Layout layout, FileType type, String storage, String remote, String name )
     {
@@ -43,67 +43,12 @@ public class RubygemsFile {
     {
         return type;
     }
-    
-    public GemFile isGemFile()
+
+    public State state()
     {
-        return type == FileType.GEM ? (GemFile) this : null;
-    }
-    
-    public GemspecFile isGemspecFile()
-    {
-        return type == FileType.GEMSPEC ? (GemspecFile) this : null;
-    }
-    
-    public SpecsIndexFile isSpecIndexFile()
-    {
-        return type == FileType.SPECS_INDEX ? (SpecsIndexFile) this : null;
+        return state;
     }
 
-    public MavenMetadataFile isMavenMetadataFile()
-    {
-        return type == FileType.MAVEN_METADATA ? (MavenMetadataFile) this : null;
-    }
-
-    public MavenMetadataSnapshotFile isMavenMetadataSnapshotFile()
-    {
-        return type == FileType.MAVEN_METADATA_SNAPSHOT ? (MavenMetadataSnapshotFile) this : null;
-    }
-
-    public PomFile isPomFile()
-    {
-        return type == FileType.POM ? (PomFile) this : null;
-    }
-
-    public GemArtifactFile isGemArtifactFile()
-    {
-        return type == FileType.GEM_ARTIFACT ? (GemArtifactFile) this : null;
-    }    
-
-    public Sha1File isSha1File()
-    {
-        return type == FileType.SHA1 ? (Sha1File) this : null;
-    }
-
-    public DependencyFile isDependencyFile()
-    {
-        return type == FileType.DEPENDENCY ? (DependencyFile) this : null;
-    }
-    
-    public Directory isDirectory()
-    {
-        return type == FileType.DIRECTORY ? (Directory) this : null;
-    }
-
-    public BundlerApiFile isBundlerApiFile()
-    {
-        return type == FileType.BUNDLER_API ? (BundlerApiFile) this : null;
-    }
-
-    public ApiV1File isApiV1File()
-    {
-        return type == FileType.API_V1 ? (ApiV1File) this : null;
-    }
-    
     public String toString()
     {
         StringBuilder builder = new StringBuilder( "RubygemsFile[" );
@@ -115,12 +60,12 @@ public class RubygemsFile {
             builder.append( ", name=" ).append( name );
         }
         builder.append( ", state=" ).append( state.name() );
-        if ( hasException() )
+        if ( state == State.ERROR )
         {
             builder.append( ", exception=" ).append( getException().getClass().getSimpleName() )
                    .append( ": " ).append( getException().getMessage() );
         }
-        else if ( get() != null )
+        else if ( state == State.PAYLOAD )
         {
             builder.append( ", payload=" ).append( get().toString() );
         }
@@ -184,7 +129,7 @@ public class RubygemsFile {
 
     public void set( Object context )
     {
-        state = context == null ? State.NO_PAYLOAD : State.OK;
+        state = context == null ? State.NO_PAYLOAD : State.PAYLOAD;
         this.context = context;
     }
     
@@ -217,14 +162,9 @@ public class RubygemsFile {
         state = State.NO_PAYLOAD;
     }
 
-    public void markAsNotExists()
-    {
-        state = State.NOT_EXISTS;
-    }
-
     public boolean exists()
     {
-        return state == State.OK || state == State.NO_PAYLOAD;
+        return state == State.OK || state == State.NO_PAYLOAD || state == State.PAYLOAD;
     }
     
     public boolean notExists()
@@ -236,9 +176,25 @@ public class RubygemsFile {
     {
         return state == State.NO_PAYLOAD;
     }
-
-    public State getState()
+    
+    public boolean hasPayload()
     {
-        return state;
+        return state == State.PAYLOAD;
     }
+
+    public void markAsNotExists()
+    {
+        state = State.NOT_EXISTS;
+    }
+    
+    public void markAsTempUnavailable()
+    {
+        state = State.TEMP_UNAVAILABLE;
+    }
+    
+    public void markAsForbiiden()
+    {
+        state = State.FORBIDDEN;
+    }
+
 }

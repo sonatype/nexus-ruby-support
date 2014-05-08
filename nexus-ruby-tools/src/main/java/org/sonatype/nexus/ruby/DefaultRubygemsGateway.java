@@ -81,7 +81,7 @@ public class DefaultRubygemsGateway
         try
         {
             return callMethod( "spec_get",
-                               new Object[]{ gem, gemname},
+                               new Object[]{ gem, gemname },
                                Object.class );
         }
         finally

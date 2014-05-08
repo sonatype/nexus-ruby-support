@@ -22,9 +22,13 @@ public interface Layout
 
     ApiV1File apiV1File( String name );
 
-    SpecsIndexFile specsIndexFile( String name, boolean isGzipped );
+    SpecsIndexFile specsIndexFile( String name );
 
-    SpecsIndexFile specsIndexFile( SpecsIndexType type, boolean isGzipped );
+    SpecsIndexFile specsIndexFile( SpecsIndexType type );
+    
+    SpecsIndexZippedFile specsIndexZippedFile( String name );
+    
+    SpecsIndexZippedFile specsIndexZippedFile( SpecsIndexType type );    
 
     MavenMetadataFile mavenMetadata( String name, boolean prereleased );
 

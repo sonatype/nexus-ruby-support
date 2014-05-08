@@ -49,16 +49,13 @@ public class DefaultLayout implements Layout
      */
     @Override
     public
-    SpecsIndexFile specsIndexFile( String name, boolean isGzipped )
+    SpecsIndexFile specsIndexFile( String name )
     {
-        String path = isGzipped ? 
-                      join( SEPARATOR, name, SPECS_INDEX, GZ ) :
-                      join( SEPARATOR, name, SPECS_INDEX );
+        String path = join( SEPARATOR, name, SPECS_INDEX );
         return new SpecsIndexFile( this,
                                    path,
                                    path,
-                                   name,
-                                   isGzipped );
+                                   name );
     }
 
     @Override
@@ -243,9 +240,25 @@ public class DefaultLayout implements Layout
     }
 
     @Override
-    public SpecsIndexFile specsIndexFile( SpecsIndexType type, boolean isGzipped )
+    public SpecsIndexFile specsIndexFile( SpecsIndexType type )
     {
-        return this.specsIndexFile( type.filename().replace( ".4.8", "" ), isGzipped );
+        return this.specsIndexFile( type.filename().replace( ".4.8", "" ) );
+    }
+
+    @Override
+    public SpecsIndexZippedFile specsIndexZippedFile( String name )
+    {
+        String path = join( SEPARATOR, name, SPECS_INDEX, GZ );
+        return new SpecsIndexZippedFile( this,
+                                         path,
+                                         path,
+                                         name );
+    }
+
+    @Override
+    public SpecsIndexZippedFile specsIndexZippedFile( SpecsIndexType type )
+    {
+        return this.specsIndexZippedFile( type.filename().replace( ".4.8", "" ) );
     }
 
     @Override

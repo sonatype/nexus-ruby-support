@@ -25,6 +25,7 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.Sha1File;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
+import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
 public class GETLayout extends DefaultLayout
 {
@@ -40,31 +41,29 @@ public class GETLayout extends DefaultLayout
 
     protected void retrieveUnzipped( SpecsIndexFile specs )
     {
-        SpecsIndexFile zipped = specs.zippedSpecsIndexFile();
-        retrieveZipped( zipped );
-        if ( ! specs.hasException() )
-        {
-            store.retrieveUnzippped( specs );
-        }
+        // just make sure we have a zipped file, i.e. create an empty one
+        retrieveZipped( specs.zippedSpecsIndexFile() );
+        store.retrieve( specs );
     }
     
-    protected void retrieveZipped( SpecsIndexFile specs )
+    protected void retrieveZipped( SpecsIndexZippedFile specs )
     {
         store.retrieve( specs );
     }
 
     @Override
-    public SpecsIndexFile specsIndexFile( String name, boolean isGzipped )
+    public SpecsIndexFile specsIndexFile( String name )
     {
-        SpecsIndexFile specs = super.specsIndexFile( name, isGzipped );
-        if ( isGzipped )
-        {
-            retrieveZipped( specs );
-        }
-        else
-        {
-            retrieveUnzipped( specs );
-        }
+        SpecsIndexFile specs = super.specsIndexFile( name );
+        retrieveUnzipped( specs );
+        return specs;
+    }
+
+    @Override
+    public SpecsIndexZippedFile specsIndexZippedFile( String name )
+    {
+        SpecsIndexZippedFile specs = super.specsIndexZippedFile( name );
+        retrieveZipped( specs );
         return specs;
     }
  
@@ -76,7 +75,7 @@ public class GETLayout extends DefaultLayout
         List<InputStream> deps = new LinkedList<InputStream>();
         try
         {
-            for( String name: file.isBundlerApiFile().gemnames() )
+            for( String name: file.gemnames() )
             {
                 deps.add( store.getInputStream( dependencyFile( name ) ) );
             }
@@ -200,9 +199,10 @@ public class GETLayout extends DefaultLayout
     public Sha1File sha1( RubygemsFile file )
     {
         Sha1File sha = super.sha1( file );
-        // go through the layout to "generate" any needed content on the way
-        // TODO remove
-        //file = fromPath( file.storagePath() );
+        if ( sha.notExists() )
+        {
+            return sha;
+        }
         try( InputStream is = store.getInputStream( file ) )
         {
             MessageDigest digest = MessageDigest.getInstance( "SHA1" );

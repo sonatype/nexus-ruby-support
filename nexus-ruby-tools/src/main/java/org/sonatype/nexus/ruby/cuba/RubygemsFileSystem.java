@@ -76,12 +76,7 @@ public class RubygemsFileSystem
             }
         }
                 
-        RubygemsFile result = new State( new Context( layout, original, query ), path, null ).nested( cuba );
-        if ( result != null && ! result.exists() )
-        {
-            return layout.notFound( path );
-        }
-        return result;
+        return new State( new Context( layout, original, query ), path, null ).nested( cuba );
     }
 
     public RubygemsFile post( InputStream is, String path )
@@ -97,11 +92,7 @@ public class RubygemsFileSystem
 
     public void post( InputStream is, RubygemsFile file )
     {
-        //if ( file != null && file.hasNoPayload() )
-        //{
-            // assume file is either GemFile or ApiV1File with command gem
-            postLayout.addGem( is, file );
-        //}
+        postLayout.addGem( is, file );
     }
 
     public RubygemsFile delete( String original )

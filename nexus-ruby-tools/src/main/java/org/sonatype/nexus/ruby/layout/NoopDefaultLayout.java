@@ -14,8 +14,8 @@ import org.sonatype.nexus.ruby.PomFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.Sha1File;
-import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
+import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
 public class NoopDefaultLayout extends DefaultLayout
 {
@@ -86,15 +86,15 @@ public class NoopDefaultLayout extends DefaultLayout
         return null;
     }
 
-    protected SpecsIndexFile specsIndexFile( SpecsIndexType type ) throws IOException
+    protected SpecsIndexZippedFile ensureSpecsIndexZippedFile( SpecsIndexType type ) throws IOException
     {
-        SpecsIndexFile specs = super.specsIndexFile( type.filename().replace( ".4.8", "" ), true );
-        
-        if ( ! store.retrieve( specs ) )
+        SpecsIndexZippedFile specs = super.specsIndexZippedFile( type );
+        store.retrieve( specs );
+        if ( specs.notExists() )
         {
             try( InputStream content = gateway.emptyIndex() )
-            {
-                if ( store.create( IOUtil.toGzipped( content ), specs ) )
+            {   store.create( IOUtil.toGzipped( content ), specs );
+                if ( specs.hasNoPayload() ) 
                 {
                     store.retrieve( specs );
                 }
@@ -109,7 +109,8 @@ public class NoopDefaultLayout extends DefaultLayout
 
     protected void delete( RubygemsFile file ) throws IOException
     {
-        if ( !store.delete( file ) )
+        store.delete( file );
+        if ( file.hasException() )
         {
             throw new IOException( file.getException() );
         }

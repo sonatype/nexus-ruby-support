@@ -61,7 +61,7 @@ public class RubygemsGatewayTest
         assertTrue( "spec from stream equal spec from gem", equalSpecs );
     }
 
-    @Test( expected = org.jruby.embed.InvokeFailedException.class )
+    @Test//( expected = org.jruby.embed.InvokeFailedException.class )
     public void testLoadSpecWithNameMismatched() throws FileNotFoundException
     {
         String gem = "src/test/resources/gems/n/nexus-0.1.0-java.gem";
@@ -70,7 +70,7 @@ public class RubygemsGatewayTest
             gateway.spec( new FileInputStream( gem ), "nexus-1.1.1.gem" );
             fail( "exception needed" );
         }
-        catch( InvokeFailedException e ){
+        catch( InvokeFailedException expected ){
         }
     }
 

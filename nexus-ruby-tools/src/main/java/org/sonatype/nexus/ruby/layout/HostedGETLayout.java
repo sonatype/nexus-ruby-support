@@ -12,6 +12,7 @@ import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
+import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
 public class HostedGETLayout extends GETLayout
 {
@@ -21,7 +22,7 @@ public class HostedGETLayout extends GETLayout
     }
     
     @Override
-    protected void retrieveZipped( SpecsIndexFile specs )
+    protected void retrieveZipped( SpecsIndexZippedFile specs )
     { 
         super.retrieveZipped( specs );
         if ( specs.notExists() )
@@ -108,15 +109,15 @@ public class HostedGETLayout extends GETLayout
     {
         try
         {
-            SpecsIndexFile specs = specsIndexFile( SpecsIndexType.RELEASE, true );
-            store.retrieveUnzippped( specs );
+            SpecsIndexFile specs = specsIndexFile( SpecsIndexType.RELEASE );
+            store.retrieve( specs );
             List<String> versions;
             try ( InputStream is = store.getInputStream( specs ) )
             {
                 versions = gateway.listAllVersions( file.name(), is, store.getModified( specs ), false );
             }
-            specs = specsIndexFile( SpecsIndexType.PRERELEASE, true );
-            store.retrieveUnzippped( specs );
+            specs = specsIndexFile( SpecsIndexType.PRERELEASE );
+            store.retrieve( specs );
             try ( InputStream is = store.getInputStream( specs ) )
             {
                 versions.addAll( gateway.listAllVersions( file.name(), is, store.getModified( specs ), true ) );

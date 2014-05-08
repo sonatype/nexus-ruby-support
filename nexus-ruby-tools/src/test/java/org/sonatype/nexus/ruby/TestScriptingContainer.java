@@ -14,7 +14,7 @@ public class TestScriptingContainer extends ScriptingContainer
               new File( "target/test-classes/rubygems" ).getAbsolutePath(),
               new File( "target/test-classes/it/Gemfile" ).getAbsolutePath() );
     }
-    
+
     public TestScriptingContainer( String userHome, String rubygems, String gemfile ){ 
         Map<String, String> env = new HashMap<String,String>();
         

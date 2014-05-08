@@ -2,7 +2,6 @@ package org.sonatype.nexus.ruby.layout;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
 
 import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.BundlerApiFile;
@@ -10,6 +9,7 @@ import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.GemArtifactFile;
+import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
 import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.MavenMetadataFile;
@@ -20,6 +20,9 @@ import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.Sha1File;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
+import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
+
+import com.jcraft.jzlib.GZIPInputStream;
 
 public class HostedPOSTLayout extends NoopDefaultLayout
 {
@@ -34,12 +37,14 @@ public class HostedPOSTLayout extends NoopDefaultLayout
     {
         if ( file.type() != FileType.GEM && file.type() != FileType.API_V1 )
         {
-            throw new RuntimeException( "not allowed to store " + file );
+            throw new RuntimeException( "BUG: not allowed to store " + file );
         }
         try
         {
-            if ( !store.create( is, file ) )
+            store.create( is, file );
+            if ( file.hasNoPayload() )
             {
+                // an error or something else but we need the payload now
                 return;
             }
             is = store.getInputStream( file );
@@ -50,15 +55,17 @@ public class HostedPOSTLayout extends NoopDefaultLayout
             switch( file.type() )
             {
             case GEM:
-                if (!( file.isGemFile().filename() + ".gem" ).equals( filename ) )
+                if (!( ((GemFile) file).filename() + ".gem" ).equals( filename ) )
                 {
-                    file.setException( new IOException( "filename from " + file + " does not match gemname: " +  gateway.filename( spec ) ) );
                     store.delete( file );
+                    // now set the error for further processing
+                    file.setException( new IOException( "filename from " + file + " does not match gemname: " +  filename ) );
                     return;
                 }
                 break;
             case API_V1:
-                store.create( store.getInputStream( file ), file.isApiV1File().gem( filename.replaceFirst( ".gem$", "" ) ) );
+                store.create( store.getInputStream( file ), 
+                              ( (ApiV1File) file ).gem( filename.replaceFirst( ".gem$", "" ) ) );
                 store.delete( file );
                 break;
             default:
@@ -87,16 +94,20 @@ public class HostedPOSTLayout extends NoopDefaultLayout
         for ( SpecsIndexType type : SpecsIndexType.values() )
         {
             InputStream content = null;
-            SpecsIndexFile specs = specsIndexFile( type );
-
+            SpecsIndexZippedFile specs = ensureSpecsIndexZippedFile( type );
+            
             try( InputStream in = new GZIPInputStream( store.getInputStream( specs ) ) )
             {
                 content = gateway.addSpec( spec, in, type );
                 
                 // if nothing was added the content is NULL
-                if ( content != null && ! store.update( IOUtil.toGzipped( content ), specs ) )
+                if ( content != null )
                 {
-                    throw new IOException( specs.getException() );
+                    store.update( IOUtil.toGzipped( content ), specs );
+                    if ( specs.hasException() )
+                    {
+                        throw new IOException( specs.getException() );
+                    }
                 }
             }
             finally
@@ -118,7 +129,7 @@ public class HostedPOSTLayout extends NoopDefaultLayout
     }
     
     @Override
-    public SpecsIndexFile specsIndexFile( String name, boolean isGzipped )
+    public SpecsIndexFile specsIndexFile( String name )
     {
         return null;
     }

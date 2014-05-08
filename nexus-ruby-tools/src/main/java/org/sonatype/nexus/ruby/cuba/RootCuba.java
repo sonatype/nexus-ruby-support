@@ -47,7 +47,11 @@ public class RootCuba implements Cuba
         Matcher m = SPECS.matcher( state.part );
         if ( m.matches() )
         {
-            return state.context.layout.specsIndexFile( m.group( 1 ), m.group( 3 ) != null );
+            if ( m.group( 3 ) == null )
+            {
+                return state.context.layout.specsIndexFile( m.group( 1 ) );
+            }
+            return state.context.layout.specsIndexZippedFile( m.group( 1 ) );
         }
         return state.context.layout.notFound( state.context.original );
     }

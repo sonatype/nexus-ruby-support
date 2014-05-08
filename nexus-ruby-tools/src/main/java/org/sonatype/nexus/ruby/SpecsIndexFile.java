@@ -4,54 +4,20 @@ package org.sonatype.nexus.ruby;
 public class SpecsIndexFile extends RubygemsFile {
     
     private final SpecsIndexType specsType;
-    private final boolean isGzipped;
     
-    SpecsIndexFile( Layout layout, String storage, String remote, String name, boolean isGzipped )
+    SpecsIndexFile( Layout layout, String storage, String remote, String name )
     {
         super( layout, FileType.SPECS_INDEX, storage, remote, name );
         specsType = SpecsIndexType.fromFilename( storagePath() );
-        this.isGzipped = isGzipped;
     }
     
-    public boolean isGzipped()
-    {
-        return isGzipped;
-    }
-
     public SpecsIndexType specsType()
     {
         return specsType;
     }
     
-    public SpecsIndexFile unzippedSpecsIndexFile()
+    public SpecsIndexZippedFile zippedSpecsIndexFile()
     {
-        if ( isGzipped )
-        {
-            return layout.specsIndexFile( name(), false );
-        }
-        else
-        {
-            return this;
-        }
+        return layout.specsIndexZippedFile( name() );
     }
-    public SpecsIndexFile zippedSpecsIndexFile()
-    {
-        if ( isGzipped )
-        {
-            return this;
-        }
-        else
-        {
-            return layout.specsIndexFile( name(), true );
-        }
-    }
-
-//    public String storagePathGz(){
-//        return storagePath() + FileLayout.GZ;
-//    }
-//    
-//    public String remotePathGz()
-//    {
-//        return remotePath() + FileLayout.GZ;
-//    }
 }

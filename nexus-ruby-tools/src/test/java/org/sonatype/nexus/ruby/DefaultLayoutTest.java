@@ -68,7 +68,6 @@ public class DefaultLayoutTest
         String path = "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.gem";
         RubygemsFile file = bootstrap.get( path );
         assertNotNull( file );
-        assertNotNull( file.isGemArtifactFile() );
         RubygemsFile file2 = bootstrap.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -92,7 +91,6 @@ public class DefaultLayoutTest
         String path = "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123123123.gem";
         RubygemsFile file = bootstrap.get( path );
         assertNotNull( file );
-        assertNotNull( file.isGemArtifactFile() );
         RubygemsFile file2 = bootstrap.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -116,7 +114,6 @@ public class DefaultLayoutTest
         String path = "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.pom";
         RubygemsFile file = bootstrap.get( path );
         assertNotNull( file );
-        assertNotNull( file.isPomFile() );
         RubygemsFile file2 = bootstrap.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -141,7 +138,6 @@ public class DefaultLayoutTest
         String path = "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123123123.pom";
         RubygemsFile file = bootstrap.get( path );
         assertNotNull( file );
-        assertNotNull( file.isPomFile() );
         RubygemsFile file2 = bootstrap.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -164,7 +160,6 @@ public class DefaultLayoutTest
         String path = "/maven/releases/rubygems/jbundler/maven-metadata.xml";
         RubygemsFile file = bootstrap.get( path );
         assertNotNull( file );
-        assertNotNull( file.isMavenMetadataFile() );
         RubygemsFile file2 = bootstrap.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -185,7 +180,6 @@ public class DefaultLayoutTest
         String path = "/maven/prereleases/rubygems/jbundler/maven-metadata.xml";
         RubygemsFile file = bootstrap.get( path );
         assertNotNull( file );
-        assertNotNull( file.isMavenMetadataFile() );
         RubygemsFile file2 = bootstrap.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -206,7 +200,6 @@ public class DefaultLayoutTest
         String path = "/maven/prereleases/rubygems/jbundler/9.2.3-SNAPSHOT/maven-metadata.xml";
         RubygemsFile file = bootstrap.get( path );
         assertNotNull( file );
-        assertNotNull( file.isMavenMetadataSnapshotFile() );
         RubygemsFile file2 = bootstrap.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
@@ -225,7 +218,6 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = bootstrap.get( "/gems/jbundler-9.2.1.gem" );
         assertNotNull( file );
-        assertNotNull( file.isGemFile() );
         RubygemsFile file2 = bootstrap.get( "/gems/j/jbundler-9.2.1.gem" );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/gems/j/jbundler-9.2.1.gem" ) );
@@ -248,7 +240,6 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.gemFile( "jbundler", "9.2.1", "java" );
         assertNotNull( file );
-        assertNotNull( file.isGemFile() );
         RubygemsFile file2 = layout.gemFile( "jbundler", "9.2.1", "java" );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/gems/j/jbundler-9.2.1-java.gem" ) );
@@ -272,7 +263,6 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = bootstrap.get( "/quick/Marshal.4.8/jbundler-9.2.1.gemspec.rz" );
         assertNotNull( file );
-        assertNotNull( file.isGemspecFile() );
         RubygemsFile file2 = bootstrap.get( "/quick/Marshal.4.8/j/jbundler-9.2.1.gemspec.rz" );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/quick/Marshal.4.8/j/jbundler-9.2.1.gemspec.rz" ) );
@@ -295,7 +285,6 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = layout.gemspecFile( "jbundler", "9.2.1", "java" );
         assertNotNull( file );
-        assertNotNull( file.isGemspecFile() );
         RubygemsFile file2 = layout.gemspecFile( "jbundler", "9.2.1", "java" );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/quick/Marshal.4.8/j/jbundler-9.2.1-java.gemspec.rz" ) );
@@ -318,7 +307,6 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = bootstrap.get( "/api/v1/dependencies/jbundler.json.rz" );
         assertNotNull( file );
-        assertNotNull( file.isDependencyFile() );
         RubygemsFile file2 = bootstrap.get( "/api/v1/dependencies?gems=jbundler" );
         assertThat( file, equalTo( file2 ) );
         file2 = bootstrap.get( "/api/v1/dependencies/j/jbundler.json.rz" );
@@ -335,7 +323,6 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = bootstrap.get( "/api/v1/dependencies?gems=jbundler" );
         assertNotNull( file );
-        assertNotNull( file.isDependencyFile() );
         assertThat( file.storagePath(), equalTo( "/api/v1/dependencies/j/jbundler.json.rz" ) );
         assertThat( file.remotePath(), equalTo( "/api/v1/dependencies?gems=jbundler" ) );
         assertThat( file.name(), equalTo( "jbundler" ) );
@@ -348,7 +335,6 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = bootstrap.get( "/api/v1/dependencies?gems=jbundler,bundler" );
         assertNotNull( file );
-        assertNotNull( file.isBundlerApiFile() );
         assertNull( file.storagePath() );
         assertNull( file.name() );
         assertThat( file.remotePath(), equalTo( "/api/v1/dependencies?gems=jbundler,bundler" ) );
@@ -362,24 +348,28 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = bootstrap.get( "/specs.4.8.gz" );
         assertNotNull( file );
-        assertNotNull( file.isSpecIndexFile() );
+        assertThat( file.type(), equalTo( FileType.SPECS_INDEX_ZIPPED ) );
         RubygemsFile file2 = bootstrap.get( "/specs.4.8" );
-        assertThat( file.isSpecIndexFile(), 
-                    equalTo( file2.isSpecIndexFile().zippedSpecsIndexFile() ) );
-        assertThat( file.isSpecIndexFile(), 
-                    sameInstance( file.isSpecIndexFile().zippedSpecsIndexFile() ) );
-        assertThat( file2.isSpecIndexFile(), 
-                    sameInstance( file2.isSpecIndexFile().unzippedSpecsIndexFile() ) );
+        assertThat( file2.type(), equalTo( FileType.SPECS_INDEX ) );
+
+        assertThat( (SpecsIndexZippedFile) file, 
+                    equalTo( ((SpecsIndexFile) file2).zippedSpecsIndexFile() ) );
+        assertThat( (SpecsIndexFile) file2, 
+                    equalTo( ((SpecsIndexZippedFile) file).unzippedSpecsIndexFile() ) );
+        
         assertThat( file.storagePath(), equalTo( "/specs.4.8.gz" ) );
         assertThat( file.remotePath(), equalTo( "/specs.4.8.gz" ) );
         assertThat( file2.storagePath(), equalTo( "/specs.4.8" ) );
         assertThat( file2.remotePath(), equalTo( "/specs.4.8" ) );
         assertThat( file.name(), equalTo( "specs" ) );
-        assertThat( file.type(), equalTo( FileType.SPECS_INDEX ) );
-
-        SpecsIndexFile file3 = (SpecsIndexFile) file;
+        
+        SpecsIndexZippedFile file3 = (SpecsIndexZippedFile) file;
         assertThat( file3.specsType(), equalTo( SpecsIndexType.RELEASE ) );
         assertThat( file3.storagePath(), equalTo( SpecsIndexType.RELEASE.filepathGzipped() ) );
+
+        SpecsIndexFile file4 = (SpecsIndexFile) file2;
+        assertThat( file4.specsType(), equalTo( SpecsIndexType.RELEASE ) );
+        assertThat( file4.storagePath(), equalTo( SpecsIndexType.RELEASE.filepath() ) );
     }
 
     @Test
@@ -388,27 +378,28 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = bootstrap.get( "/latest_specs.4.8.gz" );
         assertNotNull( file );
-        assertNotNull( file.isSpecIndexFile() );
+        assertThat( file.type(), equalTo( FileType.SPECS_INDEX_ZIPPED ) );
         RubygemsFile file2 = bootstrap.get( "/latest_specs.4.8" );
-        assertThat( file.isSpecIndexFile(), 
-                    equalTo( file2.isSpecIndexFile().zippedSpecsIndexFile() ) );
-        assertThat( file.isSpecIndexFile(), 
-                    sameInstance( file.isSpecIndexFile().zippedSpecsIndexFile() ) );
-        assertThat( file2.isSpecIndexFile(), 
-                    sameInstance( file2.isSpecIndexFile().unzippedSpecsIndexFile() ) );
+        assertThat( file2.type(), equalTo( FileType.SPECS_INDEX ) );
+        
+        assertThat( (SpecsIndexZippedFile) file, 
+                    equalTo( ((SpecsIndexFile) file2).zippedSpecsIndexFile() ) );
+        assertThat( (SpecsIndexFile) file2, 
+                    equalTo( ((SpecsIndexZippedFile) file).unzippedSpecsIndexFile() ) );
+
         assertThat( file.storagePath(), equalTo( "/latest_specs.4.8.gz" ) );
         assertThat( file.remotePath(), equalTo( "/latest_specs.4.8.gz" ) );
         assertThat( file2.storagePath(), equalTo( "/latest_specs.4.8" ) );
         assertThat( file2.remotePath(), equalTo( "/latest_specs.4.8" ) );
         assertThat( file.name(), equalTo( "latest_specs" ) );
-        assertThat( file.type(), equalTo( FileType.SPECS_INDEX ) );
 
-        SpecsIndexFile file3 = (SpecsIndexFile) file;
-//        assertThat( file3.storagePathGz(), equalTo( "/latest_specs.4.8.gz" ) );
-//        assertThat( file3.remotePathGz(), equalTo( "/latest_specs.4.8.gz" ) );
+        SpecsIndexZippedFile file3 = (SpecsIndexZippedFile) file;
         assertThat( file3.specsType(), equalTo( SpecsIndexType.LATEST ) );
         assertThat( file3.storagePath(), equalTo( SpecsIndexType.LATEST.filepathGzipped() ) );
 
+        SpecsIndexFile file4 = (SpecsIndexFile) file2;
+        assertThat( file4.specsType(), equalTo( SpecsIndexType.LATEST ) );
+        assertThat( file4.storagePath(), equalTo( SpecsIndexType.LATEST.filepath() ) );
     }
 
     @Test
@@ -417,26 +408,28 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = bootstrap.get( "/prerelease_specs.4.8.gz" );
         assertNotNull( file );
-        assertNotNull( file.isSpecIndexFile() );
+        assertThat( file.type(), equalTo( FileType.SPECS_INDEX_ZIPPED ) );
         RubygemsFile file2 = bootstrap.get( "/prerelease_specs.4.8" );
-        assertThat( file.isSpecIndexFile(), 
-                    equalTo( file2.isSpecIndexFile().zippedSpecsIndexFile() ) );
-        assertThat( file.isSpecIndexFile(), 
-                    sameInstance( file.isSpecIndexFile().zippedSpecsIndexFile() ) );
-        assertThat( file2.isSpecIndexFile(), 
-                    sameInstance( file2.isSpecIndexFile().unzippedSpecsIndexFile() ) );
+        assertThat( file2.type(), equalTo( FileType.SPECS_INDEX ) );
+        
+        assertThat( (SpecsIndexZippedFile) file, 
+                    equalTo( ((SpecsIndexFile) file2).zippedSpecsIndexFile() ) );
+        assertThat( (SpecsIndexFile) file2, 
+                    equalTo( ((SpecsIndexZippedFile) file).unzippedSpecsIndexFile() ) );
+
         assertThat( file.storagePath(), equalTo( "/prerelease_specs.4.8.gz" ) );
         assertThat( file.remotePath(), equalTo( "/prerelease_specs.4.8.gz" ) );
         assertThat( file2.storagePath(), equalTo( "/prerelease_specs.4.8" ) );
         assertThat( file2.remotePath(), equalTo( "/prerelease_specs.4.8" ) );
         assertThat( file.name(), equalTo( "prerelease_specs" ) );
-        assertThat( file.type(), equalTo( FileType.SPECS_INDEX ) );
 
-        SpecsIndexFile file3 = (SpecsIndexFile) file;
-        assertThat( file3.isGzipped(), is( true ) );
-        assertThat( ((SpecsIndexFile) file2).isGzipped(), is( false ) );
+        SpecsIndexZippedFile file3 = (SpecsIndexZippedFile) file;
         assertThat( file3.specsType(), equalTo( SpecsIndexType.PRERELEASE ) );
         assertThat( file3.storagePath(), equalTo( SpecsIndexType.PRERELEASE.filepathGzipped() ) );
+        
+        SpecsIndexFile file4 = (SpecsIndexFile) file2;
+        assertThat( file4.specsType(), equalTo( SpecsIndexType.PRERELEASE ) );
+        assertThat( file4.storagePath(), equalTo( SpecsIndexType.PRERELEASE.filepath() ) );
     }
     
     @Test
@@ -463,61 +456,61 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = bootstrap.get( "/api" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         RubygemsFile file2 = bootstrap.get( "/api/" );
         assertThat( file, equalTo( file2 ) );
         
         file = bootstrap.get( "/api/v1" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         file2 = bootstrap.get( "/api/v1/" );
         assertThat( file, equalTo( file2 ) );
         
         file = bootstrap.get( "/api/v1/dependencies" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         file2 = bootstrap.get( "/api/v1/dependencies/" );
         assertThat( file, equalTo( file2 ) );
         
         file = bootstrap.get( "/api/v1/dependencies/a/" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         file2 = bootstrap.get( "/api/v1/dependencies/a" );
         assertThat( file, equalTo( file2 ) );
 
         file = bootstrap.get( "/" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         file2 = bootstrap.get( "" );
         assertThat( file, equalTo( file2 ) );
 
         file = bootstrap.get( "/gems" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         file2 = bootstrap.get( "/gems/" );
         assertThat( file, equalTo( file2 ) );
         
         file = bootstrap.get( "/gems/v" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         file2 = bootstrap.get( "/gems/v/" );
         assertThat( file, equalTo( file2 ) );
 
         file = bootstrap.get( "/quick" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         file2 = bootstrap.get( "/quick/" );
         assertThat( file, equalTo( file2 ) );
         
         file = bootstrap.get( "/quick/Marshal.4.8" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         file2 = bootstrap.get( "/quick/Marshal.4.8/" );
         assertThat( file, equalTo( file2 ) );
         
         file = bootstrap.get( "/quick/Marshal.4.8/-" );
         assertNotNull( file );
-        assertNotNull( file.isDirectory() );
+        assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
         file2 = bootstrap.get( "/quick/Marshal.4.8/-/" );
         assertThat( file, equalTo( file2 ) );
     }

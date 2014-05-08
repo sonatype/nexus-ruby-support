@@ -12,13 +12,13 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.DELETELayout;
-import org.sonatype.nexus.ruby.layout.FileSystemStorage;
+import org.sonatype.nexus.ruby.layout.SimpleStorage;
 
 public class DELETELayoutTest
     extends TestCase
 {
     private final DefaultRubygemsFileSystem bootstrap =
-            new DefaultRubygemsFileSystem( new DELETELayout( null, new FileSystemStorage( new File( "target" ) ) ) );
+            new DefaultRubygemsFileSystem( new DELETELayout( null, new SimpleStorage( new File( "target" ) ) ) );
     
     @Test
     public void testSpecsZippedIndex()
@@ -27,7 +27,7 @@ public class DELETELayoutTest
         String[] pathes = { "/specs.4.8.gz",
                             "/prerelease_specs.4.8.gz",
                             "/latest_specs.4.8.gz" }; 
-        assertFound( pathes, FileType.SPECS_INDEX );
+        assertFound( pathes, FileType.SPECS_INDEX_ZIPPED );
     }
     
     @Test
@@ -189,7 +189,7 @@ public class DELETELayoutTest
         {
             RubygemsFile file = bootstrap.get( path );
             assertThat( path, file.type(), equalTo( type ) );
-            assertThat( path, file.exists(), is( true ) );
+            assertThat( path, file.notExists(), is( false ) );
         }
     }
     
