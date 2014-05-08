@@ -1,7 +1,5 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 
 import javax.inject.Inject;
@@ -33,6 +31,7 @@ import org.sonatype.nexus.proxy.repository.AbstractProxyRepository;
 import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
+import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
@@ -175,14 +174,21 @@ public class DefaultProxyRubyRepository
         return super.createUid( file.storagePath() );
     }
 
+    @Override
+    public void moveItem( ResourceStoreRequest from, ResourceStoreRequest to)
+            throws UnsupportedStorageOperationException
+    {
+        throw new UnsupportedStorageOperationException( from.getRequestPath() );
+    }
+    
     @SuppressWarnings("deprecation")
     @Override
     public StorageFileItem retrieveDirectItem( ResourceStoreRequest request )
-            throws AccessDeniedException,
-                   IllegalOperationException,
+            throws IllegalOperationException,
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
+        // bypass access control
         return (StorageFileItem) super.retrieveItem( false, request );
     }
     
@@ -191,52 +197,11 @@ public class DefaultProxyRubyRepository
     public StorageItem retrieveItem( ResourceStoreRequest request )
             throws IllegalOperationException,
                    ItemNotFoundException, RemoteAccessException, 
-                   org.sonatype.nexus.proxy.StorageException, AccessDeniedException
+                   org.sonatype.nexus.proxy.StorageException
     {
-        RubygemsFile file = facade.get( request );
-        handleExceptions( file );
-        if ( file.hasNoPayload() )
-        {
-            // handle directories
-            return super.retrieveItem( request );
-        }
-        else
-        {
-            return (StorageItem) file.get();
-        }        
+        return facade.handleRetrieve( this, request, facade.get( request ) );
     }
     
-    @SuppressWarnings( "deprecation" )
-    protected void handleExceptions( RubygemsFile file )
-            throws IllegalOperationException, ItemNotFoundException,
-            RemoteAccessException, org.sonatype.nexus.proxy.StorageException
-    {
-        Exception e = file.getException();
-        if ( e != null )
-        {
-            if ( e instanceof ItemNotFoundException )
-            {
-                throw (ItemNotFoundException) e;
-            }
-            if ( e instanceof IllegalOperationException )
-            {
-                throw (IllegalOperationException) e;
-            }
-            if ( e instanceof RemoteAccessException )
-            {
-                throw (RemoteAccessException) e;
-            }
-            if ( e instanceof org.sonatype.nexus.proxy.StorageException )
-            {
-                throw (org.sonatype.nexus.proxy.StorageException) e;
-            }
-            if ( e instanceof IOException )
-            {
-                throw new org.sonatype.nexus.proxy.StorageException( e );
-            }
-            throw new RuntimeException( e );
-        }
-    }
 
     @SuppressWarnings( "deprecation" )
     @Override
@@ -264,18 +229,6 @@ public class DefaultProxyRubyRepository
              getLog().debug( "recreate rubygems metadata in " + basedir );
         }
         return basedir;
-    }
-
-    @Override
-    public void storeItem( StorageItem item )
-    {
-        throw new RuntimeException( "not implemented" );
-    }
-
-    @Override
-    public File getApplicationTempDirectory()
-    {
-        return getApplicationConfiguration().getTemporaryDirectory();
     }
 
     @Override

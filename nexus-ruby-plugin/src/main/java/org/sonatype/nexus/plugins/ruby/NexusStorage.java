@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.util.zip.GZIPInputStream;
 
-import org.sonatype.nexus.plugins.ruby.RubyRepository;
-import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
@@ -18,54 +16,59 @@ import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
-import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
+import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
+import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 import org.sonatype.nexus.ruby.layout.Storage;
 
 public class NexusStorage implements Storage
 {
 
-    private final RubyRepository repository;
+    protected final RubyRepository repository;
     
     public NexusStorage( RubyRepository repository )
     {
         this.repository = repository;
     }
-    
-    public ItemNotFoundException newNotFoundException( String path ){
-        return new ItemNotFoundException( ItemNotFoundException.reasonFor( new ResourceStoreRequest( path ), this.repository,
-                                                                           "Can not serve path %s for repository %s", path,
-                                                                           RepositoryStringUtils.getHumanizedNameString( this.repository ) ) );
-    }
 
     @Override
-    public boolean retrieve( RubygemsFile file )
+    public void retrieve( RubygemsFile file )
     {
         try
         {
             file.set( repository.retrieveDirectItem( new ResourceStoreRequest( file.storagePath() ) ) );
-            return true;
         }
         catch ( ItemNotFoundException e )
         {
             file.markAsNotExists();
-            return false;
         }
-        catch ( IOException | AccessDeniedException | IllegalOperationException e )
+        catch ( IOException | IllegalOperationException e )
         {
             file.setException( e );
-            return false;
         }
     }
 
     @Override
-    public boolean retrieveUnzippped( SpecsIndexFile specs )
+    public void retrieve( DependencyFile file )
     {
+        retrieve( (RubygemsFile) file );
+    }
+    
+    @Override
+    public void retrieve( SpecsIndexZippedFile file )
+    {
+        retrieve( (RubygemsFile) file );
+    }
+
+    @Override
+    public void retrieve( SpecsIndexFile specs )
+    {
+        SpecsIndexZippedFile source = specs.zippedSpecsIndexFile();
         try
         {
-            StorageFileItem item = repository.retrieveDirectItem( new ResourceStoreRequest( specs.zippedSpecsIndexFile().storagePath() ) );
+            StorageFileItem item = (StorageFileItem) repository.retrieveDirectItem( new ResourceStoreRequest( source.storagePath() ) );
             DefaultStorageFileItem unzippedItem =
                     new DefaultStorageFileItem( repository,
                                                 new ResourceStoreRequest( specs.storagePath() ),
@@ -73,12 +76,14 @@ public class NexusStorage implements Storage
                                                 gunzipContentLocator( item ) );
             unzippedItem.setModified( item.getModified() );
             specs.set( unzippedItem );
-            return true;
         }
-        catch ( IOException | AccessDeniedException | IllegalOperationException | ItemNotFoundException e )
+        catch ( ItemNotFoundException e )
+        {
+            specs.markAsNotExists();
+        }
+        catch ( IOException | IllegalOperationException e )
         {
             specs.setException( e );
-            return false;
         }
     }
     
@@ -120,15 +125,14 @@ public class NexusStorage implements Storage
     }
         
     @Override
-    public boolean create( InputStream is, RubygemsFile file ) 
+    public void create( InputStream is, RubygemsFile file ) 
     {
-        return update( is, file );
+        update( is, file );
     }
     
     @Override
-    public boolean update( InputStream is, RubygemsFile file ) 
+    public void update( InputStream is, RubygemsFile file ) 
     {
-        file.resetState();
         ResourceStoreRequest request = new ResourceStoreRequest( file.storagePath() );
         ContentLocator contentLocator = newPreparedContentLocator( is, file.type().mime(), ContentLocator.UNKNOWN_LENGTH );        
         DefaultStorageFileItem fileItem = new DefaultStorageFileItem( repository, request,
@@ -138,16 +142,15 @@ public class NexusStorage implements Storage
         {
             // we need to bypass access control here !!!
             repository.storeItem( false, fileItem );
-            return true;
+            file.set( fileItem );
         }
         catch ( IOException | UnsupportedStorageOperationException | IllegalOperationException e )
         {
             file.setException( e );
-            return false;
         }
     }
 
-    private ContentLocator newPreparedContentLocator( InputStream is, String mime, long length )
+    protected ContentLocator newPreparedContentLocator( InputStream is, String mime, long length )
     {
         try
         {
@@ -169,24 +172,21 @@ public class NexusStorage implements Storage
     }
 
     @SuppressWarnings( "deprecation" )
-    public boolean delete( RubygemsFile file ) 
+    public void delete( RubygemsFile file ) 
     {
         ResourceStoreRequest request = new ResourceStoreRequest( file.storagePath() );
 
         try
         {
             repository.deleteItem( false, request );
-            return true;
         }
         catch ( IOException | UnsupportedStorageOperationException | IllegalOperationException e )
         {
             file.setException( e );
-            return false;
         }
         catch (ItemNotFoundException e)
         {
             // already deleted
-            return true;
         }
     }
 

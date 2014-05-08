@@ -2,7 +2,6 @@ package org.sonatype.nexus.plugins.ruby.group;
 
 import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
 
-import java.io.File;
 import java.util.Arrays;
 
 import javax.inject.Inject;
@@ -14,10 +13,10 @@ import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
+import org.sonatype.nexus.plugins.ruby.NexusRubygemsFacade;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
-import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
@@ -33,7 +32,8 @@ import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
-import org.sonatype.nexus.ruby.RubygemsFile;
+import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.layout.ProxiedRubygemsFileSystem;
 
 @Named( DefaultRubyGroupRepository.ID )
 public class DefaultRubyGroupRepository
@@ -47,17 +47,17 @@ public class DefaultRubyGroupRepository
     private final GroupRubyRepositoryConfigurator configurator;
     
     private final RepositoryKind repositoryKind;
-    
-    private final GroupNexusLayout layout;
+
+    private final NexusRubygemsFacade facade;
     
     @Inject
     public DefaultRubyGroupRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
                                        GroupRubyRepositoryConfigurator configurator,
-                                       GroupNexusLayout layout )
+                                       RubygemsGateway gateway )
              throws LocalStorageException, ItemNotFoundException{
         this.contentClass = contentClass;
-        this.configurator = configurator;  
-        this.layout = layout;
+        this.configurator = configurator;
+        this.facade = new NexusRubygemsFacade( new ProxiedRubygemsFileSystem( gateway, new GroupNexusStorage( this, gateway ) ) );
         this.repositoryKind = new DefaultRepositoryKind( RubyGroupRepository.class,
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
     }
@@ -101,56 +101,40 @@ public class DefaultRubyGroupRepository
 
     // ==
 
+    @Override
+    public void deleteItem( ResourceStoreRequest request )
+            throws UnsupportedStorageOperationException
+    {
+        throw new UnsupportedStorageOperationException( request.getRequestPath() );
+    }
+
+    @Override
+    public void moveItem( ResourceStoreRequest from, ResourceStoreRequest to)
+            throws UnsupportedStorageOperationException
+    {
+        throw new UnsupportedStorageOperationException( from.getRequestPath() );
+    }
+    
     @SuppressWarnings("deprecation")
     @Override
-    public StorageItem retrieveItem( ResourceStoreRequest request )
-            throws AccessDeniedException, ItemNotFoundException, IllegalOperationException,
+    public StorageItem retrieveItem( boolean fromTask, ResourceStoreRequest request )
+            throws IllegalOperationException,
+                   ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
-        RubygemsFile file = layout.fromResourceStoreRequest( this, request );
-        switch( file.type() )
-        {
-        case GEM_ARTIFACT:
-            return layout.retrieveGem( this, request, file.isGemArtifactFile() );
-        case POM:
-            return layout.createPom( this, request, file.isPomFile() );
-        case MAVEN_METADATA:
-            return layout.createMavenMetadata( this, request, file.isMavenMetadataFile() );
-        case MAVEN_METADATA_SNAPSHOT:
-            return layout.createMavenMetadataSnapshot( this, request, file.isMavenMetadataSnapshotFile() );
-        case BUNDLER_API:
-            return layout.createBundlerAPIResponse( this, file.isBundlerApiFile() );
-        case SPECS_INDEX:
-            if ( file.isSpecIndexFile().isGzipped() )
-            {
-                layout.setup( this, file );
-            }
-            else
-            {
-                return layout.retrieveUnzippedSpecsIndex( this, file.isSpecIndexFile() );
-            }
-            return super.retrieveItem( request );
-        case DEPENDENCY:
-            StorageItem item = layout.setup( this, file  );
-            if ( item != null )
-            {
-                return item;
-            }
-        default:
-            return retrieveFirstItem( request );
-        }
+        return facade.handleRetrieve( this, request, facade.get( request ) );
     }
 
     @SuppressWarnings( "deprecation" )
-    private StorageItem retrieveFirstItem( ResourceStoreRequest request )
+    public StorageFileItem retrieveDirectItem( ResourceStoreRequest request )
         throws org.sonatype.nexus.proxy.StorageException,
-               AccessDeniedException, IllegalOperationException, ItemNotFoundException
+               IllegalOperationException, ItemNotFoundException
     {
         for( Repository repo : getMemberRepositories() )
         {
             try
             {
-                return repo.retrieveItem( request );
+                return (StorageFileItem) repo.retrieveItem( false, request );
             }
             catch (ItemNotFoundException e)
             {
@@ -161,21 +145,6 @@ public class DefaultRubyGroupRepository
                                                     "Could not find content for path %s in local storage of repository %s", 
                                                     request.getRequestPath(),
                                                     RepositoryStringUtils.getHumanizedNameString( this ) ) );
-    }
-    
-    @SuppressWarnings("deprecation")
-    @Override
-    public void storeItem( StorageItem item )
-         throws org.sonatype.nexus.proxy.StorageException,
-                UnsupportedStorageOperationException, IllegalOperationException
-    {
-        super.storeItem( false, item );
-    }
-    
-    @Override
-    public File getApplicationTempDirectory()
-    {
-        return getApplicationConfiguration().getTemporaryDirectory();
     }
 
     @Override
@@ -196,13 +165,5 @@ public class DefaultRubyGroupRepository
                 throw new RuntimeException( "should work", ee );
             }
         }
-    }
-
-    @Override
-    public StorageFileItem retrieveDirectItem( ResourceStoreRequest resourceStoreRequest )
-            throws IllegalOperationException, ItemNotFoundException,
-            RemoteAccessException, AccessDeniedException
-    {
-        return null;
     }
 }

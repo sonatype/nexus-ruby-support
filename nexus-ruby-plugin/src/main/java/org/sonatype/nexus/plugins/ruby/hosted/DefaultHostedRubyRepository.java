@@ -1,7 +1,5 @@
 package org.sonatype.nexus.plugins.ruby.hosted;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
@@ -25,7 +23,6 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractRepository;
@@ -102,16 +99,6 @@ public class DefaultHostedRubyRepository
     {
         return (DefaultHostedRubyRepositoryConfiguration) super.getExternalConfiguration( forWrite );
     }
-    
-    @SuppressWarnings("deprecation")
-    @Override
-    public void storeItem( StorageItem item )
-            throws org.sonatype.nexus.proxy.StorageException,
-                UnsupportedStorageOperationException, IllegalOperationException, AccessDeniedException
-    {
-        // we need to bypass access control here !!!
-        super.storeItem( false, item );
-    }
 
     @SuppressWarnings( "deprecation" )
     public void storeItem(ResourceStoreRequest request, InputStream is, Map<String, String> userAttributes)
@@ -124,17 +111,16 @@ public class DefaultHostedRubyRepository
             throw new UnsupportedStorageOperationException( "only gem-files can be stored" );
         }
         request.setRequestPath( file.storagePath() );
-        // first check permissions
+        // first check permissions, i.e. is redeploy allowed
         try {
             checkConditions(request, getResultingActionOnWrite(request));
         }
         catch (ItemNotFoundException e) {
-          throw new AccessDeniedException(request, e.getMessage());
+            throw new AccessDeniedException(request, e.getMessage());
         }
         
         // now store the gem
-        facade.post( is, file );
-        handleCommonExceptions( file );
+        facade.handleMutation( this, facade.post( is, file ) );
     }
     
     @SuppressWarnings("deprecation")
@@ -142,32 +128,27 @@ public class DefaultHostedRubyRepository
     public void deleteItem( ResourceStoreRequest request )
             throws org.sonatype.nexus.proxy.StorageException, 
                 UnsupportedStorageOperationException, IllegalOperationException,
-                ItemNotFoundException, AccessDeniedException
+                ItemNotFoundException
     {
-        RubygemsFile file = facade.delete( request.getRequestPath() );
-        if( file == null )
-        {
-            throw new UnsupportedStorageOperationException( "only gem-files can be deleted" );
-        }
-        handleExceptions( file );
+        facade.handleMutation( this, facade.delete( request.getRequestPath() ) );
     }
 
     @Override
     public void moveItem( ResourceStoreRequest from, ResourceStoreRequest to)
             throws UnsupportedStorageOperationException
     {
-        throw new UnsupportedStorageOperationException( "not supported" );
+        throw new UnsupportedStorageOperationException( from.getRequestPath() );
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public StorageFileItem retrieveDirectItem( ResourceStoreRequest request )
-            throws AccessDeniedException,
-                   IllegalOperationException,
+    public StorageItem retrieveDirectItem( ResourceStoreRequest request )
+            throws IllegalOperationException,
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
-        return (StorageFileItem) super.retrieveItem( false, request );
+        // bypass access control
+        return super.retrieveItem( false, request );
     }
     
     @SuppressWarnings("deprecation")
@@ -177,58 +158,7 @@ public class DefaultHostedRubyRepository
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
-        RubygemsFile file = facade.get( request );
-        handleExceptions( file );
-        if ( file.hasNoPayload() )
-        {
-            // handle directories
-            return super.retrieveItem( fromTask, request );
-        }
-        else
-        {
-            return (StorageItem) file.get();
-        }        
-    }
-
-    @SuppressWarnings("deprecation")
-    protected void handleCommonExceptions( RubygemsFile file )
-         throws IllegalOperationException, RemoteAccessException,
-                org.sonatype.nexus.proxy.StorageException
-    {
-        Exception e = file.getException();
-        if ( e != null )
-        {
-            if ( e instanceof IllegalOperationException )
-            {
-                throw (IllegalOperationException) e;
-            }
-            if ( e instanceof RemoteAccessException )
-            {
-                throw (RemoteAccessException) e;
-            }
-            if ( e instanceof org.sonatype.nexus.proxy.StorageException )
-            {
-                throw (org.sonatype.nexus.proxy.StorageException) e;
-            }
-            if ( e instanceof IOException )
-            {
-                throw new org.sonatype.nexus.proxy.StorageException( (IOException) e );
-            }
-            throw new RuntimeException( e );
-        }
-    }
-    
-    @SuppressWarnings( "deprecation" )
-    protected void handleExceptions( RubygemsFile file )
-            throws IllegalOperationException, ItemNotFoundException,
-            RemoteAccessException, org.sonatype.nexus.proxy.StorageException
-    {
-        Exception e = file.getException();
-        if ( e != null && e instanceof ItemNotFoundException )
-        {
-            throw (ItemNotFoundException) e;
-        }
-        handleCommonExceptions( file );
+        return facade.handleRetrieve( this, request, facade.get( request ) );
     }
 
     @Override
@@ -247,12 +177,6 @@ public class DefaultHostedRubyRepository
     {
         // TODO use getApplicationConfiguration().getWorkingDirectory()
         return this.getLocalUrl().replace( "file:", "" );
-    }
-
-    @Override
-    public File getApplicationTempDirectory()
-    {
-        return getApplicationConfiguration().getTemporaryDirectory();
     }
 
     @Override
