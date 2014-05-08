@@ -41,7 +41,7 @@ module Nexus
                       'api', 'v1', 'dependencies', 
                       '*', '*' ) ].each do |file|
         begin
-          JSON.parse( File.read( file ) )
+          Marshal.load( File.read( file ) )
         rescue
           # just in case the file is directory delete it as well
           FileUtils.rm_rf( file )
