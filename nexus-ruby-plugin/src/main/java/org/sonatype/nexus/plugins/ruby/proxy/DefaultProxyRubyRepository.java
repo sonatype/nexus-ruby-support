@@ -183,13 +183,13 @@ public class DefaultProxyRubyRepository
     
     @SuppressWarnings("deprecation")
     @Override
-    public StorageFileItem retrieveDirectItem( ResourceStoreRequest request )
+    public StorageItem retrieveDirectItem( ResourceStoreRequest request )
             throws IllegalOperationException,
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
         // bypass access control
-        return (StorageFileItem) super.retrieveItem( false, request );
+        return super.retrieveItem( false, request );
     }
     
     @SuppressWarnings("deprecation")

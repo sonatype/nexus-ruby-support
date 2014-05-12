@@ -126,7 +126,7 @@ public class DefaultRubyGroupRepository
     }
 
     @SuppressWarnings( "deprecation" )
-    public StorageFileItem retrieveDirectItem( ResourceStoreRequest request )
+    public StorageItem retrieveDirectItem( ResourceStoreRequest request )
         throws org.sonatype.nexus.proxy.StorageException,
                IllegalOperationException, ItemNotFoundException
     {
@@ -134,7 +134,7 @@ public class DefaultRubyGroupRepository
         {
             try
             {
-                return (StorageFileItem) repo.retrieveItem( false, request );
+                return repo.retrieveItem( false, request );
             }
             catch (ItemNotFoundException e)
             {
