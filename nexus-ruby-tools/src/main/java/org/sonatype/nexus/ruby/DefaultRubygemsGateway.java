@@ -223,11 +223,11 @@ public class DefaultRubygemsGateway
     }
     
     @Override
-    public String pom(InputStream specRz)
+    public String pom(InputStream specRz, boolean snapshot)
     {
         try
         {
-            return callMethod( "to_pom", specRz, String.class );
+            return callMethod( "to_pom", new Object[] { specRz, snapshot }, String.class );
         }
         finally
         {

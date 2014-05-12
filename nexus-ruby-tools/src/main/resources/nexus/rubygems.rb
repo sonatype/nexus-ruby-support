@@ -104,9 +104,9 @@ module Nexus
       end
     end
 
-    def to_pom( spec_source )
+    def to_pom( spec_source, snapshot = false )
       spec = Marshal.load( Gem.inflate( read_binary( spec_source ) ) )
-      proj = Maven::Tools::POM.new( spec )
+      proj = Maven::Tools::POM.new( spec, snapshot )
       proj.to_s
     end
 

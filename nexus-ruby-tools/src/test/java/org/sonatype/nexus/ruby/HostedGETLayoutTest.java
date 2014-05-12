@@ -21,14 +21,15 @@ import java.util.zip.GZIPInputStream;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.CachingStorage;
-import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.HostedGETLayout;
+import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.Storage;
 
 @RunWith(Parameterized.class)
@@ -107,12 +108,12 @@ public class HostedGETLayoutTest
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1" }; 
         String[] shas = { "6fabc32da123f7013b2db804273df428a50bc6a4", 
-                          "a289cc8017a52822abf270722f7b003d039baef9", 
+                          "a3f2a8779c1fcac6efb374802567a0a34b541e55", 
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "fb3e466464613ee33b5e2366d0eac789df6af583",
+                          "e466e8cea32dde4bc945578bf331365877e618f1",
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335", 
                           // TODO this one is wrong since it should be different from the snapshot pom !!!
-                          "fb3e466464613ee33b5e2366d0eac789df6af583" };
+                          "c2e725fad300e38cabfbb9d094b79a57a2348089" };
 
         assertFiletypeWithPayload( pathes, FileType.SHA1, shas );
         
@@ -150,7 +151,10 @@ public class HostedGETLayoutTest
         String[] pathes = { "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom",
                             "/maven/releases/rubygems/pre/0.1.0.beta/jbundler-0.1.0.beta.pom",
                             "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/jbundler-0.1.0.beta-123213123.pom" };
-        assertFiletypeWithPayload( pathes, FileType.POM, ByteArrayInputStream.class );
+        String[] xmls = { IOUtils.toString( Thread.currentThread().getContextClassLoader().getResourceAsStream( "zip.pom" ) ),                         
+                          IOUtils.toString( Thread.currentThread().getContextClassLoader().getResourceAsStream( "pre.pom" ) ),                         
+                          IOUtils.toString( Thread.currentThread().getContextClassLoader().getResourceAsStream( "pre-snapshot.pom" ) ) };
+        assertFiletypeWithPayload( pathes, FileType.POM, xmls );
     }
     
     @Test

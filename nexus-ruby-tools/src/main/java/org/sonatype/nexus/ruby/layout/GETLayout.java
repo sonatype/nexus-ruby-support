@@ -122,7 +122,7 @@ public class GETLayout extends DefaultLayout
         return file;
     }
 
-    protected void setPomContext( PomFile file )
+    protected void setPomContext( PomFile file, boolean snapshot )
     {
         try
         {
@@ -133,7 +133,7 @@ public class GETLayout extends DefaultLayout
             }
             else
             {
-                store.memory( gateway.pom( store.getInputStream( gemspec ) ), file );
+                store.memory( gateway.pom( store.getInputStream( gemspec ), snapshot ), file );
             }
         }
         catch (IOException e)
@@ -167,7 +167,7 @@ public class GETLayout extends DefaultLayout
     public PomFile pomSnapshot( String name, String version, String timestamp )
     {
         PomFile file = super.pomSnapshot( name, version, timestamp );
-        setPomContext( file );
+        setPomContext( file, true );
         return file;
     }
 
@@ -175,7 +175,7 @@ public class GETLayout extends DefaultLayout
     public PomFile pom( String name, String version )
     { 
         PomFile file = super.pom( name, version );
-        setPomContext( file );
+        setPomContext( file, false );
         return file;
     }
 

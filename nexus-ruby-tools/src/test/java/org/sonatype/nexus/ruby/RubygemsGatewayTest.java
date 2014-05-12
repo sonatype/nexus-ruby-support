@@ -104,6 +104,15 @@ public class RubygemsGatewayTest
         assertEquals( "versions size", 1, versions.size() );
         assertEquals( "version", "3.2.11", versions.get( 0 ) );
     }
+    
+    @Test
+    public void testPom() throws Exception
+    {
+        File some = new File( "src/test/resources/rb-fsevent-0.9.4.gemspec.rz" );
+        
+        String pom = gateway.pom( new FileInputStream( some ), false );
+        assertEquals( "Very simple &amp; usable FSEvents API", pom.replace( "\n", "" ).replaceAll( "<developers>.*$", "" ).replaceAll( "^.*<name>|</name>.*$", "" ) );
+    }
 
     @Test
     public void testEmptyDependencies() throws Exception

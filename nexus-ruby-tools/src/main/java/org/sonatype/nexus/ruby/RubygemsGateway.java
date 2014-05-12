@@ -18,7 +18,7 @@ public interface RubygemsGateway {
     Object spec( InputStream gem );
     Object spec( InputStream gem, String gemname );
     
-    String pom( InputStream specRz );
+    String pom( InputStream specRz, boolean snapshot );
 
     InputStream addSpec( Object spec, InputStream specsDump, SpecsIndexType type );
 
