@@ -10,10 +10,11 @@
     <version>2.6.4-02</version>
 -->
     <!-- it is needed to compile against this version which is binary compatible with 2.8.x-->
-    <version>2.7.2-03</version>
 <!--
-    <version>2.8.0-05</version>
+    <version>2.7.2-03</version>
 -->
+    <version>2.8.0-05</version>
+
   </parent>
 
   <groupId>org.sonatype.nexus.ruby</groupId>
@@ -77,14 +78,14 @@
       <dependency>
         <groupId>org.sonatype.nexus.ruby</groupId>
         <artifactId>nexus-ruby-tools</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>3.0.0</version>
       </dependency>
 
       <dependency>
         <groupId>org.sonatype.nexus.ruby</groupId>
         <artifactId>nexus-ruby-tools</artifactId>
         <classifier>tests</classifier>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>3.0.0</version>
       </dependency>
 
     </dependencies>
