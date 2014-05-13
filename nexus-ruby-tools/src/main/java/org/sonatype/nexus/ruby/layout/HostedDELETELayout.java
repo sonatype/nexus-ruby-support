@@ -25,31 +25,41 @@ public class HostedDELETELayout extends NoopDefaultLayout
     @Override
     public SpecsIndexFile specsIndexFile( String name )
     {
-        return null;
+        SpecsIndexFile file = super.specsIndexFile( name );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public GemspecFile gemspecFile( String name, String version, String platform )
     {
-        return null;
+        GemspecFile file = super.gemspecFile( name, version, platform );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public GemspecFile gemspecFile( String name )
     {
-        return null;
+        GemspecFile file = super.gemspecFile( name );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public DependencyFile dependencyFile( String name )
     {
-        return null;
+        DependencyFile file = super.dependencyFile( name );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public ApiV1File apiV1File( String name )
-    {
-        return null;
+    { 
+        ApiV1File file = super.apiV1File( name );
+        file.markAsForbidden();
+        return file;
     }
     
     @Override

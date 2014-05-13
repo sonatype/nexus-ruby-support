@@ -18,7 +18,8 @@ public class DELETELayoutTest
     extends TestCase
 {
     private final DefaultRubygemsFileSystem bootstrap =
-            new DefaultRubygemsFileSystem( new DELETELayout( null, new SimpleStorage( new File( "target" ) ) ) );
+            new DefaultRubygemsFileSystem( new DELETELayout( null, new SimpleStorage( new File( "target" ) ) ),
+                                           null, null );
     
     @Test
     public void testSpecsZippedIndex()
@@ -37,7 +38,7 @@ public class DELETELayoutTest
         String[] pathes = { "/specs.4.8",
                             "/prerelease_specs.4.8",
                             "/latest_specs.4.8" }; 
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -51,7 +52,7 @@ public class DELETELayoutTest
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/maven-metadata.xml.sha1",
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.gem.sha1",
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.pom.sha1" }; 
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -60,7 +61,7 @@ public class DELETELayoutTest
     {        
         String[] pathes = { "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.gem", 
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.gem" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
     
     @Test
@@ -69,7 +70,7 @@ public class DELETELayoutTest
     {        
         String[] pathes = { "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.pom", 
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.pom" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
     
     @Test
@@ -78,7 +79,7 @@ public class DELETELayoutTest
     {        
         String[] pathes = { "/maven/releases/rubygems/jbundler/maven-metadata.xml",
                             "/maven/prereleases/rubygems/jbundler/maven-metadata.xml" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -86,7 +87,7 @@ public class DELETELayoutTest
         throws Exception
     {        
         String[] pathes = { "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/maven-metadata.xml" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -94,7 +95,7 @@ public class DELETELayoutTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/dependencies?gems=nexus,bundler" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     
@@ -103,7 +104,7 @@ public class DELETELayoutTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/gems", "/api/v1/api_key" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
 
@@ -142,7 +143,7 @@ public class DELETELayoutTest
                             "/maven/prereleases/rubygems/jbundler",
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT", 
                           };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
     
     @Test
@@ -193,11 +194,11 @@ public class DELETELayoutTest
         }
     }
     
-    protected void assertNull( String[] pathes )
+    protected void assertForbidden( String[] pathes )
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.get( path ), equalTo( null ) );
+            assertThat( path, bootstrap.get( path ).forbidden(), is( true ) );
         }
     }
 }

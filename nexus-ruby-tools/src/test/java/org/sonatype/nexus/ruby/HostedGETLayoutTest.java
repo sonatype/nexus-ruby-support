@@ -73,7 +73,8 @@ public class HostedGETLayoutTest
     public HostedGETLayoutTest( Storage store )
     {
         bootstrap = new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                               store ) );
+                                                                        store ),
+                                                   null, null );
      
     }
     
@@ -108,12 +109,11 @@ public class HostedGETLayoutTest
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1" }; 
         String[] shas = { "6fabc32da123f7013b2db804273df428a50bc6a4", 
-                          "a3f2a8779c1fcac6efb374802567a0a34b541e55", 
+                          "c766f0f86af55f85d433d6a5c21cc43e80b66159", 
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "e466e8cea32dde4bc945578bf331365877e618f1",
-                          "b7311d2f46398dbe40fd9643f3d4e5d473574335", 
-                          // TODO this one is wrong since it should be different from the snapshot pom !!!
-                          "c2e725fad300e38cabfbb9d094b79a57a2348089" };
+                          "b8b8aec0de3fc0e8021b3491ab10551db30b7f1c",
+                          "b7311d2f46398dbe40fd9643f3d4e5d473574335",
+                          "3d348e107f89e5a645786cea8bd9cda6144786e7" };
 
         assertFiletypeWithPayload( pathes, FileType.SHA1, shas );
         
@@ -249,7 +249,7 @@ public class HostedGETLayoutTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/gems" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -401,11 +401,11 @@ public class HostedGETLayoutTest
         }
     }
 
-    protected void assertNull( String[] pathes )
+    protected void assertForbidden( String[] pathes )
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.get( path ), nullValue() );
+            assertThat( path, bootstrap.get( path ).forbidden(), is( true ) );
         }
     }
 }

@@ -70,15 +70,15 @@ public class HostedDELETELayoutTest
         } );
     }
 
-    private final DefaultRubygemsFileSystem bootstrap;
-    private final DefaultRubygemsFileSystem hostedFileSystem;
+    private final DefaultRubygemsFileSystem fileSystem;
 
     public HostedDELETELayoutTest( Storage store ) throws IOException
     {
-        bootstrap = new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                                        store ) );
-        hostedFileSystem = new DefaultRubygemsFileSystem( new HostedDELETELayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                                                  new SimpleStorage( hostedBase() ) ) );
+        fileSystem = new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+                                                                        store ), 
+                                                    null,
+                                                    new HostedDELETELayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+                                                                            new SimpleStorage( hostedBase() ) ) );
         // delete proxy files
         proxyBase();
     }
@@ -86,7 +86,7 @@ public class HostedDELETELayoutTest
     @Before
     public void deleteGems()
     {
-        hostedFileSystem.get( "/gems/zip-2.0.2.gem" );
+        fileSystem.delete( "/gems/zip-2.0.2.gem" );
     }
     
     @Test
@@ -118,9 +118,9 @@ public class HostedDELETELayoutTest
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1" }; 
         String[] shas = { "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "e466e8cea32dde4bc945578bf331365877e618f1",
+                          "b8b8aec0de3fc0e8021b3491ab10551db30b7f1c",
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "c2e725fad300e38cabfbb9d094b79a57a2348089" };
+                          "3d348e107f89e5a645786cea8bd9cda6144786e7" };
 
         assertFiletypeWithPayload( pathes, FileType.SHA1, shas );
         
@@ -261,7 +261,7 @@ public class HostedDELETELayoutTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/gems" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -346,7 +346,7 @@ public class HostedDELETELayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.get( path );
+            RubygemsFile file = fileSystem.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), notNullValue() );
             assertThat( path, file.hasException(), is( false ) );
@@ -358,7 +358,7 @@ public class HostedDELETELayoutTest
         int index = 0;
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.get( path );
+            RubygemsFile file = fileSystem.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), is( instanceOf( ByteArrayInputStream.class ) ) );
             assertThat( path, file.hasException(), is( false ) );
@@ -387,7 +387,7 @@ public class HostedDELETELayoutTest
         int index = 0;
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.get( path );
+            RubygemsFile file = fileSystem.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), is( instanceOf( payload ) ) );
             assertThat( path, file.hasException(), is( false ) );
@@ -405,7 +405,7 @@ public class HostedDELETELayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.get( path );
+            RubygemsFile file = fileSystem.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), nullValue() );
             assertThat( path, file.hasNoPayload(), is( found ) );
@@ -440,11 +440,11 @@ public class HostedDELETELayoutTest
 //        }
 //    }
 
-    protected void assertNull( String[] pathes )
+    protected void assertForbidden( String[] pathes )
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.get( path ), nullValue() );
+            assertThat( path, fileSystem.get( path ).forbidden(), is( true ) );
         }
     }
 }

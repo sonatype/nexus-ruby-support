@@ -69,27 +69,28 @@ public class HostedPOSTLayoutTest
     }
 
     private final DefaultRubygemsFileSystem fileSystem;
-    private final DefaultRubygemsFileSystem hostedFileSystem;
     private final boolean isHosted;
 
     public HostedPOSTLayoutTest( Storage store ) throws IOException
     {
-        fileSystem = 
-                new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                                         store ) );
         if ( store instanceof CachingStorage )
         {
             isHosted = false;
-            hostedFileSystem =
+            fileSystem =
                     new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ),
-                                                                        new SimpleStorage( hostedBase() ) ) ); 
+                                                                        new SimpleStorage( hostedBase() ) ),
+                                                   null,
+                                                   null ); 
         }
         else
         {
             isHosted = true;
-            hostedFileSystem = 
-                    new DefaultRubygemsFileSystem( new HostedPOSTLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                                         store ) );
+            fileSystem = 
+                    new DefaultRubygemsFileSystem( new HostedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ),
+                                                                        new SimpleStorage( hostedBase() ) ),
+                                                   new HostedPOSTLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+                                                                         store ),
+                                                   null );
         }
     }
     
@@ -103,18 +104,18 @@ public class HostedPOSTLayoutTest
             File source = new File( "src/test/hostedrepo" );
             FileUtils.deleteDirectory( base );
             FileUtils.copyDirectory( source, base, true );
-            hostedFileSystem.post( new FileInputStream( "src/test/second-2.gem" ), 
-                                 "/gems/second-2.gem" );
+            fileSystem.post( new FileInputStream( "src/test/second-2.gem" ), 
+                             "/gems/second-2.gem" );
         }
         else
         {
             // get those files in place for the proxy to find
-            hostedFileSystem.get( "/quick/Marshal.4.8/pre-0.1.0.beta.gemspec.rz" );            
-            hostedFileSystem.get( "/api/v1/dependencies/pre.json.rz" );
-            hostedFileSystem.get( "/quick/Marshal.4.8/zip-2.0.2.gemspec.rz" );            
-            hostedFileSystem.get( "/api/v1/dependencies/zip.json.rz" );
-            hostedFileSystem.get( "/quick/Marshal.4.8/second-2.gemspec.rz" );            
-            hostedFileSystem.get( "/api/v1/dependencies/second.json.rz" );
+            fileSystem.get( "/quick/Marshal.4.8/pre-0.1.0.beta.gemspec.rz" );            
+            fileSystem.get( "/api/v1/dependencies/pre.json.rz" );
+            fileSystem.get( "/quick/Marshal.4.8/zip-2.0.2.gemspec.rz" );            
+            fileSystem.get( "/api/v1/dependencies/zip.json.rz" );
+            fileSystem.get( "/quick/Marshal.4.8/second-2.gemspec.rz" );            
+            fileSystem.get( "/api/v1/dependencies/second.json.rz" );
         }
     }
     
@@ -151,13 +152,13 @@ public class HostedPOSTLayoutTest
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1" }; 
         String[] shas = { "ccef6223599eb84674c0e3112f3157ab9ea8a776",
-                          "51ad411072b27877f9af323f7f25067ee3af96a9",
+                          "247af252cb74b337188eba55432b9e47e416c4d9",
                           "6fabc32da123f7013b2db804273df428a50bc6a4",
-                          "a3f2a8779c1fcac6efb374802567a0a34b541e55",
+                          "c766f0f86af55f85d433d6a5c21cc43e80b66159",
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "e466e8cea32dde4bc945578bf331365877e618f1",
+                          "b8b8aec0de3fc0e8021b3491ab10551db30b7f1c",
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "c2e725fad300e38cabfbb9d094b79a57a2348089" };
+                          "3d348e107f89e5a645786cea8bd9cda6144786e7" };
 
         assertFiletypeWithPayload( pathes, FileType.SHA1, shas );
         
@@ -289,7 +290,14 @@ public class HostedPOSTLayoutTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/dependencies?gems=zip,pre", "/api/v1/dependencies?gems=zip,pre,second" };
-        assertFiletypeWithPayload( pathes, FileType.BUNDLER_API, org.sonatype.nexus.ruby.ByteArrayInputStream.class );
+        if ( isHosted )
+        {
+            assertNotExists( pathes );
+        }
+        else
+        {
+            assertFiletypeWithPayload( pathes, FileType.BUNDLER_API, InputStream.class );
+        }
     }
 
     
@@ -298,7 +306,7 @@ public class HostedPOSTLayoutTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/gems" };
-        assertNull( pathes );
+        assertForbiddenGet( pathes );
     }
 
     @Test
@@ -377,14 +385,23 @@ public class HostedPOSTLayoutTest
     public void testDependency()
         throws Exception
     {        
-        String[] pathes = { "/api/v1/dependencies?gems=zip",
-                            "/api/v1/dependencies/z/zip.json.rz",
-                            "/api/v1/dependencies?gems=pre",
+        String[] pathes = { "/api/v1/dependencies/z/zip.json.rz",
                             "/api/v1/dependencies/pre.json.rz",
-                            "/api/v1/dependencies?gems=second", 
                             "/api/v1/dependencies/s/second.json.rz",
-                            };
+                           };
         assertFiletypeWithPayload( pathes, FileType.DEPENDENCY, InputStream.class );
+        pathes = new String[] { "/api/v1/dependencies?gems=zip",
+                                "/api/v1/dependencies?gems=pre",
+                                "/api/v1/dependencies?gems=second", 
+                               };
+        if ( isHosted )
+        {
+            assertNotExists( pathes );
+        }
+        else
+        {
+            assertFiletypeWithPayload( pathes, FileType.DEPENDENCY, InputStream.class );
+        }
     }
 
     protected void assertFiletype( String[] pathes, FileType type )
@@ -409,7 +426,11 @@ public class HostedPOSTLayoutTest
             assertThat( path, file.hasException(), is( false ) );
             assertThat( path, readPayload( file ).replaceAll( "[0-9]{8}\\.?[0-9]{6}", "2014" ), equalTo( payloads[ index ++ ] ) );
         }
-    }
+        if ( isHosted )
+        {
+            assertForbiddenPost( pathes );
+        }
+   }
 
     protected String readPayload( RubygemsFile file )
     {
@@ -437,6 +458,10 @@ public class HostedPOSTLayoutTest
             assertThat( path, file.get(), is( instanceOf( payload ) ) );
             assertThat( path, file.hasException(), is( false ) );
             result[ index ++ ] = file;
+        } 
+        if( type != FileType.GEM || !isHosted)
+        {
+            assertForbiddenPost( pathes );
         }
         return result;
     }
@@ -450,6 +475,10 @@ public class HostedPOSTLayoutTest
             assertThat( path, file.get(), nullValue() );
             assertThat( path, file.hasException(), is( false ) );
         }
+        if( !isHosted && type != FileType.NOT_FOUND )
+        {
+            assertForbiddenPost( pathes );
+        }
     }
     
     protected void assertNotFound( String[] pathes )
@@ -457,11 +486,26 @@ public class HostedPOSTLayoutTest
         assertFiletypeWithNullPayload( pathes, FileType.NOT_FOUND );
     }
 
-    protected void assertNull( String[] pathes )
+    protected void assertForbiddenPost( String[] pathes )
     {
         for( String path : pathes )
         {
-            assertThat( path, fileSystem.get( path ), nullValue() );
+            assertThat( path, fileSystem.post( null, path ).forbidden(), is( true ) );
+        }
+    }
+    
+    protected void assertForbiddenGet( String[] pathes )
+    {
+        for( String path : pathes )
+        {
+            assertThat( path, fileSystem.get( path ).forbidden(), is( true ) );
+        }
+    }
+    protected void assertNotExists( String[] pathes )
+    {
+        for( String path : pathes )
+        {
+            assertThat( path, fileSystem.post( null, path ).notExists(), is( true ) );
         }
     }
 }

@@ -18,7 +18,9 @@ public class DELETELayout extends NoopDefaultLayout
     @Override
     public SpecsIndexFile specsIndexFile( String name )
     {
-        return null;
+        SpecsIndexFile file = super.specsIndexFile( name );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
@@ -32,7 +34,9 @@ public class DELETELayout extends NoopDefaultLayout
     @Override
     public ApiV1File apiV1File( String name )
     {
-        return null;
+        ApiV1File file = super.apiV1File( name );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override

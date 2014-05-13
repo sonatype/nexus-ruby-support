@@ -26,7 +26,7 @@
   </scm>
   <properties>
     <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
-    <jruby.plugins.version>1.0.0-rc4</jruby.plugins.version>
+    <jruby.plugins.version>1.0.1</jruby.plugins.version>
   </properties>
   <build>
     <extensions>

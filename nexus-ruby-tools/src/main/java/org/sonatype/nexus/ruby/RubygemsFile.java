@@ -192,9 +192,14 @@ public class RubygemsFile {
         state = State.TEMP_UNAVAILABLE;
     }
     
-    public void markAsForbiiden()
+    public void markAsForbidden()
     {
         state = State.FORBIDDEN;
+    }
+
+    public boolean forbidden()
+    {
+        return state == State.FORBIDDEN;
     }
 
 }

@@ -59,12 +59,13 @@ public class GETLayoutTest
         } );
     }
 
-    private final DefaultRubygemsFileSystem bootstrap;
+    private final DefaultRubygemsFileSystem fileSystem;
 
     public GETLayoutTest( Storage store )
     {
-        bootstrap = new DefaultRubygemsFileSystem( new GETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                         store ) );
+        fileSystem = new DefaultRubygemsFileSystem( new GETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+                                                                   store ),
+                                                    null, null );
      
     }
     
@@ -103,10 +104,10 @@ public class GETLayoutTest
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1" }; 
         String[] shas = { "3498b89783698a7590890fc4159e84ea80ab2cbe", "6fabc32da123f7013b2db804273df428a50bc6a4", 
-                          "a3f2a8779c1fcac6efb374802567a0a34b541e55", "24f33a26c5edd889ce3dcfd9e038af900ba10564", 
+                          "c766f0f86af55f85d433d6a5c21cc43e80b66159", "24f33a26c5edd889ce3dcfd9e038af900ba10564", 
                           "d1ef40d6775396c6bec855037a1ff6dcb34afdbd", "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "e466e8cea32dde4bc945578bf331365877e618f1", "81bed0dbaef593e31578f5814304f991f55ff7d4",
-                          "b7311d2f46398dbe40fd9643f3d4e5d473574335", "c2e725fad300e38cabfbb9d094b79a57a2348089" };
+                          "b8b8aec0de3fc0e8021b3491ab10551db30b7f1c", "81bed0dbaef593e31578f5814304f991f55ff7d4",
+                          "b7311d2f46398dbe40fd9643f3d4e5d473574335", "3d348e107f89e5a645786cea8bd9cda6144786e7" };
 
         assertFiletypeWithPayload( pathes, FileType.SHA1, shas );
     }
@@ -235,7 +236,7 @@ public class GETLayoutTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/gems" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -316,7 +317,7 @@ public class GETLayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.get( path );
+            RubygemsFile file = fileSystem.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), notNullValue() );
             assertThat( path, file.hasException(), is( false ) );
@@ -328,7 +329,7 @@ public class GETLayoutTest
         int index = 0;
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.get( path );
+            RubygemsFile file = fileSystem.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), is( instanceOf( ByteArrayInputStream.class ) ) );
             assertThat( path, file.hasException(), is( false ) );
@@ -357,7 +358,7 @@ public class GETLayoutTest
         int index = 0;
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.get( path );
+            RubygemsFile file = fileSystem.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), is( instanceOf( payload ) ) );
             assertThat( path, file.hasException(), is( false ) );
@@ -370,7 +371,7 @@ public class GETLayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.get( path );
+            RubygemsFile file = fileSystem.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), nullValue() );
             assertThat( path, file.hasException(), is( false ) );
@@ -381,17 +382,17 @@ public class GETLayoutTest
     {
         for( String path : pathes )
         {
-            RubygemsFile file = bootstrap.get( path );
+            RubygemsFile file = fileSystem.get( path );
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.getException(), is( instanceOf( IOException.class ) ) );
         }
     }
 
-    protected void assertNull( String[] pathes )
+    protected void assertForbidden( String[] pathes )
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.get( path ), nullValue() );
+            assertThat( path, fileSystem.get( path ).forbidden(), is( true ) );
         }
     }
 }

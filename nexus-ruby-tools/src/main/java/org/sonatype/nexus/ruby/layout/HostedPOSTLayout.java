@@ -121,91 +121,66 @@ public class HostedPOSTLayout extends NoopDefaultLayout
     public ApiV1File apiV1File( String name )
     {
         ApiV1File apiV1 = super.apiV1File( name );
-        if ( "api_key".equals( apiV1.name() ) )
+        if ( !"api_key".equals( apiV1.name() ) )
         {
-            return null;
+            apiV1.markAsForbidden();
         }
         return apiV1;
+    }
+
+    @Override
+    public SpecsIndexFile specsIndexFile( SpecsIndexType type )
+    {
+        SpecsIndexFile file = super.specsIndexFile( type );
+        file.markAsForbidden();
+        return file;
+    }
+
+    @Override
+    public SpecsIndexZippedFile specsIndexZippedFile( SpecsIndexType type )
+    {
+        SpecsIndexZippedFile file = super.specsIndexZippedFile( type );
+        file.markAsForbidden();
+        return file;
     }
     
     @Override
     public SpecsIndexFile specsIndexFile( String name )
     {
-        return null;
+        SpecsIndexFile file = super.specsIndexFile( name );
+        file.markAsForbidden();
+        return file;
+    }
+
+    @Override
+    public SpecsIndexZippedFile specsIndexZippedFile( String name )
+    {
+        SpecsIndexZippedFile file = super.specsIndexZippedFile( name );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public GemspecFile gemspecFile( String name, String version, String platform )
     {
-        return null;
+        GemspecFile file = super.gemspecFile( name, version, platform );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public GemspecFile gemspecFile( String name )
     {
-        return null;
+        GemspecFile file = super.gemspecFile( name );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public DependencyFile dependencyFile( String name )
     {
-        return null;
+        DependencyFile file = super.dependencyFile( name );
+        file.markAsForbidden();
+        return file;
     }
-
-    @Override
-    public BundlerApiFile bundlerApiFile( String namesCommaSeparated )
-    {
-        return null;
-    }
-
-    @Override
-    public MavenMetadataFile mavenMetadata( String name, boolean prereleased )
-    {
-        return null;
-    }
-
-    @Override
-    public MavenMetadataSnapshotFile mavenMetadataSnapshot( String name,
-                                                            String version )
-    {
-        return null;
-    }
-
-    @Override
-    public PomFile pomSnapshot( String name, String version, String timestamp )
-    {
-        return null;
-    }
-
-    @Override
-    public PomFile pom( String name, String version )
-    {
-        return null;
-    }
-
-    @Override
-    public GemArtifactFile gemArtifactSnapshot( String name, String version,
-                                                String timestamp )
-    {
-        return null;
-    }
-
-    @Override
-    public GemArtifactFile gemArtifact( String name, String version )
-    {
-        return null;
-    }
-
-    @Override
-    public Sha1File sha1( RubygemsFile file )
-    {
-        return null;
-    }
-
-    @Override
-    public Directory directory( String path, String... items )
-    {
-        return null;
-    }
-
 }

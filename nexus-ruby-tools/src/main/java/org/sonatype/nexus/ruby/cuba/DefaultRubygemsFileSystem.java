@@ -27,7 +27,12 @@ public class DefaultRubygemsFileSystem extends RubygemsFileSystem
                                             new MavenPrereleasesCuba( new MavenPrereleasesRubygemsCuba() ) ) ) );
     }
 
-    public DefaultRubygemsFileSystem( Layout layout )
+    public DefaultRubygemsFileSystem( Layout getLayout, Layout postLayout, Layout deleteLayout )
+    {
+        this( new DefaultLayout(), getLayout, postLayout, deleteLayout );
+    }
+
+    private DefaultRubygemsFileSystem( Layout layout )
     {
         this( layout, layout, layout, layout );
     }

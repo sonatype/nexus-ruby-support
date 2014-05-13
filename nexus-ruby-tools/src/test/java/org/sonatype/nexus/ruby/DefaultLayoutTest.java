@@ -51,14 +51,14 @@ public class DefaultLayoutTest
         }        
     }
  
-    private RubygemsFileSystem bootstrap;
+    private RubygemsFileSystem fileSystem;
     private DefaultLayout layout;
     
     @Before
     public void setUp() throws Exception
     {
         layout = new DefaultLayout();
-        bootstrap = new DefaultRubygemsFileSystem( layout );
+        fileSystem = new DefaultRubygemsFileSystem( layout, null, null );
     }
     
     @Test
@@ -66,9 +66,9 @@ public class DefaultLayoutTest
         throws Exception
     {
         String path = "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.gem";
-        RubygemsFile file = bootstrap.get( path );
+        RubygemsFile file = fileSystem.get( path );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( path );
+        RubygemsFile file2 = fileSystem.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
         assertThat( file.remotePath(), equalTo( path ) );
@@ -89,9 +89,9 @@ public class DefaultLayoutTest
         throws Exception
     {
         String path = "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123123123.gem";
-        RubygemsFile file = bootstrap.get( path );
+        RubygemsFile file = fileSystem.get( path );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( path );
+        RubygemsFile file2 = fileSystem.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
         assertThat( file.remotePath(), equalTo( path ) );
@@ -112,9 +112,9 @@ public class DefaultLayoutTest
         throws Exception
     {
         String path = "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.pom";
-        RubygemsFile file = bootstrap.get( path );
+        RubygemsFile file = fileSystem.get( path );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( path );
+        RubygemsFile file2 = fileSystem.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
         assertThat( file.remotePath(), equalTo( path ) );
@@ -136,9 +136,9 @@ public class DefaultLayoutTest
         throws Exception
     {
         String path = "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123123123.pom";
-        RubygemsFile file = bootstrap.get( path );
+        RubygemsFile file = fileSystem.get( path );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( path );
+        RubygemsFile file2 = fileSystem.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
         assertThat( file.remotePath(), equalTo( path ) );
@@ -158,9 +158,9 @@ public class DefaultLayoutTest
         throws Exception
     {
         String path = "/maven/releases/rubygems/jbundler/maven-metadata.xml";
-        RubygemsFile file = bootstrap.get( path );
+        RubygemsFile file = fileSystem.get( path );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( path );
+        RubygemsFile file2 = fileSystem.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
         assertThat( file.remotePath(), equalTo( path ) );
@@ -178,9 +178,9 @@ public class DefaultLayoutTest
         throws Exception
     {
         String path = "/maven/prereleases/rubygems/jbundler/maven-metadata.xml";
-        RubygemsFile file = bootstrap.get( path );
+        RubygemsFile file = fileSystem.get( path );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( path );
+        RubygemsFile file2 = fileSystem.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
         assertThat( file.remotePath(), equalTo( path ) );
@@ -198,9 +198,9 @@ public class DefaultLayoutTest
         throws Exception
     {
         String path = "/maven/prereleases/rubygems/jbundler/9.2.3-SNAPSHOT/maven-metadata.xml";
-        RubygemsFile file = bootstrap.get( path );
+        RubygemsFile file = fileSystem.get( path );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( path );
+        RubygemsFile file2 = fileSystem.get( path );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( path ) );
         assertThat( file.remotePath(), equalTo( path ) );
@@ -216,9 +216,9 @@ public class DefaultLayoutTest
     public void testGemfile()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/gems/jbundler-9.2.1.gem" );
+        RubygemsFile file = fileSystem.get( "/gems/jbundler-9.2.1.gem" );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( "/gems/j/jbundler-9.2.1.gem" );
+        RubygemsFile file2 = fileSystem.get( "/gems/j/jbundler-9.2.1.gem" );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/gems/j/jbundler-9.2.1.gem" ) );
         assertThat( file.remotePath(), equalTo( "/gems/jbundler-9.2.1.gem" ) );
@@ -261,9 +261,9 @@ public class DefaultLayoutTest
     public void testGemspecfile()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/quick/Marshal.4.8/jbundler-9.2.1.gemspec.rz" );
+        RubygemsFile file = fileSystem.get( "/quick/Marshal.4.8/jbundler-9.2.1.gemspec.rz" );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( "/quick/Marshal.4.8/j/jbundler-9.2.1.gemspec.rz" );
+        RubygemsFile file2 = fileSystem.get( "/quick/Marshal.4.8/j/jbundler-9.2.1.gemspec.rz" );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/quick/Marshal.4.8/j/jbundler-9.2.1.gemspec.rz" ) );
         assertThat( file.remotePath(), equalTo( "/quick/Marshal.4.8/jbundler-9.2.1.gemspec.rz" ) );
@@ -305,11 +305,11 @@ public class DefaultLayoutTest
     public void testDependencyFile()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/api/v1/dependencies/jbundler.json.rz" );
+        RubygemsFile file = fileSystem.get( "/api/v1/dependencies/jbundler.json.rz" );
         assertNotNull( file );
-        RubygemsFile file2 = bootstrap.get( "/api/v1/dependencies?gems=jbundler" );
+        RubygemsFile file2 = fileSystem.get( "/api/v1/dependencies?gems=jbundler" );
         assertThat( file, equalTo( file2 ) );
-        file2 = bootstrap.get( "/api/v1/dependencies/j/jbundler.json.rz" );
+        file2 = fileSystem.get( "/api/v1/dependencies/j/jbundler.json.rz" );
         assertThat( file, equalTo( file2 ) );
         assertThat( file.storagePath(), equalTo( "/api/v1/dependencies/j/jbundler.json.rz" ) );
         assertThat( file.remotePath(), equalTo( "/api/v1/dependencies?gems=jbundler" ) );
@@ -321,7 +321,7 @@ public class DefaultLayoutTest
     public void testBundlerApiFile1()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/api/v1/dependencies?gems=jbundler" );
+        RubygemsFile file = fileSystem.get( "/api/v1/dependencies?gems=jbundler" );
         assertNotNull( file );
         assertThat( file.storagePath(), equalTo( "/api/v1/dependencies/j/jbundler.json.rz" ) );
         assertThat( file.remotePath(), equalTo( "/api/v1/dependencies?gems=jbundler" ) );
@@ -333,7 +333,7 @@ public class DefaultLayoutTest
     public void testBundlerApiFile2()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/api/v1/dependencies?gems=jbundler,bundler" );
+        RubygemsFile file = fileSystem.get( "/api/v1/dependencies?gems=jbundler,bundler" );
         assertNotNull( file );
         assertNull( file.storagePath() );
         assertNull( file.name() );
@@ -346,10 +346,10 @@ public class DefaultLayoutTest
     public void testSpecsIndexFile()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/specs.4.8.gz" );
+        RubygemsFile file = fileSystem.get( "/specs.4.8.gz" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.SPECS_INDEX_ZIPPED ) );
-        RubygemsFile file2 = bootstrap.get( "/specs.4.8" );
+        RubygemsFile file2 = fileSystem.get( "/specs.4.8" );
         assertThat( file2.type(), equalTo( FileType.SPECS_INDEX ) );
 
         assertThat( (SpecsIndexZippedFile) file, 
@@ -376,10 +376,10 @@ public class DefaultLayoutTest
     public void testLatestSpecsIndexFile()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/latest_specs.4.8.gz" );
+        RubygemsFile file = fileSystem.get( "/latest_specs.4.8.gz" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.SPECS_INDEX_ZIPPED ) );
-        RubygemsFile file2 = bootstrap.get( "/latest_specs.4.8" );
+        RubygemsFile file2 = fileSystem.get( "/latest_specs.4.8" );
         assertThat( file2.type(), equalTo( FileType.SPECS_INDEX ) );
         
         assertThat( (SpecsIndexZippedFile) file, 
@@ -406,10 +406,10 @@ public class DefaultLayoutTest
     public void testPrereleasedSpecsIndexFile()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/prerelease_specs.4.8.gz" );
+        RubygemsFile file = fileSystem.get( "/prerelease_specs.4.8.gz" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.SPECS_INDEX_ZIPPED ) );
-        RubygemsFile file2 = bootstrap.get( "/prerelease_specs.4.8" );
+        RubygemsFile file2 = fileSystem.get( "/prerelease_specs.4.8" );
         assertThat( file2.type(), equalTo( FileType.SPECS_INDEX ) );
         
         assertThat( (SpecsIndexZippedFile) file, 
@@ -436,16 +436,16 @@ public class DefaultLayoutTest
     public void testNotFile()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/prereleased_specs.4.8.gz" );
+        RubygemsFile file = fileSystem.get( "/prereleased_specs.4.8.gz" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.NOT_FOUND ) );
-        file = bootstrap.get( "/pre_specs.4.8" );
+        file = fileSystem.get( "/pre_specs.4.8" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.NOT_FOUND ) );
-        file = bootstrap.get( "/gems/something.json" );
+        file = fileSystem.get( "/gems/something.json" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.NOT_FOUND ) );
-        file = bootstrap.get( "/something/index.html" );
+        file = fileSystem.get( "/something/index.html" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.NOT_FOUND ) );
     }
@@ -454,64 +454,64 @@ public class DefaultLayoutTest
     public void testDirectory()
         throws Exception
     {
-        RubygemsFile file = bootstrap.get( "/api" );
+        RubygemsFile file = fileSystem.get( "/api" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        RubygemsFile file2 = bootstrap.get( "/api/" );
+        RubygemsFile file2 = fileSystem.get( "/api/" );
         assertThat( file, equalTo( file2 ) );
         
-        file = bootstrap.get( "/api/v1" );
+        file = fileSystem.get( "/api/v1" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        file2 = bootstrap.get( "/api/v1/" );
+        file2 = fileSystem.get( "/api/v1/" );
         assertThat( file, equalTo( file2 ) );
         
-        file = bootstrap.get( "/api/v1/dependencies" );
+        file = fileSystem.get( "/api/v1/dependencies" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        file2 = bootstrap.get( "/api/v1/dependencies/" );
+        file2 = fileSystem.get( "/api/v1/dependencies/" );
         assertThat( file, equalTo( file2 ) );
         
-        file = bootstrap.get( "/api/v1/dependencies/a/" );
+        file = fileSystem.get( "/api/v1/dependencies/a/" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        file2 = bootstrap.get( "/api/v1/dependencies/a" );
+        file2 = fileSystem.get( "/api/v1/dependencies/a" );
         assertThat( file, equalTo( file2 ) );
 
-        file = bootstrap.get( "/" );
+        file = fileSystem.get( "/" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        file2 = bootstrap.get( "" );
+        file2 = fileSystem.get( "" );
         assertThat( file, equalTo( file2 ) );
 
-        file = bootstrap.get( "/gems" );
+        file = fileSystem.get( "/gems" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        file2 = bootstrap.get( "/gems/" );
+        file2 = fileSystem.get( "/gems/" );
         assertThat( file, equalTo( file2 ) );
         
-        file = bootstrap.get( "/gems/v" );
+        file = fileSystem.get( "/gems/v" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        file2 = bootstrap.get( "/gems/v/" );
+        file2 = fileSystem.get( "/gems/v/" );
         assertThat( file, equalTo( file2 ) );
 
-        file = bootstrap.get( "/quick" );
+        file = fileSystem.get( "/quick" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        file2 = bootstrap.get( "/quick/" );
+        file2 = fileSystem.get( "/quick/" );
         assertThat( file, equalTo( file2 ) );
         
-        file = bootstrap.get( "/quick/Marshal.4.8" );
+        file = fileSystem.get( "/quick/Marshal.4.8" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        file2 = bootstrap.get( "/quick/Marshal.4.8/" );
+        file2 = fileSystem.get( "/quick/Marshal.4.8/" );
         assertThat( file, equalTo( file2 ) );
         
-        file = bootstrap.get( "/quick/Marshal.4.8/-" );
+        file = fileSystem.get( "/quick/Marshal.4.8/-" );
         assertNotNull( file );
         assertThat( file.type(), equalTo( FileType.DIRECTORY ) );
-        file2 = bootstrap.get( "/quick/Marshal.4.8/-/" );
+        file2 = fileSystem.get( "/quick/Marshal.4.8/-/" );
         assertThat( file, equalTo( file2 ) );
     }
 }

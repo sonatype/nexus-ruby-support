@@ -125,43 +125,4 @@ describe Nexus::Rubygems do
     Dir[ File.join( broken_to, 'quick', '**', '*' ) ].size.must_equal 31
   end
 
-  it 'finds no gem with unknown gemname' do
-    subject.name_versions_map nil, nil, 'no' => []
-
-    subject.gemname_with_platform( 'unknown', '123', nil, nil ).must_equal nil
-  end
-
-  it 'finds no gem with unknown versions' do
-    subject.name_versions_map nil, nil, 'no' => [ '23-', '13-java' ]
-
-    subject.gemname_with_platform( 'no', '123', nil, nil ).must_equal nil
-  end
-
-  it 'finds gem with java versions' do
-    subject.name_versions_map nil, nil, 'my' => [ '13-', '13-universal-java', '13-ruby' ]
-
-    subject.gemname_with_platform( 'my', '13', nil, nil ).must_equal 'my-13-universal-java'
-  end
-
-  it 'finds no gem with prereleased versions' do
-    subject.name_versions_map nil, nil, 'my' => [ '23-', '13-universal-java', '13-java', '13-universal-ruby' ]
-    subject.name_preversions_map nil, nil, 'no' => []
-
-    subject.gemname_with_platform( 'my', '13a', nil, nil ).must_equal nil
-  end
-
-  it 'finds gem with prereleased versions' do
-    subject.name_preversions_map nil, nil, 'my' => [ '1a3-universal-java', '1a3-universal-ruby' ]
-    subject.name_versions_map nil, nil, 'no' => []
-
-    subject.gemname_with_platform( 'my', '1a3', nil, nil ).must_equal 'my-1a3-universal-java'
-  end
-
-  it 'omit platform for gem with ruby platform' do
-    subject.name_preversions_map nil, nil, 'my' => [ '1a3-', '1a3-universal-ruby' ]
-    subject.name_versions_map nil, nil, 'no' => []
-
-    subject.gemname_with_platform( 'my', '1a3', nil, nil ).must_equal 'my-1a3'
-  end
-
 end

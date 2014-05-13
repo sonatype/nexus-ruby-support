@@ -33,57 +33,76 @@ public class NoopDefaultLayout extends DefaultLayout
     @Override
     public Sha1File sha1( RubygemsFile file )
     {
-        return null;
+        Sha1File sha = super.sha1( file );
+        sha.markAsForbidden();
+        return sha;
     }
 
     @Override
     public PomFile pomSnapshot( String name, String version, String timestamp )
     {
-        return null;
+        PomFile file = super.pomSnapshot( name, version, timestamp );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public GemArtifactFile gemArtifactSnapshot( String name, String version,
                                                 String timestamp )
     {
-        return null;
+        GemArtifactFile file = super.gemArtifactSnapshot( name, version, timestamp );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public PomFile pom( String name, String version )
     {
-        return null;
+        PomFile file = super.pom( name, version );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public GemArtifactFile gemArtifact( String name, String version )
     {
-        return null;
+
+        GemArtifactFile file = super.gemArtifact( name, version );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public MavenMetadataSnapshotFile mavenMetadataSnapshot( String name,
                                                             String version )
     {
-        return null;
+        MavenMetadataSnapshotFile file = super.mavenMetadataSnapshot( name, version );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public MavenMetadataFile mavenMetadata( String name, boolean prereleased )
     {
-        return null;
+        MavenMetadataFile file = super.mavenMetadata( name, prereleased );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public Directory directory( String path, String... items )
     {
-        return null;
+        Directory file = super.directory( path, items );
+        file.markAsForbidden();
+        return file;
     }
 
     @Override
     public BundlerApiFile bundlerApiFile( String names )
     {
-        return null;
+        BundlerApiFile file = super.bundlerApiFile( names );
+        file.markAsForbidden();
+        return file;
     }
 
     protected SpecsIndexZippedFile ensureSpecsIndexZippedFile( SpecsIndexType type ) throws IOException

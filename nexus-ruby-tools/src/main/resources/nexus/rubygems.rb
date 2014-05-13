@@ -68,12 +68,8 @@ module Nexus
       Gem.deflate( Marshal.dump( spec ) ).bytes.to_a
     end
 
-    def spec_get( gemfile, expected = nil )
-      spec = load_spec( gemfile )
-      if expected && spec.file_name != expected
-        raise "mismatched filename: expected #{expected} but got #{spec.file_name}" 
-      end
-      spec
+    def spec_get( gemfile )
+      load_spec( gemfile )
     end
 
     def load_spec( gemfile )
@@ -182,30 +178,6 @@ module Nexus
     def list_all_versions( name, source, modified, prerelease = false )
       map_method = prerelease ? :name_preversions_map : :name_versions_map
       send( map_method, source, modified )[ name.to_s ] || []
-    end
-
-    def list_versions( name, source, modified, prerelease = false )
-      map_method = prerelease ? :name_preversions_map : :name_versions_map
-      versions = send( map_method, source, modified )[ name.to_s ] || []
-      versions = versions.select { |v| v.downcase =~ /(-|-ruby|-java|-jruby|-universal-ruby|-universal-java|-universal-jruby)$/ }.collect { |v| v.sub( /-.*$/, '' ) }
-      versions.uniq!
-      versions
-    end
-
-    def gemname_with_platform( gemname, version, source, modified )
-      map = if version.match( /[a-zA-Z]/ )
-              name_preversions_map source, modified
-            else
-              name_versions_map source, modified
-            end
-      if versions = map[ gemname ]
-        versions = versions.select { |v| v.match( /^#{version}-/ ) }
-        versions = versions.collect { |v|  v.match( /-$/ ) ? v + 'ruby' : v }
-        versions = versions.sort do |m,n| 
-          m.sub( /-universal/, '') <=> n.sub( /-universal/, '')
-        end
-        gemname + '-' + versions.first.sub( /^#{version}-ruby$/, version ) unless versions.empty?
-      end
     end
 
     def empty_specs

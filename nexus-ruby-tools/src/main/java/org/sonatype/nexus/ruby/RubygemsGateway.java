@@ -16,7 +16,6 @@ public interface RubygemsGateway {
     InputStream emptyIndex();
 
     Object spec( InputStream gem );
-    Object spec( InputStream gem, String gemname );
     
     String pom( InputStream specRz, boolean snapshot );
 
@@ -34,14 +33,10 @@ public interface RubygemsGateway {
 
     InputStream createDependencies( List<InputStream> gemspecs );
 
-    List<String> listVersions( String name, InputStream inputStream, long modified, boolean prerelease );
-
     String filename( Object spec );
 
     String name( Object spec );
     
-    String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified );
-
     DependencyData dependencies( InputStream inputStream, String name, long modified );
 
     List<String> listAllVersions( String name, InputStream inputStream,

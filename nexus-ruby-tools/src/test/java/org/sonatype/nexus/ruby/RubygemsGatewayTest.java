@@ -2,7 +2,6 @@ package org.sonatype.nexus.ruby;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +11,6 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.apache.commons.io.IOUtils;
-import org.jruby.embed.InvokeFailedException;
 import org.jruby.embed.PathType;
 import org.jruby.embed.ScriptingContainer;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -61,19 +59,6 @@ public class RubygemsGatewayTest
         assertTrue( "spec from stream equal spec from gem", equalSpecs );
     }
 
-    @Test//( expected = org.jruby.embed.InvokeFailedException.class )
-    public void testLoadSpecWithNameMismatched() throws FileNotFoundException
-    {
-        String gem = "src/test/resources/gems/n/nexus-0.1.0-java.gem";
-
-        try {
-            gateway.spec( new FileInputStream( gem ), "nexus-1.1.1.gem" );
-            fail( "exception needed" );
-        }
-        catch( InvokeFailedException expected ){
-        }
-    }
-
     @Test
     public void testGenerateGemspecRzWithPlatform()
         throws Exception
@@ -87,22 +72,22 @@ public class RubygemsGatewayTest
     }
     
     @Test
-    public void testListVersions() throws Exception
+    public void testListAllVersions() throws Exception
     {
         File some = new File( "src/test/resources/some_specs" );
         
-        List<String> versions = gateway.listVersions( "bla_does_not_exist", 
-                                                      new FileInputStream( some ), 
-                                                      0, 
-                                                      false );
+        List<String> versions = gateway.listAllVersions( "bla_does_not_exist", 
+                                                         new FileInputStream( some ), 
+                                                         0, 
+                                                         false );
         assertEquals( "versions size", 0, versions.size() );
 
-        versions = gateway.listVersions( "activerecord", 
-                                         new FileInputStream( some ), 
-                                         0, 
-                                         false );
+        versions = gateway.listAllVersions( "activerecord", 
+                                            new FileInputStream( some ), 
+                                            0, 
+                                            false );
         assertEquals( "versions size", 1, versions.size() );
-        assertEquals( "version", "3.2.11", versions.get( 0 ) );
+        assertEquals( "version", "3.2.11-ruby", versions.get( 0 ) );
     }
     
     @Test

@@ -3,6 +3,7 @@ package org.sonatype.nexus.ruby;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import junit.framework.TestCase;
 
 import org.junit.Test;
@@ -12,7 +13,8 @@ import org.sonatype.nexus.ruby.layout.NoopDefaultLayout;
 public class NoopDefaultLayoutTest
     extends TestCase
 {
-    private final DefaultRubygemsFileSystem bootstrap = new DefaultRubygemsFileSystem( new NoopDefaultLayout( null, null ) );
+    private final DefaultRubygemsFileSystem bootstrap = new DefaultRubygemsFileSystem( new NoopDefaultLayout( null, null ), 
+                                                                                       null, null );
 
     @Test
     public void testSpecsZippedIndex()
@@ -45,7 +47,7 @@ public class NoopDefaultLayoutTest
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/maven-metadata.xml.sha1",
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.gem.sha1",
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.pom.sha1" }; 
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -54,7 +56,7 @@ public class NoopDefaultLayoutTest
     {        
         String[] pathes = { "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.gem", 
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.gem" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
     
     @Test
@@ -63,7 +65,7 @@ public class NoopDefaultLayoutTest
     {        
         String[] pathes = { "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.pom", 
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.pom" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
     
     @Test
@@ -72,7 +74,7 @@ public class NoopDefaultLayoutTest
     {        
         String[] pathes = { "/maven/releases/rubygems/jbundler/maven-metadata.xml",
                             "/maven/prereleases/rubygems/jbundler/maven-metadata.xml" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -80,7 +82,7 @@ public class NoopDefaultLayoutTest
         throws Exception
     {        
         String[] pathes = { "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/maven-metadata.xml" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     @Test
@@ -88,7 +90,7 @@ public class NoopDefaultLayoutTest
         throws Exception
     {        
         String[] pathes = { "/api/v1/dependencies?gems=nexus,bundler" };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
 
     
@@ -136,7 +138,7 @@ public class NoopDefaultLayoutTest
                             "/maven/prereleases/rubygems/jbundler",
                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT", 
                           };
-        assertNull( pathes );
+        assertForbidden( pathes );
     }
     
     @Test
@@ -173,11 +175,11 @@ public class NoopDefaultLayoutTest
             assertThat( path, bootstrap.get( path ).type(), equalTo( type ) );
         }
     }
-    protected void assertNull( String[] pathes )
+    protected void assertForbidden( String[] pathes )
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.get( path ), equalTo( null ) );
+            assertThat( path, bootstrap.get( path ).forbidden(), is( true ) );
         }
     }
 }

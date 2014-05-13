@@ -2,6 +2,7 @@ package org.sonatype.nexus.ruby.cuba;
 
 import java.io.InputStream;
 
+import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.Layout;
 import org.sonatype.nexus.ruby.RubygemsFile;
 
@@ -84,10 +85,15 @@ public class RubygemsFileSystem
         if ( postLayout != null )
         {
             RubygemsFile file = visit( postLayout, path, "" );
-            post( is, file );
+            if ( !file.forbidden() && file.type() != FileType.NOT_FOUND )
+            {
+                post( is, file );
+            }
             return file;
         }
-        return null;
+        RubygemsFile file = visit( fileLayout, path, "" );
+        file.markAsForbidden();
+        return file;
     }
 
     public void post( InputStream is, RubygemsFile file )

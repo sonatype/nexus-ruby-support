@@ -289,13 +289,11 @@ public class GETLayout extends DefaultLayout
     @Override
     public ApiV1File apiV1File( String name )
     {
-        if ( "api_key".equals( name ) )
+        ApiV1File file = super.apiV1File( name );
+        if ( ! "api_key".equals( name ) )
         {
-            return super.apiV1File( name );
+            file.markAsForbidden();
         }
-        else
-        {
-            return null;
-        }
+        return file;
     }
 }

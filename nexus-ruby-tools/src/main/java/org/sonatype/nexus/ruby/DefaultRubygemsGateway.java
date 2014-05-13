@@ -75,20 +75,6 @@ public class DefaultRubygemsGateway
             IOUtil.close( gem );
         }
     }
-    
-    @Override
-    public Object spec( InputStream gem, String gemname ) {
-        try
-        {
-            return callMethod( "spec_get",
-                               new Object[]{ gem, gemname },
-                               Object.class );
-        }
-        finally
-        {
-            IOUtil.close( gem );
-        }
-    }
 
     @SuppressWarnings("resource")
     @Override
@@ -234,28 +220,6 @@ public class DefaultRubygemsGateway
             IOUtil.close( specRz );
         }
     }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public synchronized List<String> listVersions( String name, 
-                                                   InputStream inputStream, 
-                                                   long modified, 
-                                                   boolean prerelease )
-    {
-        try
-        {
-            return (List<String>) callMethod( "list_versions",
-                                              new Object[] { name,
-                                                             inputStream,
-                                                             modified ,
-                                                             prerelease },
-                                              List.class );
-        }
-        finally
-        {
-            IOUtil.close( inputStream );
-        }
-    }
     
     @SuppressWarnings("unchecked")
     @Override
@@ -319,13 +283,4 @@ public class DefaultRubygemsGateway
     {
         return scriptingContainer.callMethod( spec, "name", String.class );
     }
-
-    @Override
-    public synchronized String gemnameWithPlatform( String gemname, String version, InputStream specs, long modified )
-    {
-        return callMethod( "gemname_with_platform", 
-                           new Object[] { gemname, version, specs, modified },
-                           String.class );
-    }
-
 }
