@@ -125,9 +125,14 @@
   </build>
 
   <profiles>
-    <!-- that profile looks for the development setup and then gets all the 
+    <!--
+	 that profile looks for the development setup and then gets all the 
          needed gems from http://rubygems-proxy.torquebox.org/releases
-         this repo does not show when the pom is used from maven central -->
+         this repo does not show when the pom is used from maven central
+	 
+	 all the gems here are embedded into the jar itself, i.e. those
+	 gem dependencies are only for build time
+    -->
     <profile>
       <id>build</id>
    
