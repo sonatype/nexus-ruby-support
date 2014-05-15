@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.sonatype.nexus.ruby</groupId>
     <artifactId>nexus-ruby-support</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.0</version>
   </parent>
 
   <groupId>org.sonatype.nexus.plugins</groupId>
@@ -63,12 +63,6 @@
         <artifactId>nexus-plugin-bundle-maven-plugin</artifactId>
         <version>1.2</version>
       </plugin>
-<!--
-      <plugin>
-        <groupId>org.codehaus.plexus</groupId>
-        <artifactId>plexus-component-metadata</artifactId>
-      </plugin>
--->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -82,7 +76,7 @@
     <pluginManagement>
       <plugins>
         <!--This plugin's configuration is used to store Eclipse m2e settings
-          only. It has no influence on the Maven build itself. -->
+            only. It has no influence on the Maven build itself. -->
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>
@@ -113,34 +107,34 @@
                   </action>
                 </pluginExecution>
                 <pluginExecution>
-                	<pluginExecutionFilter>
-                		<groupId>org.sonatype.nexus</groupId>
-                		<artifactId>
-                			nexus-plugin-bundle-maven-plugin
-                		</artifactId>
-                		<versionRange>[1.0.1,)</versionRange>
-                		<goals>
-                			<goal>check-dependencies</goal>
-                			<goal>generate-metadata</goal>
-                		</goals>
-                	</pluginExecutionFilter>
-                	<action>
-                		<ignore />
-                	</action>
+                  <pluginExecutionFilter>
+                    <groupId>org.sonatype.nexus</groupId>
+                    <artifactId>
+                      nexus-plugin-bundle-maven-plugin
+                    </artifactId>
+                    <versionRange>[1.0.1,)</versionRange>
+                    <goals>
+                      <goal>check-dependencies</goal>
+                      <goal>generate-metadata</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
                 </pluginExecution>
                 <pluginExecution>
-                	<pluginExecutionFilter>
-                		<groupId>org.sonatype.plugins</groupId>
-                		<artifactId>sisu-maven-plugin</artifactId>
-                		<versionRange>[1.1,)</versionRange>
-                		<goals>
-                			<goal>test-index</goal>
-                			<goal>main-index</goal>
-                		</goals>
-                	</pluginExecutionFilter>
-                	<action>
-                		<ignore />
-                	</action>
+                  <pluginExecutionFilter>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>sisu-maven-plugin</artifactId>
+                    <versionRange>[1.1,)</versionRange>
+                    <goals>
+                      <goal>test-index</goal>
+                      <goal>main-index</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
                 </pluginExecution>
               </pluginExecutions>
             </lifecycleMappingMetadata>

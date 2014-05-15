@@ -10,7 +10,7 @@ Note: This plugin is a (much appreciated) open source contribution.  However it 
 Prerequisites
 -----
 
-Use Maven 3 for this build.
+Use Maven 3.0.x for this build.
 
 Add the repositories list in this section to your repository group. This might be a bit confusing, this build assumes that you are using Nexus as a repository manager and that you've configure your Maven Settings to hit a repository group.  This group needs to contain the following proxy repositories: 
 
@@ -22,19 +22,19 @@ Having these repositories, you should be able to run the build as it is describe
 Build
 -----
 
-**IMPORTANT** for nexus version before 2.7.x the plugin is build for a particular nexus version. so make sure the nexus version you build the plugin matches the version of the nexus server !!! for this adjust the version in the root **pom.xml** and then build it:
+the build plugin should work for nexus-2.6.x, nexus-2.7.x and nexus-2.8.x
 
     mvn clean install -Dmaven.test.skip
 
-after that you will find the nexus plugin in **nexus-ruby-plugin/target/nexus-ruby-plugin-*-bundle.zip** and the gem with the nexus rubygems command in **nexus-gem/target/nexus-*.gem**.
+after that you will find the nexus plugin in **nexus-ruby-plugin/target/nexus-ruby-plugin-*-bundle.zip**.
 
 to upload gems to hosted gem repository on nexus you need to install the nexus gem for your local ruby environment with
 
-    gem install -l nexus-gem/pkg/nexus-*.gem
+    gem install nexus
 
 install the nexus plugin into your nexus server with
 
-    unzip -d $NEXUS_HOME/nexus/WEB-INF/plugin-repository/ -o nexus-ruby-plugin/target/nexus-ruby-plugin-*-SNAPSHOT-bundle.zip
+    unzip -d $NEXUS_HOME/../sonatype-work/nexus/plugin-repository/ -o nexus-ruby-plugin/target/nexus-ruby-plugin-*-bundle.zip
 
 **NOTE** if you see `java.lang.OutOfMemoryError: PermGen space` errors when re-starting nexus with the plugin installed, you need to bump the size of the garbage collector's permanent generation. Edit `bin/jsw/conf/wrapper.conf` and add an additional java argument:
 
