@@ -102,12 +102,12 @@ public class BundleITBase extends RubyNexusRunningITSupport
             assertFileDownload( "/maven/prereleases/rubygems/pre/maven-metadata.xml.sha1", 40 );
             assertFileDownload( "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/maven-metadata.xml", 740 );
             assertFileDownload( "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/maven-metadata.xml.sha1", 40 );
-            assertFileDownload( "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom", 1637 );
+            assertFileDownload( "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom", 1633 );
             assertFileDownload( "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom.sha1", 40 );
             // TODO this is wrong it should not be a snapshot version in this pom !!!!
-            assertFileDownload( "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom", 1210 );
+            assertFileDownload( "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom", 1206 );
             assertFileDownload( "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1", 40 );
-            assertFileDownload( "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-SNAPSHOT.pom", 1219 );
+            assertFileDownload( "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-SNAPSHOT.pom", 1215 );
             assertFileDownload( "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-SNAPSHOT.pom.sha1", 40 );
             assertFileDownload( "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem", 64000 );
             assertFileDownload( "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem.sha1", 40 );
