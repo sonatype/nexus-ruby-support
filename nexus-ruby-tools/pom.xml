@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>nexus-ruby-tools</artifactId>
-  <version>3.0.0</version>
+  <version>3.0.1-SNAPSHOT</version>
 
   <name>Nexus Ruby Tools</name>
 
