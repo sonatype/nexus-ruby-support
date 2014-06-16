@@ -22,7 +22,6 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
-import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractGroupRepository;
@@ -122,6 +121,10 @@ public class DefaultRubyGroupRepository
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
+        if ( fromTask && request.getRequestPath().startsWith( "/.nexus" ) )
+        {
+            return super.retrieveItem( true, request );
+        }
         return facade.handleRetrieve( this, request, facade.get( request ) );
     }
 

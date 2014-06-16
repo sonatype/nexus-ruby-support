@@ -158,6 +158,10 @@ public class DefaultHostedRubyRepository
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException
     {
+        if ( fromTask && request.getRequestPath().startsWith( "/.nexus" ) )
+        {
+            return super.retrieveItem( true, request );
+        }
         return facade.handleRetrieve( this, request, facade.get( request ) );
     }
 
