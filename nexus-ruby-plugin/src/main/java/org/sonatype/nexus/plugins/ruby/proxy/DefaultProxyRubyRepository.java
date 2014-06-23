@@ -123,6 +123,20 @@ public class DefaultProxyRubyRepository
                 return false;
             }
         }
+        else if ( item.getName().endsWith( ".json.rz" ) && isOld( getExternalConfiguration( false ).getArtifactMaxAge(), item ) )
+        {
+            // avoid sending a wrong HEAD request which does not trigger the expiration
+            try
+            {
+                super.deleteItem( false, item.getResourceStoreRequest() );
+            }
+            catch ( @SuppressWarnings( "deprecation" ) org.sonatype.nexus.proxy.StorageException | UnsupportedStorageOperationException
+                    | IllegalOperationException | ItemNotFoundException e )
+            {
+                log.error( "could not delete volatile file: " + item );
+            }
+            return true;
+        }
         else
         {
             return isOld( getExternalConfiguration( false ).getArtifactMaxAge(), item );
