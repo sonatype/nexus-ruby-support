@@ -25,14 +25,14 @@ public class HostedGemLifecycleIT extends GemLifecycleITBase
     @Test
     public void uploadGemWithPushCommand() throws Exception
     {
-        File winGem = testData().resolveFile( "pre-0.1.0.beta.gem" );
-        assertThat( lastLine( gemRunner().push( repoId, winGem ) ), equalTo( "Pushing gem to http://127.0.0.1:4711/nexus/content/repositories/gemshost..." ) );
+        File gem = testData().resolveFile( "pre-0.1.0.beta.gem" );
+        assertThat( lastLine( gemRunner().push( repoId, gem ) ), equalTo( "Pushing gem to http://127.0.0.1:4711/nexus/content/repositories/gemshost..." ) );
         
-        assertFileDownload( "gems/" + winGem.getName(),
+        assertFileDownload( "gems/" + gem.getName(),
                             is( true ) );
-        assertFileDownload( "quick/Marshal.4.8/" + winGem.getName() + "spec.rz",
+        assertFileDownload( "quick/Marshal.4.8/" + gem.getName() + "spec.rz",
                             is( true ) );
-        assertFileDownload( "api/v1/dependencies/" + winGem.getName().replaceFirst( "-.*$", ".json.rz" ),
+        assertFileDownload( "api/v1/dependencies/" + gem.getName().replaceFirst( "-.*$", ".json.rz" ),
                             is( true ) );
     }
 }
