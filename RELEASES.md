@@ -1,5 +1,13 @@
 # release notes #
 
+## 1.4.1 ##
+
+* fix update of volatile remote files. since the local file location is different from the remote one, an update needs to be triggered by deleted the outdated file.
+
+* fix too strict about path pattern to allow clean up tasks (and others) to delete files
+
+* run integration tests against nexus 2.8.1
+
 ## 1.4.0 ##
 
 <http://central.maven.org/maven2/org/sonatype/nexus/plugins/nexus-ruby-plugin/1.4.0/nexus-ruby-plugin-1.4.0-bundle.zip>
