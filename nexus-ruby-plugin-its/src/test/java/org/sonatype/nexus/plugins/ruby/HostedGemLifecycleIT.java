@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.is;
 import static org.sonatype.nexus.ruby.TestUtils.lastLine;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 
 import org.junit.Test;
 
@@ -25,6 +27,9 @@ public class HostedGemLifecycleIT extends GemLifecycleITBase
     @Test
     public void uploadGemWithPushCommand() throws Exception
     {
+        // make sure the credentials file has the right permissions otherwise the push command fails silently
+        Files.setPosixFilePermissions( testData().resolveFile( ".gem/credentials" ).toPath(), PosixFilePermissions.fromString( "rw-------" ) );
+        
         File gem = testData().resolveFile( "pre-0.1.0.beta.gem" );
         assertThat( lastLine( gemRunner().push( repoId, gem ) ), equalTo( "Pushing gem to http://127.0.0.1:4711/nexus/content/repositories/gemshost..." ) );
         
