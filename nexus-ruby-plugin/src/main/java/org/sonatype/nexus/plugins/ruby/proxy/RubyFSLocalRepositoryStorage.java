@@ -39,13 +39,19 @@ public class RubyFSLocalRepositoryStorage
     public void storeItem( Repository repository, StorageItem item )
             throws UnsupportedStorageOperationException, LocalStorageException
     {
-        ((RubyRepository)repository).getLog().error( item.getResourceStoreRequest().getRequestPath() );
-        RubygemsFile file = fileSystem.file( item.getResourceStoreRequest() );
-        ((RubyRepository)repository).getLog().error( file.toString() );
-        if ( file.type() != FileType.NOT_FOUND )
+        if ( ! item.getPath().startsWith( "/.nexus" ) )
         {
-            item.getResourceStoreRequest().setRequestPath( file.storagePath() ); 
-            ((AbstractStorageItem) item).setPath( file.storagePath() );
+
+            ((RubyRepository)repository).getLog().error( item.getResourceStoreRequest().getRequestPath() );
+            
+            RubygemsFile file = fileSystem.file( item.getResourceStoreRequest() );
+            
+            ((RubyRepository)repository).getLog().error( file.toString() );
+            if ( file.type() != FileType.NOT_FOUND )
+            {
+                item.getResourceStoreRequest().setRequestPath( file.storagePath() ); 
+                ((AbstractStorageItem) item).setPath( file.storagePath() );
+            }
         }
         super.storeItem( repository, item );
     }    

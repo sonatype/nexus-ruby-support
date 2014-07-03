@@ -123,7 +123,7 @@ public class DefaultProxyRubyRepository
                 return false;
             }
         }
-        else if ( item.getName().endsWith( ".json.rz" ) && isOld( getExternalConfiguration( false ).getArtifactMaxAge(), item ) )
+        else if ( item.getName().endsWith( ".json.rz" ) && isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item ) )
         {
             // avoid sending a wrong HEAD request which does not trigger the expiration
             try
@@ -133,7 +133,7 @@ public class DefaultProxyRubyRepository
             catch ( @SuppressWarnings( "deprecation" ) org.sonatype.nexus.proxy.StorageException | UnsupportedStorageOperationException
                     | IllegalOperationException | ItemNotFoundException e )
             {
-                log.error( "could not delete volatile file: " + item );
+                getLog().error( "could not delete volatile file: " + item );
             }
             return true;
         }
@@ -210,8 +210,12 @@ public class DefaultProxyRubyRepository
     public StorageItem retrieveItem( ResourceStoreRequest request )
             throws IllegalOperationException,
                    ItemNotFoundException, RemoteAccessException, 
-                   org.sonatype.nexus.proxy.StorageException
+                   org.sonatype.nexus.proxy.StorageException, AccessDeniedException
     {
+        if ( request.getRequestPath().startsWith( "/.nexus" ) )
+        {
+            return super.retrieveItem( request );
+        }
         return facade.handleRetrieve( this, request, facade.get( request ) );
     }
     
@@ -227,7 +231,7 @@ public class DefaultProxyRubyRepository
         {
             ResourceStoreRequest request = new ResourceStoreRequest( type.filepathGzipped() );
             request.setRequestRemoteOnly( true );
-            retrieveItem( request );
+            retrieveItem( true, request );
         }
         String directory = getBaseDirectory();
         gateway.purgeBrokenDepencencyFiles( directory );
