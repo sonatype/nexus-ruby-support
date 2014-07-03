@@ -3,6 +3,7 @@ package org.sonatype.nexus.ruby;
 import java.io.InputStream;
 
 
+//TODO better name it FileFactory
 public interface Layout
 {
 
@@ -20,6 +21,8 @@ public interface Layout
 
     BundlerApiFile bundlerApiFile( String namesCommaSeparated );
 
+    BundlerApiFile bundlerApiFile( String... names );
+    
     ApiV1File apiV1File( String name );
 
     SpecsIndexFile specsIndexFile( String name );
@@ -47,4 +50,5 @@ public interface Layout
     Sha1File sha1( RubygemsFile file );
 
     void addGem( InputStream is, RubygemsFile file );
+
 }

@@ -28,8 +28,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.CachingStorage;
-import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.GETLayout;
+import org.sonatype.nexus.ruby.layout.ProxiedGETLayout;
+import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.Storage;
 
 @RunWith(Parameterized.class)
@@ -52,7 +53,7 @@ public class GETLayoutTest
 
                   protected URL toUrl( RubygemsFile file ) throws MalformedURLException
                   {
-                      return new URL( baseurl + file.storagePath() );
+                      return new URL( baseurl + ( file.storagePath() == null ? file.remotePath().replace( "?", "/" )  : file.storagePath() ) );
                   }
               } 
             }
@@ -63,10 +64,19 @@ public class GETLayoutTest
 
     public GETLayoutTest( Storage store )
     {
-        fileSystem = new DefaultRubygemsFileSystem( new GETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                                   store ),
-                                                    null, null );
-     
+        if ( store instanceof CachingStorage )
+        {
+            fileSystem = new DefaultRubygemsFileSystem( new ProxiedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+                                                                              store ),
+                                                        null, null );
+        }
+        else
+        {
+            fileSystem = new DefaultRubygemsFileSystem( new GETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
+                                                                       store ),
+                                                        null, null );
+            
+        }
     }
     
     @Test

@@ -125,6 +125,20 @@ module Nexus
 
     end
 
+    def split_dependencies( deps )
+      map = {}
+      data = Marshal.load( read_binary( deps ) )
+      data.each do |d|
+        bucket = map[ d[:name] ] ||= []
+        bucket << d
+      end
+      result = {}
+      map.each do |k,v|
+        result[ k ] = Marshal.dump( v ).bytes.to_a
+      end
+      result
+    end
+
     def merge_dependencies( unique, *deps )
       result = []
       deps.each do |dep|

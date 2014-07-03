@@ -94,6 +94,10 @@ describe Nexus::Rubygems do
                                        java.io.ByteArrayInputStream.new( Marshal.dump( a ).to_java.bytes ),
                                        java.io.ByteArrayInputStream.new( Marshal.dump( aa ).to_java.bytes ) ).pack 'C*'
     Marshal.load( StringIO.new( dump ) ).must_equal b + a
+
+    map = subject.split_dependencies( java.io.ByteArrayInputStream.new( Marshal.dump( a + b ).to_java.bytes ) )
+    Marshal.load( StringIO.new( map['jbundler'].pack( 'C*' ) ) ).must_equal a
+    Marshal.load( StringIO.new( map['bundler'].pack( 'C*' ) ) ).must_equal b
   end
 
   it 'purge api files' do

@@ -1,7 +1,9 @@
 package org.sonatype.nexus.ruby;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.jruby.embed.PathType;
 import org.jruby.embed.ScriptingContainer;
@@ -149,11 +151,35 @@ public class DefaultRubygemsGateway
     }
     
     @Override
+    public Map<String, InputStream> splitDependencies( InputStream deps )
+    {
+        try
+        {
+            @SuppressWarnings( "unchecked" )
+            Map<String,List<Long>> map = (Map<String, List<Long>>) callMethod( "split_dependencies",
+                                                                               deps,
+                                                                               Map.class );
+        
+            Map<String, InputStream> result = new HashMap<>();
+            for( Map.Entry<String, List<Long>> entry: map.entrySet() )
+            {
+                result.put( entry.getKey(), new ByteArrayInputStream( entry.getValue() ) );
+            }
+            return result;
+        }
+        finally
+        {
+            IOUtil.close( deps );
+        }
+    }
+
+    @Override
     public InputStream mergeDependencies( List<InputStream> deps )
     {
         return mergeDependencies( deps, false );
     }
-    
+
+
     @SuppressWarnings("resource")
     @Override
     public InputStream mergeDependencies( List<InputStream> deps, boolean unique )

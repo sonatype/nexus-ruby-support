@@ -3,6 +3,7 @@ package org.sonatype.nexus.ruby.layout;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
@@ -19,7 +20,11 @@ public interface Storage
 
     void retrieve( SpecsIndexZippedFile file );
 
+    void retrieve( BundlerApiFile file );
+    
     void retrieve( DependencyFile file );
+    
+    boolean isExpired( DependencyFile file );
     
     void update( InputStream is, RubygemsFile file );
 

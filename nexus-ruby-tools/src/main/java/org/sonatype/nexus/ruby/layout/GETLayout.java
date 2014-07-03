@@ -67,18 +67,23 @@ public class GETLayout extends DefaultLayout
         return specs;
     }
  
+    protected void retrieveAll( BundlerApiFile file, List<InputStream> deps ) throws IOException
+    {
+        for( String name: file.gemnames() )
+        {
+            deps.add( store.getInputStream( dependencyFile( name ) ) );
+        }
+    }
+    
     @Override
     public BundlerApiFile bundlerApiFile( String namesCommaSeparated )
     {    
         BundlerApiFile file = super.bundlerApiFile( namesCommaSeparated );
     
-        List<InputStream> deps = new LinkedList<InputStream>();
+        List<InputStream> deps = new LinkedList<>();
         try
         {
-            for( String name: file.gemnames() )
-            {
-                deps.add( store.getInputStream( dependencyFile( name ) ) );
-            }
+            retrieveAll( file, deps );
             store.memory( gateway.mergeDependencies( deps ), file );
         }
         catch (IOException e)

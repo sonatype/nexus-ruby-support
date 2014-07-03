@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
@@ -41,6 +42,39 @@ public class CachingStorage extends SimpleStorage
         this.timeout = 60000;
     }
 
+    @Override
+    public boolean isExpired( DependencyFile file )
+    {       
+        Path path = toPath( file );
+        if( Files.notExists( path ) )
+        {
+            return true;
+        }
+        try
+        {
+            long mod = Files.getLastModifiedTime( path ).toMillis();
+            long now = System.currentTimeMillis();
+            return now - mod > this.ttl;
+        }
+        catch (IOException e)
+        {
+           return true;
+        }
+    }
+
+    @Override
+    public void retrieve( BundlerApiFile file )
+    {
+        try
+        {
+            file.set( toUrl( file ).openStream() );
+        }
+        catch ( IOException e )
+        {
+            file.setException( e );
+        }
+    }
+    
     @Override
     public void retrieve( DependencyFile file )
     {

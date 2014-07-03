@@ -217,6 +217,21 @@ public class DefaultLayout implements Layout
                                         .replaceAll( "\\s+", "" )
                                         .split( "," ) );
     }
+    
+    /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#bundlerApiFile(java.lang.String)
+     */
+    @Override
+    public BundlerApiFile bundlerApiFile( String... names ){
+        StringBuilder gems = new StringBuilder( "?gems=" );
+        for( String name: names )
+        {
+            gems.append( name ).append(",");
+        }
+        return new BundlerApiFile( this,
+                                   join( API_V1_DEPS, gems.toString() ), 
+                                   names );
+    }
 
     /* (non-Javadoc)
      * @see org.sonatype.nexus.ruby.Layout#apiV1File(java.lang.String)
