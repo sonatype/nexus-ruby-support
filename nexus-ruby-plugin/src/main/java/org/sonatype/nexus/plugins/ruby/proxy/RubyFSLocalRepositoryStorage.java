@@ -6,7 +6,6 @@ import javax.inject.Singleton;
 
 import org.sonatype.nexus.mime.MimeSupport;
 import org.sonatype.nexus.plugins.ruby.NexusRubygemsFacade;
-import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.LinkPersister;
@@ -16,7 +15,6 @@ import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage;
 import org.sonatype.nexus.proxy.storage.local.fs.FSPeer;
 import org.sonatype.nexus.proxy.wastebasket.Wastebasket;
-import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 
@@ -34,7 +32,7 @@ public class RubyFSLocalRepositoryStorage
     {
         super( wastebasket, linkPersister, mimeSupport, fsPeer );
     }
-    
+
     @Override
     public void storeItem( Repository repository, StorageItem item )
             throws UnsupportedStorageOperationException, LocalStorageException
@@ -42,13 +40,13 @@ public class RubyFSLocalRepositoryStorage
         if ( ! item.getPath().startsWith( "/.nexus" ) )
         {
 
-            ((RubyRepository)repository).getLog().error( item.getResourceStoreRequest().getRequestPath() );
-            
             RubygemsFile file = fileSystem.file( item.getResourceStoreRequest() );
             
-            ((RubyRepository)repository).getLog().error( file.toString() );
-            if ( file.type() != FileType.NOT_FOUND )
+            switch ( file.type() )
             {
+            case NOT_FOUND: break;
+            case BUNDLER_API: return;
+            default:
                 item.getResourceStoreRequest().setRequestPath( file.storagePath() ); 
                 ((AbstractStorageItem) item).setPath( file.storagePath() );
             }
