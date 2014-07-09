@@ -25,29 +25,31 @@ public class NexusRubygemsFacade
     
     public RubygemsFile get( ResourceStoreRequest request )
     {   
-        return filesystem.get( request.getRequestPath(), getQuery( request ) );
+        String[] pathAndQeury = extractGemsQuery( request );
+        return filesystem.get( pathAndQeury[ 0 ], pathAndQeury[ 1 ] );
     }
 
-    protected String getQuery( ResourceStoreRequest request )
+    private String[] extractGemsQuery( ResourceStoreRequest request )
     {
+        if( request.getRequestPath().contains( "?gems=" ) )
+        {
+            int index = request.getRequestPath().indexOf( '?' );
+            return new String[]{ request.getRequestPath().substring( 0, index ), 
+                                 request.getRequestPath().substring( index + 1 ) };
+        }
         String query = "";
         // only request with ...?gems=... are used by the Layout
         if ( request.getRequestUrl() != null && request.getRequestUrl().contains( "?gems=" ) )
         {
             query = request.getRequestUrl().substring( request.getRequestUrl().indexOf( '?' ) + 1 );
         }
-        return query;
+        return new String[] { request.getRequestPath(), query };
     }
-
+    
     public RubygemsFile file( ResourceStoreRequest request )
     {
-        if( request.getRequestPath().contains( "?gems=" ) )
-        {
-            int index = request.getRequestPath().indexOf( '?' );
-            return filesystem.file( request.getRequestPath().substring( 0, index ), 
-                                    request.getRequestPath().substring( index + 1 ) );
-        }
-        return filesystem.file( request.getRequestPath(), getQuery( request ) );
+        String[] pathAndQeury = extractGemsQuery( request );
+        return filesystem.get( pathAndQeury[ 0 ], pathAndQeury[ 1 ] );
     }
 
     public RubygemsFile file( String path )
