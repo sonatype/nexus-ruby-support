@@ -1,6 +1,7 @@
 package org.sonatype.nexus.plugins.ruby.proxy;
 
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -161,10 +162,13 @@ public class DefaultProxyRubyRepository
         getExternalConfiguration( true ).setMetadataMaxAge( metadataMaxAge );
     }
     
+    private static Pattern BUNDLER_API_REQUEST = Pattern.compile( "[?]gems=.+,.+" );
+
     public AbstractStorageItem doCacheItem(AbstractStorageItem item)
             throws LocalStorageException
     {
-        if ( item.getPath().contains( "?gems=" ) )
+        // a request for single gem will be cached but one for many will not be cached
+        if ( BUNDLER_API_REQUEST.matcher( item.getPath() ).matches() )
         {
             return item;
         }
