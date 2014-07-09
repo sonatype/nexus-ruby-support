@@ -2,14 +2,12 @@ package org.sonatype.nexus.ruby;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
 import junit.framework.TestCase;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sonatype.nexus.ruby.cuba.RubygemsFileSystem;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
+import org.sonatype.nexus.ruby.cuba.RubygemsFileSystem;
 
 public class DefaultLayoutTest
     extends TestCase
@@ -311,7 +309,7 @@ public class DefaultLayoutTest
         assertThat( file, equalTo( file2 ) );
         file2 = fileSystem.get( "/api/v1/dependencies/j/jbundler.json.rz" );
         assertThat( file, equalTo( file2 ) );
-        assertThat( file.storagePath(), equalTo( "/api/v1/dependencies/j/jbundler.json.rz" ) );
+        assertThat( file.storagePath(), equalTo( "/api/v1/dependencies/jbundler.json.rz" ) );
         assertThat( file.remotePath(), equalTo( "/api/v1/dependencies?gems=jbundler" ) );
         assertThat( file.name(), equalTo( "jbundler" ) );
         assertThat( file.type(), equalTo( FileType.DEPENDENCY ) );
@@ -323,7 +321,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = fileSystem.get( "/api/v1/dependencies?gems=jbundler" );
         assertNotNull( file );
-        assertThat( file.storagePath(), equalTo( "/api/v1/dependencies/j/jbundler.json.rz" ) );
+        assertThat( file.storagePath(), equalTo( "/api/v1/dependencies/jbundler.json.rz" ) );
         assertThat( file.remotePath(), equalTo( "/api/v1/dependencies?gems=jbundler" ) );
         assertThat( file.name(), equalTo( "jbundler" ) );
         assertThat( file.type(), equalTo( FileType.DEPENDENCY ) );

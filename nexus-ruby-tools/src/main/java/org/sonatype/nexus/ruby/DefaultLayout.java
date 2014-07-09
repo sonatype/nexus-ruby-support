@@ -201,7 +201,7 @@ public class DefaultLayout implements Layout
     @Override
     public DependencyFile dependencyFile( String name ){
         return new DependencyFile( this,
-                                   join( API_V1_DEPS, SEPARATOR, name.substring( 0, 1 ), SEPARATOR, name, JSON_RZ ),
+                                   join( API_V1_DEPS, SEPARATOR, name, JSON_RZ ),
                                    join( API_V1_DEPS, "?gems=" + name ), 
                                    name );
     }
