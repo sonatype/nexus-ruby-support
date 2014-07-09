@@ -12,7 +12,6 @@ import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
 import org.sonatype.nexus.plugins.ruby.NexusRubygemsFacade;
-import org.sonatype.nexus.plugins.ruby.NexusStorage;
 import org.sonatype.nexus.plugins.ruby.RubyContentClass;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.AccessDeniedException;
@@ -65,7 +64,7 @@ public class DefaultProxyRubyRepository
         this.gateway = gateway;
         this.repositoryKind = new DefaultRepositoryKind( ProxyRubyRepository.class,
                                                          Arrays.asList( new Class<?>[] { RubyRepository.class } ) ); 
-        this.facade = new NexusRubygemsFacade( new ProxiedRubygemsFileSystem( gateway, new NexusStorage( this ) ) );
+        this.facade = new NexusRubygemsFacade( new ProxiedRubygemsFileSystem( gateway, new ProxyNexusStorage( this ) ) );
     }
 
     @Override
@@ -112,10 +111,9 @@ public class DefaultProxyRubyRepository
             if (item.getName().endsWith( ".gz" ) )
             {
                 if ( getLog().isDebugEnabled() ){
-                     getLog().debug( item + " needs remote update: " + isOld( getExternalConfiguration( false ).getMetadataMaxAge(),
-                                                                        item ) );
+                     getLog().debug( item + " needs remote update: " + isOld( getMetadataMaxAge(), item ) );
                 }
-                return isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item );
+                return isOld( getMetadataMaxAge(), item );
             }
             else
             {
@@ -123,7 +121,7 @@ public class DefaultProxyRubyRepository
                 return false;
             }
         }
-        else if ( item.getName().endsWith( ".json.rz" ) && isOld( getExternalConfiguration( false ).getMetadataMaxAge(), item ) )
+        else if ( item.getName().endsWith( ".json.rz" ) && isOld( getMetadataMaxAge(), item ) )
         {
             // avoid sending a wrong HEAD request which does not trigger the expiration
             try
@@ -162,7 +160,19 @@ public class DefaultProxyRubyRepository
     {
         getExternalConfiguration( true ).setMetadataMaxAge( metadataMaxAge );
     }
-
+    
+    public AbstractStorageItem doCacheItem(AbstractStorageItem item)
+            throws LocalStorageException
+    {
+        if ( item.getPath().contains( "?gems=" ) )
+        {
+            return item;
+        }
+        else
+        {
+            return super.doCacheItem( item );
+        }
+    }
     @SuppressWarnings("deprecation")
     @Override
     protected AbstractStorageItem doRetrieveRemoteItem(
@@ -212,13 +222,29 @@ public class DefaultProxyRubyRepository
                    ItemNotFoundException, RemoteAccessException, 
                    org.sonatype.nexus.proxy.StorageException, AccessDeniedException
     {
+        // TODO do not use this since it bypasses access control
         if ( request.getRequestPath().startsWith( "/.nexus" ) )
         {
             return super.retrieveItem( request );
         }
+
         return facade.handleRetrieve( this, request, facade.get( request ) );
     }
-    
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public StorageItem retrieveItem(boolean fromTask, ResourceStoreRequest request)
+            throws IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException
+    {
+        if ( ! fromTask && request.getRequestPath().contains( "?gems=" ) && ! request.getRequestPath().startsWith( "/.nexus" ) )
+        {
+            return facade.handleRetrieve( this, request, facade.get( request ) );
+        }
+        else
+        {
+            return super.retrieveItem( fromTask, request );
+        }
+    }
 
     @SuppressWarnings( "deprecation" )
     @Override

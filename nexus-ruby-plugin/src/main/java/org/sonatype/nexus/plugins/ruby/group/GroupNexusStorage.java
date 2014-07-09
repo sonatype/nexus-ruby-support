@@ -22,22 +22,25 @@ import org.sonatype.nexus.proxy.item.FileContentLocator;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
-import org.sonatype.nexus.proxy.repository.GroupRepository;
+import org.sonatype.nexus.proxy.repository.GroupItemNotFoundException;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
+import org.sonatype.nexus.ruby.layout.ProxyStorage;
 
-public class GroupNexusStorage extends NexusStorage
+public class GroupNexusStorage extends NexusStorage implements ProxyStorage
 {
-    
     private final RubygemsGateway gateway;
-
+    private final RubyGroupRepository repository;
+    
     public GroupNexusStorage( RubyGroupRepository repository, RubygemsGateway gateway )
     {
         super( repository );
+        this.repository = repository;
         this.gateway = gateway;
     }
     
@@ -75,9 +78,10 @@ public class GroupNexusStorage extends NexusStorage
                IOException, IllegalOperationException
     {
         ResourceStoreRequest req = new ResourceStoreRequest( file.storagePath() );
+        // TODO is synchronized really needed
         synchronized( repository ){
 
-            List<StorageItem> items = ( (GroupRepository) repository ).doRetrieveItems( req );
+            List<StorageItem> items = repository.doRetrieveItems( req );
             if ( items.size() == 1 )
             {
                 return items.get(  0  );
@@ -88,7 +92,7 @@ public class GroupNexusStorage extends NexusStorage
     }
     
     private StorageItem store( RubygemsFile file, 
-                        List<StorageItem> items )
+                               List<StorageItem> items )
          throws UnsupportedStorageOperationException, IllegalOperationException, 
                 IOException
      {
@@ -223,5 +227,28 @@ public class GroupNexusStorage extends NexusStorage
                 IOUtil.close( is );
             }
         }
+    }
+
+
+    @Override
+    public void retrieve( BundlerApiFile file )
+    {
+        try
+        {
+            // mimic request as coming directly to ProxyRepository
+            repository.doRetrieveItems( new ResourceStoreRequest( file.storagePath() ) );
+            file.set(  null );
+        }
+        catch ( GroupItemNotFoundException | IOException e )
+        {
+            file.setException( e );
+        }
+    }
+
+
+    @Override
+    public boolean isExpired( DependencyFile file )
+    {
+        return true;
     }  
 }
