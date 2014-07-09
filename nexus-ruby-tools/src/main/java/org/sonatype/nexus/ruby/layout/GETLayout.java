@@ -84,7 +84,10 @@ public class GETLayout extends DefaultLayout
         try
         {
             retrieveAll( file, deps );
-            store.memory( gateway.mergeDependencies( deps ), file );
+            if ( ! file.hasException() )
+            {
+                store.memory( gateway.mergeDependencies( deps ), file );
+            }
         }
         catch (IOException e)
         {
@@ -106,7 +109,7 @@ public class GETLayout extends DefaultLayout
         MavenMetadataFile file = super.mavenMetadata( name, prereleased );
         try
         {
-            MetadataBuilder meta = new MetadataBuilder( newDependencies( file.dependency() ) );
+            MetadataBuilder meta = new MetadataBuilder( newDependencyData( file.dependency() ) );
             meta.appendVersions( file.isPrerelease() );            
             store.memory( meta.toString(), file );
         }
@@ -131,7 +134,7 @@ public class GETLayout extends DefaultLayout
     {
         try
         {
-            GemspecFile gemspec = file.gemspec( newDependencies( file.dependency() ) );
+            GemspecFile gemspec = file.gemspec( newDependencyData( file.dependency() ) );
             if ( gemspec.notExists() )
             {
                 file.markAsNotExists();
@@ -151,7 +154,7 @@ public class GETLayout extends DefaultLayout
     {
         try
         {   
-            GemFile gem = file.gem( newDependencies( file.dependency() ) );
+            GemFile gem = file.gem( newDependencyData( file.dependency() ) );
             if ( gem == null )
             {
                 file.markAsNotExists();
@@ -245,8 +248,14 @@ public class GETLayout extends DefaultLayout
         }
         return sha;
     }
-
+    
+    @Deprecated
     protected DependencyData newDependencies( DependencyFile file ) throws IOException
+    {
+        return newDependencyData( file );
+    }
+    
+    protected DependencyData newDependencyData( DependencyFile file ) throws IOException
     {
         return gateway.dependencies( store.getInputStream( file ), file.name(), store.getModified( file ) );
     }
@@ -281,14 +290,6 @@ public class GETLayout extends DefaultLayout
         GemspecFile gemspec = super.gemspecFile( filename );
         store.retrieve( gemspec );
         return gemspec;
-    }
-
-    @Override
-    public DependencyFile dependencyFile( String name )
-    {        
-        DependencyFile file = super.dependencyFile( name );
-        store.retrieve( file );
-        return file;
     }
     
     @Override

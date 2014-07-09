@@ -7,7 +7,7 @@ public class BundlerApiFile extends RubygemsFile {
 
     BundlerApiFile( Layout layout, String remote, String... names )
     {
-        super( layout, FileType.BUNDLER_API, null, remote, null );
+        super( layout, FileType.BUNDLER_API, remote, remote, null );
         this.names = names;
     }
 

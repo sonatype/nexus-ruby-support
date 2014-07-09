@@ -20,7 +20,7 @@ import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
-public class CachingStorage extends SimpleStorage
+public class CachingStorage extends SimpleStorage implements ProxyStorage
 {
 
     private final ConcurrentMap<String, Lock> locks = new ConcurrentSkipListMap<String, Lock>();

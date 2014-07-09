@@ -12,7 +12,6 @@ import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
 import java.util.zip.GZIPInputStream;
 
-import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
@@ -84,17 +83,6 @@ public class SimpleStorage implements Storage
             file.setException( e );
         }
     }
-
-    @Override
-    public boolean isExpired( DependencyFile file )
-    {       
-        return false;
-    }
-
-    @Override
-    public void retrieve( BundlerApiFile file )
-    {
-    }
     
     @Override
     public void retrieve( DependencyFile file )
@@ -107,26 +95,6 @@ public class SimpleStorage implements Storage
     {
         retrieve( (RubygemsFile) file );
     }
-
-//    @Override
-//    public boolean retrieve( SpecsIndexZippedFile file )
-//    {
-//        retrieve( (RubygemsFile) file );
-//        if ( file.hasPayload() )
-//        {
-//            try
-//            {
-//                file.set( getInputStream( file ) );
-//                return true;
-//            }
-//            catch (IOException e)
-//            {
-//                file.setException( e );
-//                return false;
-//            }
-//        }
-//        return false;
-//    }
     
     @Override
     public void retrieve( SpecsIndexFile file )

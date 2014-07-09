@@ -96,7 +96,7 @@ public class HostedGETLayout extends GETLayout
     public DependencyFile dependencyFile( String name )
     {        
         DependencyFile file = super.dependencyFile( name );
-
+        store.retrieve( file );
         if ( file.notExists() )
         {
             createDependency( file );

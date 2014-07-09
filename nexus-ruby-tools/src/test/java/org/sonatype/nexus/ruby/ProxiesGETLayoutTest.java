@@ -34,7 +34,7 @@ import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.Storage;
 
 @RunWith(Parameterized.class)
-public class GETLayoutTest
+public class ProxiesGETLayoutTest
     extends TestCase
 {
     private static File proxyBase() throws IOException
@@ -53,7 +53,7 @@ public class GETLayoutTest
 
                   protected URL toUrl( RubygemsFile file ) throws MalformedURLException
                   {
-                      return new URL( baseurl + ( file.storagePath() == null ? file.remotePath().replace( "?", "/" )  : file.storagePath() ) );
+                      return new URL( baseurl + file.storagePath().replace( "?", "/" ) );
                   }
               } 
             }
@@ -62,19 +62,29 @@ public class GETLayoutTest
 
     private final DefaultRubygemsFileSystem fileSystem;
 
-    public GETLayoutTest( Storage store )
+    public ProxiesGETLayoutTest( Storage store )
     {
         if ( store instanceof CachingStorage )
         {
             fileSystem = new DefaultRubygemsFileSystem( new ProxiedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                                              store ),
+                                                                              (CachingStorage) store ),
                                                         null, null );
         }
         else
         {
             fileSystem = new DefaultRubygemsFileSystem( new GETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                                       store ),
-                                                        null, null );
+                                                                       store )
+                                                        {
+
+                                                            @Override
+                                                            public DependencyFile dependencyFile( String name )
+                                                            {
+                                                                DependencyFile file = super.dependencyFile( name );
+                                                                store.retrieve( file );
+                                                                return file;
+                                                            }
+                                    
+                                                        }, null, null );
             
         }
     }

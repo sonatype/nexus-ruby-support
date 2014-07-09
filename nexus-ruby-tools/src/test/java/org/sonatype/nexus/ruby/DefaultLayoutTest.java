@@ -335,7 +335,7 @@ public class DefaultLayoutTest
     {
         RubygemsFile file = fileSystem.get( "/api/v1/dependencies?gems=jbundler,bundler" );
         assertNotNull( file );
-        assertNull( file.storagePath() );
+        assertThat( file.storagePath(), equalTo( "/api/v1/dependencies?gems=jbundler,bundler" ) );
         assertNull( file.name() );
         assertThat( file.remotePath(), equalTo( "/api/v1/dependencies?gems=jbundler,bundler" ) );
         assertThat( ((BundlerApiFile)file).gemnames(), equalTo( new String[]{ "jbundler", "bundler" } ) );

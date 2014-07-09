@@ -7,10 +7,10 @@ import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 public class ProxiedRubygemsFileSystem extends DefaultRubygemsFileSystem
 {
     public ProxiedRubygemsFileSystem( RubygemsGateway gateway,
-                                     Storage store )
+                                      ProxyStorage store )
     {
         super( new DefaultLayout(),
-               new GETLayout( gateway, store ),
+               new ProxiedGETLayout( gateway, store ),
                null, // no POST allowed
                new DELETELayout( gateway, store ) );
     } 
