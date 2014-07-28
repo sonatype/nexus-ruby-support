@@ -35,9 +35,10 @@ public class DownloadsOnEmptyRepositoriesIT extends RubyNexusRunningITSupport
     {
         assertAllSpecsIndexDownload();
         // on an empty repo these directories still missing
-        assertFileDownload( "/gems", is( false ) );
-        assertFileDownload( "/quick", is( false ) );
-        assertFileDownload( "/api", is( false ) );
+        assertFileDownload( "/gems", is( true ) );
+        assertFileDownload( "/quick", is( true ) );
+        assertFileDownload( "/api", is( true ) );
+        assertFileDownload( "/maven", is( true ) );
     }
 
     private void assertAllSpecsIndexDownload( )
