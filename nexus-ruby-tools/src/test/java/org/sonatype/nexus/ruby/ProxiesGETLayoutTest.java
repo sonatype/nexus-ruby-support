@@ -127,14 +127,14 @@ public class ProxiesGETLayoutTest
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1" }; 
         String[] shas = { //"f197a259029ab2c6a9fe72508f3567102d7fef20", 
                           "6fabc32da123f7013b2db804273df428a50bc6a4", 
-                          "c766f0f86af55f85d433d6a5c21cc43e80b66159", 
+                          "604b091a025d1234a529517822b5db66cbec9b13", 
                           //"a527265b95d6149b16dc2ce17a18e37e1083eeb2", 
                           //"d1ef40d6775396c6bec855037a1ff6dcb34afdbd", 
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "b8b8aec0de3fc0e8021b3491ab10551db30b7f1c", 
+                          "054121dcccc572cdee2da2d15e1ca712a1bb77b3", 
                           //"81bed0dbaef593e31578f5814304f991f55ff7d4",
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335", 
-                          "3d348e107f89e5a645786cea8bd9cda6144786e7" };
+                          "a83efdc872c7b453196ec3911236f6e2dbd45c60" };
 
         assertFiletypeWithPayload( pathes, FileType.SHA1, shas );
     }
@@ -446,9 +446,6 @@ public class ProxiesGETLayoutTest
         for( String path : pathes )
         {
             RubygemsFile file = fileSystem.get( path );
-            if ( file instanceof Directory ){
-                System.err.println( file );
-            }
             assertThat( path, file.type(), equalTo( type ) );
             assertThat( path, file.get(), nullValue() );
             assertThat( path, file.hasException(), is( false ) );

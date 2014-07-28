@@ -111,11 +111,11 @@ public class HostedGETLayoutTest
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem.sha1",
                             "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom.sha1" }; 
         String[] shas = { "6fabc32da123f7013b2db804273df428a50bc6a4", 
-                          "c766f0f86af55f85d433d6a5c21cc43e80b66159", 
+                          "604b091a025d1234a529517822b5db66cbec9b13", 
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "b8b8aec0de3fc0e8021b3491ab10551db30b7f1c",
+                          "054121dcccc572cdee2da2d15e1ca712a1bb77b3",
                           "b7311d2f46398dbe40fd9643f3d4e5d473574335",
-                          "3d348e107f89e5a645786cea8bd9cda6144786e7" };
+                          "a83efdc872c7b453196ec3911236f6e2dbd45c60" };
 
         assertFiletypeWithPayload( pathes, FileType.SHA1, shas );
         
