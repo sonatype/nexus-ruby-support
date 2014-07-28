@@ -2,14 +2,27 @@ package org.sonatype.nexus.plugins.ruby;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.TreeSet;
 
+import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.item.AbstractStorageItem;
+import org.sonatype.nexus.proxy.item.DefaultStorageCollectionItem;
+import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
+import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.proxy.utils.RepositoryStringUtils;
+import org.sonatype.nexus.ruby.Directory;
+import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.RubygemsFileSystem;
 
@@ -126,6 +139,62 @@ public class NexusRubygemsFacade
         }
     }
 
+    static class DirectoryItemStorageItem 
+        extends AbstractStorageItem
+    {
+
+        public DirectoryItemStorageItem( Repository repository,
+                                         String path )
+        {
+            super( repository, new ResourceStoreRequest( path ), true, false );
+        }
+
+        @Override
+        public boolean isVirtual(){
+            return true;
+        }
+    }
+
+    static class DirectoryStoreageItem 
+        extends DefaultStorageCollectionItem
+    {
+        private Directory dir;
+        private RubyRepository repository;
+
+        DirectoryStoreageItem( RubyRepository repository, ResourceStoreRequest req, Directory dir )
+        {
+            super(repository, req, true, false );
+            this.dir = dir;
+            this.repository = repository;
+        }
+
+        @Override
+        public Collection<StorageItem> list() throws AccessDeniedException,
+                NoSuchResourceStoreException, IllegalOperationException,
+                org.sonatype.nexus.proxy.StorageException
+        {
+            Collection<StorageItem> result;
+            try
+            {
+                result = super.list();
+            }
+            catch (ItemNotFoundException e)
+            {
+                result = new LinkedList<>();
+            }
+            Set<String> items = new TreeSet<>( Arrays.asList( dir.getItems() ) );
+            for( StorageItem i : result )
+            {
+                items.remove( i.getName() );
+            }
+            for( String item : items )
+            {
+                result.add( new DirectoryItemStorageItem( repository, dir.storagePath() + "/" + item ) );
+            }
+            return result;
+        }
+        
+    }
     @SuppressWarnings( "deprecation" )
     public StorageItem handleRetrieve( RubyRepository repository, ResourceStoreRequest req, RubygemsFile file ) 
         throws IllegalOperationException, org.sonatype.nexus.proxy.StorageException,
@@ -134,16 +203,19 @@ public class NexusRubygemsFacade
         switch( file.state() )
         {     
         case NO_PAYLOAD:
-            // handle directories
-            req.setRequestPath( file.storagePath() );
-            return repository.retrieveDirectItem( req );
+            if (file.type() == FileType.DIRECTORY )
+            {
+                // handle directories
+                req.setRequestPath( file.storagePath() );
+                return new DirectoryStoreageItem( repository, req, (Directory) file );
+            }
         case NOT_EXISTS:
             throw new ItemNotFoundException( ItemNotFoundException.reasonFor( new ResourceStoreRequest( file.remotePath() ), repository,
                                                                               "Can not serve path %s for repository %s", file.storagePath(),
                                                                               RepositoryStringUtils.getHumanizedNameString( repository ) ) );
         case ERROR:
             Exception e = file.getException();
-            if (  e instanceof ItemNotFoundException )
+            if ( e instanceof ItemNotFoundException )
             {
                 throw (ItemNotFoundException) e;
             }

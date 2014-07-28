@@ -5,18 +5,25 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 
+import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
+import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.ContentLocator;
 import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.PreparedContentLocator;
+import org.sonatype.nexus.proxy.item.StorageCollectionItem;
 import org.sonatype.nexus.proxy.item.StorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.DependencyFile;
+import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
@@ -208,5 +215,27 @@ public class NexusStorage implements Storage
         ContentLocator cl = newPreparedContentLocator( data, file.type().mime(), length );
         file.set( new DefaultStorageFileItem( repository, new ResourceStoreRequest( file.storagePath() ),
                                               true, false, cl ) );
+    }
+
+    @Override
+    public String[] listDirectory( Directory dir )
+    {
+        Set<String> result = new TreeSet<>( Arrays.asList( dir.getItems() ) ); 
+        try
+        {
+            StorageItem list = repository.retrieveDirectItem( new ResourceStoreRequest( dir.storagePath() ) );
+            if ( list instanceof StorageCollectionItem )
+            {
+                for ( StorageItem item : ((StorageCollectionItem) list ).list() ) 
+                {
+                    result.add( item.getName() );
+                }
+            }
+        }
+        catch ( IOException
+                | IllegalOperationException | ItemNotFoundException | AccessDeniedException | NoSuchResourceStoreException e )
+        {
+        }
+        return result.toArray( new String[ result.size() ] );
     }
 }
