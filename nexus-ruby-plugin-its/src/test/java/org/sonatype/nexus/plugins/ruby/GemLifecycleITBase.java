@@ -106,7 +106,6 @@ public abstract class GemLifecycleITBase extends RubyNexusRunningITSupport
     {
         gemName = gemName.replace( "nexus", "n/nexus" );
         gemspecName = gemspecName.replace( "nexus", "n/nexus" );
-        dependencyName = dependencyName.replace( "nexus", "n/nexus" );
         
         // can delete any file
         assertFileRemoval( gemspecName, is( true ) );
