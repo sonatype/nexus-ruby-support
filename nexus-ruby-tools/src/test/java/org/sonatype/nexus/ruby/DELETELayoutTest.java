@@ -138,12 +138,14 @@ public class DELETELayoutTest
     {        
         String[] pathes = { "/",  "/api", "/api/", "/api/v1", "/api/v1/", 
                             "/api/v1/dependencies", "/gems/", "/gems",
-                            "/maven/releases/rubygems/jbundler",
-                            "/maven/releases/rubygems/jbundler/1.2.3", 
-                            "/maven/prereleases/rubygems/jbundler",
-                            "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT", 
                           };
         assertForbidden( pathes );
+        String[] mpathes = { "/maven/releases/rubygems/jbundler",
+                             "/maven/releases/rubygems/jbundler/1.2.3",
+                             "/maven/prereleases/rubygems/jbundler",
+                             "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT",
+        };
+        assertFiletype( mpathes, FileType.DIRECTORY );
     }
     
     @Test

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.DependencyData;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.GemArtifactFile;
+import org.sonatype.nexus.ruby.GemArtifactIdDirectory;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
 import org.sonatype.nexus.ruby.IOUtil;
@@ -21,6 +23,7 @@ import org.sonatype.nexus.ruby.MavenMetadataSnapshotFile;
 import org.sonatype.nexus.ruby.MetadataBuilder;
 import org.sonatype.nexus.ruby.MetadataSnapshotBuilder;
 import org.sonatype.nexus.ruby.PomFile;
+import org.sonatype.nexus.ruby.RubygemsDirectory;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.Sha1File;
@@ -101,6 +104,30 @@ public class GETLayout extends DefaultLayout
             }
         }
         return file;
+    }
+
+    @Override
+    public RubygemsDirectory rubygemsDirectory( String path )
+    {
+        RubygemsDirectory dir = super.rubygemsDirectory( path );
+        dir.setItems( store.listDirectory( directory( "/api/v1/dependencies/" ) ) );
+        return dir;
+    }
+
+    @Override
+    public GemArtifactIdDirectory gemArtifactIdDirectory( String path, String name,
+                                                          boolean prereleases )
+    {
+        GemArtifactIdDirectory dir = super.gemArtifactIdDirectory( path, name, prereleases );
+        try
+        {
+            dir.setItems( newDependencyData( dir.dependency() ) );
+        }
+        catch (IOException e)
+        {
+            dir.setException( e );
+        }
+        return dir;
     }
 
     @Override

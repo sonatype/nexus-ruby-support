@@ -149,6 +149,45 @@ public class DefaultLayout implements Layout
     }
 
     /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
+     */
+    @Override
+    public RubygemsDirectory rubygemsDirectory( String path )
+    {
+        if( ! path.endsWith( "/" ) )
+        {
+            path += "/";
+        }
+        return new RubygemsDirectory( this, path, path );
+    }
+    
+    /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
+     */
+    @Override
+    public GemArtifactIdDirectory gemArtifactIdDirectory( String path, String name, boolean prereleases )
+    {
+        if( ! path.endsWith( "/" ) )
+        {
+            path += "/";
+        }
+        return new GemArtifactIdDirectory( this, path, path, name, prereleases );
+    }
+    
+    /* (non-Javadoc)
+     * @see org.sonatype.nexus.ruby.Layout#directory(java.lang.String)
+     */
+    @Override
+    public Directory gemArtifactIdVersionDirectory( String path, String name, String version )
+    {
+        if( ! path.endsWith( "/" ) )
+        {
+            path += "/";
+        }
+        return new GemArtifactIdVersionDirectory( this, path, path, name, version );
+    }
+    
+    /* (non-Javadoc)
      * @see org.sonatype.nexus.ruby.Layout#gemFile(java.lang.String, java.lang.String)
      */
     @Override

@@ -49,9 +49,8 @@ public class RubygemsFile {
         return state;
     }
 
-    public String toString()
+    protected void addToString( StringBuilder builder )
     {
-        StringBuilder builder = new StringBuilder( "RubygemsFile[" );
         builder.append( "type=" ).append(type.name() )
             .append( ", storage=" ).append( storage )
             .append( ", remote=" ).append( remote );
@@ -68,7 +67,13 @@ public class RubygemsFile {
         else if ( state == State.PAYLOAD )
         {
             builder.append( ", payload=" ).append( get().toString() );
-        }
+        }        
+    }
+
+    public String toString()
+    {
+        StringBuilder builder = new StringBuilder( "RubygemsFile[" );
+        addToString( builder );
         builder.append( "]" );
         return builder.toString();
     }

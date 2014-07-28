@@ -26,10 +26,10 @@ public class MavenPrereleasesRubygemsArtifactIdCuba implements Cuba
             MavenMetadataFile file = state.context.layout.mavenMetadata( name, true );
             return state.context.layout.sha1( file );
         case "":
-            return state.context.layout.directory( state.context.original );
+            return state.context.layout.gemArtifactIdDirectory( state.context.original, name, true );
         default:
             return state.nested( new MavenPrereleasesRubygemsArtifactIdVersionCuba( name,
-                                                                                  state.part.replace( "-SNAPSHOT", "" ) ) );
+                                                                                    state.part.replace( "-SNAPSHOT", "" ) ) );
         }
     }
 }

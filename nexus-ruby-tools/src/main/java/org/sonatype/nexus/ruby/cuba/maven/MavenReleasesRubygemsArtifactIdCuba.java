@@ -26,7 +26,7 @@ public class MavenReleasesRubygemsArtifactIdCuba implements Cuba
             MavenMetadataFile file = state.context.layout.mavenMetadata( name, false );
             return state.context.layout.sha1( file );
         case "":
-            return state.context.layout.directory( state.context.original );
+            return state.context.layout.gemArtifactIdDirectory( state.context.original, name, false );
         default:
             return state.nested( new MavenReleasesRubygemsArtifactIdVersionCuba( name, state.part ) );
         }

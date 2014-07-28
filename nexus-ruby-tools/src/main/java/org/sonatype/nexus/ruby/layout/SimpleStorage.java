@@ -13,6 +13,7 @@ import java.security.SecureRandom;
 import java.util.zip.GZIPInputStream;
 
 import org.sonatype.nexus.ruby.DependencyFile;
+import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
@@ -205,6 +206,12 @@ public class SimpleStorage implements Storage
     public void memory( String data, RubygemsFile file )
     {
         memory( new ByteArrayInputStream( data.getBytes() ), file );
+    }
+
+    @Override
+    public String[] listDirectory( Directory dir )
+    {
+        return toPath( dir ).toFile().list();
     }
     
 }

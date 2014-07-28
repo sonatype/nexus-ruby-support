@@ -12,7 +12,7 @@ public class MavenReleasesRubygemsCuba implements Cuba
     {
         if ( state.part.isEmpty() )
         {
-            return state.context.layout.directory( state.context.original );
+            return state.context.layout.rubygemsDirectory( state.context.original );
         }
         return state.nested( new MavenReleasesRubygemsArtifactIdCuba( state.part ) );
     }

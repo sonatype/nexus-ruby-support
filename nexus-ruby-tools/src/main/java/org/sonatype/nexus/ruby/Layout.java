@@ -9,6 +9,12 @@ public interface Layout
 
     Directory directory( String path, String... items );
 
+    RubygemsDirectory rubygemsDirectory( String path );
+    
+    Directory gemArtifactIdDirectory( String path, String name, boolean prereleases );
+
+    Directory gemArtifactIdVersionDirectory( String path, String name, String version );//, boolean prereleases );
+
     GemFile gemFile( String name, String version, String platform );
 
     GemFile gemFile( String filename );

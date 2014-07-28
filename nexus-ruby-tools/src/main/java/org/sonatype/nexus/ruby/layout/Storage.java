@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.sonatype.nexus.ruby.DependencyFile;
+import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
@@ -32,4 +33,6 @@ public interface Storage
     InputStream getInputStream( RubygemsFile file ) throws IOException;
 
     long getModified( RubygemsFile file );
+
+    String[] listDirectory( Directory dir );
 }

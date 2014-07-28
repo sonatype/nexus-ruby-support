@@ -41,7 +41,8 @@ public class RootCuba implements Cuba
         case MAVEN:
             return state.nested( maven );
         case "":
-            return state.context.layout.directory( state.context.original, (String[]) null );
+            return state.context.layout.directory( state.context.original,
+                                                   new String[] { "api", "quick", "gems", "maven" } );
         default:
         }
         Matcher m = SPECS.matcher( state.part );

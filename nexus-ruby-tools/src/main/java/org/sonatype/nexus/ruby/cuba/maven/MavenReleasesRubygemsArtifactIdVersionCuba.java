@@ -45,7 +45,7 @@ public class MavenReleasesRubygemsArtifactIdVersionCuba implements Cuba
         switch( state.part )
         {
         case "":
-            return state.context.layout.directory( state.context.original );
+            return state.context.layout.gemArtifactIdVersionDirectory( state.context.original, name, version );
         default:
             return state.context.layout.notFound( state.context.original );
         }

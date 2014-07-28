@@ -16,6 +16,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import junit.framework.TestCase;
@@ -149,8 +151,8 @@ public class HostedGETLayoutTest
         throws Exception
     {        
         String[] pathes = { "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom",
-                            "/maven/releases/rubygems/pre/0.1.0.beta/jbundler-0.1.0.beta.pom",
-                            "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/jbundler-0.1.0.beta-123213123.pom" };
+                            "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.pom",
+                            "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-123213123.pom" };
         String[] xmls = { IOUtils.toString( Thread.currentThread().getContextClassLoader().getResourceAsStream( "zip.pom" ) ),                         
                           IOUtils.toString( Thread.currentThread().getContextClassLoader().getResourceAsStream( "pre.pom" ) ),                         
                           IOUtils.toString( Thread.currentThread().getContextClassLoader().getResourceAsStream( "pre-snapshot.pom" ) ) };
@@ -291,12 +293,61 @@ public class HostedGETLayoutTest
     {        
         String[] pathes = { "/",  "/api", "/api/", "/api/v1", "/api/v1/", 
                             "/api/v1/dependencies", "/gems/", "/gems",
-                            "/maven/releases/rubygems/jbundler",
-                            "/maven/releases/rubygems/jbundler/1.2.3", 
-                            "/maven/prereleases/rubygems/jbundler",
-                            "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT", 
+                            "/maven/releases/rubygems/zip",
+                            "/maven/releases/rubygems/zip/2.0.2", 
+                            "/maven/prereleases/rubygems/pre",
+                            "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT", 
+                            "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT",
                           };
         assertFiletypeWithNullPayload( pathes, FileType.DIRECTORY );
+        
+        assertDirectory( "/", "api", "quick", "gems", "maven" );
+        assertDirectory( "/api", "v1" );
+        assertDirectory( "/api/v1", "api_key", "dependencies" );
+        assertDirectory( "/api/v1/dependencies" );//"hufflepuf.json.rz", "pre.json.rz", "zip.json.rz" );
+        assertDirectory( "/quick", "Marshal.4.8" );
+        assertDirectory( "/quick/Marshal.4.8" );
+        assertDirectory( "/gems" );//"hufflepuf.json.rz", "pre.json.rz", "zip.json.rz" );
+        assertDirectory( "/maven", "prereleases", "releases" );
+        assertDirectory( "/maven/prereleases", "rubygems" );
+        // the lookup will create a hufflepuf.json.rz !
+        assertDirectory( "/maven/prereleases/rubygems/hufflepuf", "maven-metadata.xml", "maven-metadata.xml.sha1" );
+        assertDirectory( "/maven/prereleases/rubygems", "hufflepuf", "pre", "zip" );
+        assertDirectory( "/maven/releases", "rubygems" );
+        assertDirectory( "/maven/releases/rubygems", "hufflepuf", "pre", "zip" );
+        assertDirectory( "/maven/releases/rubygems/hufflepuf", "0.1.0", "0.2.0", "maven-metadata.xml", "maven-metadata.xml.sha1" );
+        assertDirectory( "/maven/releases/rubygems/jbundler", "maven-metadata.xml", "maven-metadata.xml.sha1" );
+        assertDirectory( "/maven/releases/rubygems/pre", "0.1.0.beta", "maven-metadata.xml", "maven-metadata.xml.sha1" );
+        assertDirectory( "/maven/releases/rubygems/zip", "2.0.2", "maven-metadata.xml", "maven-metadata.xml.sha1" );
+        assertDirectory( "/maven/releases/rubygems/hufflepuf/0.1.0", 
+                         "hufflepuf-0.1.0.pom", "hufflepuf-0.1.0.pom.sha1", "hufflepuf-0.1.0.gem", "hufflepuf-0.1.0.gem.sha1" );
+        assertDirectory( "/maven/releases/rubygems/hufflepuf/0.2.0", 
+                         "hufflepuf-0.2.0.pom", "hufflepuf-0.2.0.pom.sha1", "hufflepuf-0.2.0.gem", "hufflepuf-0.2.0.gem.sha1" );
+        assertDirectory( "/maven/releases/rubygems/pre/0.1.0.beta", 
+                         "pre-0.1.0.beta.pom", "pre-0.1.0.beta.pom.sha1", "pre-0.1.0.beta.gem", "pre-0.1.0.beta.gem.sha1" );
+        assertDirectory( "/maven/releases/rubygems/zip/2.0.2", 
+                         "zip-2.0.2.pom", "zip-2.0.2.pom.sha1", "zip-2.0.2.gem", "zip-2.0.2.gem.sha1" );
+    }
+    
+    private void assertDirectory( String path, String... items )
+    {
+        RubygemsFile file = bootstrap.get( path );
+        assertThat( path, file.type(), equalTo( FileType.DIRECTORY ) );
+        assertThat( path, file.get(), nullValue() );
+        assertThat( path, file.hasException(), is( false ) );
+        assertThat( path, cleanupList( ((Directory) file).getItems() ),
+                    equalTo( cleanupList( items ) ) );
+    }
+
+    protected List<String> cleanupList( String... items )
+    {
+        List<String> list = new LinkedList<>();
+        for( String item: items ){
+            if (!item.startsWith( "gems=" )) {
+                list.add( item );
+            }
+        }
+        return list;
     }
     
     @Test
