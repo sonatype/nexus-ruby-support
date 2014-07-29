@@ -104,7 +104,11 @@ describe Nexus::Rubygems do
     subject.purge_broken_depencency_files( broken_to )
     dirs = Dir[ File.join( broken_to, 'api', '**', '*' ) ]
     dirs.each do |f|
-      File.directory?( f ).must_equal true
+      if File.file?( f )
+        f.must_match /.json.rz$/
+      else
+        File.directory?( f ).must_equal true
+      end
     end
     dirs.size.must_equal 3
   end

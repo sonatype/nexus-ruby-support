@@ -39,9 +39,13 @@ module Nexus
     def purge_broken_depencency_files( directory )
       Dir[ File.join( directory, 
                       'api', 'v1', 'dependencies', 
-                      '*', '*' ) ].each do |file|
+                      '*' ) ].each do |file|
         begin
-          Marshal.load( File.read( file ) )
+          if File.file?( file ) and file =~ /.json.rz$/
+            Marshal.load( File.read( file ) )
+          else
+            FileUtils.rm_rf( file )
+          end
         rescue
           # just in case the file is directory delete it as well
           FileUtils.rm_rf( file )
@@ -189,6 +193,7 @@ module Nexus
       Dependencies.new( name, data )
     end
 
+    # TODO still needed ?
     def list_all_versions( name, source, modified, prerelease = false )
       map_method = prerelease ? :name_preversions_map : :name_versions_map
       send( map_method, source, modified )[ name.to_s ] || []
