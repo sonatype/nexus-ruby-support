@@ -1,5 +1,18 @@
 # release notes #
 
+## 1.4.2 ##
+
+* add directory browsing to ./maven/* part of the repo
+
+* internal files api/dependencies have no nested directories anymore - purge dependency task obeys this change
+
+* allow scheduled tasks to access filesystem directly
+
+* cache single dependencies via bundler api
+
+* download all bundler dependencies in one go and cache them per gem
+
+
 ## 1.4.1 ##
 
 * fix update of volatile remote files. since the local file location is different from the remote one, an update needs to be triggered by deleted the outdated file.
