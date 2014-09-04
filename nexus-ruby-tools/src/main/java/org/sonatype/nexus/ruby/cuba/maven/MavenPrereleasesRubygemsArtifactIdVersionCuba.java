@@ -8,52 +8,65 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.Cuba;
 import org.sonatype.nexus.ruby.cuba.State;
 
+
+/**
+ * cuba for /maven/prereleases/rubygems/{artifactId}/{version}-SNAPSHOT/
+ * 
+ * @author christian
+ *
+ */
 public class MavenPrereleasesRubygemsArtifactIdVersionCuba implements Cuba
 {
 
     private static Pattern FILE = Pattern.compile( "^.*?([^-][^-]*)\\.(gem|pom|gem.sha1|pom.sha1)$" );
     
-    private final String name;
+    private final String artifactId;
     private final String version;
 
-    public MavenPrereleasesRubygemsArtifactIdVersionCuba( String name, String version )
+    public MavenPrereleasesRubygemsArtifactIdVersionCuba( String artifactId, String version )
     {
-        this.name = name;
+        this.artifactId = artifactId;
         this.version = version;
     }
-    
+
+    /**
+     * directories one for each version of the gem with given name/artifactId
+     * 
+     * files [{artifactId}-{version}-SNAPSHOT.gem,{artifactId}-{version}-SNAPSHOT.gem.sha1,
+     *        {artifactId}-{version}-SNAPSHOT.pom,{artifactId}-{version}-SNAPSHOT.pom.sha1]
+     */
     @Override
     public RubygemsFile on( State state )
     {
-        Matcher m = FILE.matcher( state.part );
+        Matcher m = FILE.matcher( state.name );
         if ( m.matches() )
         {
             switch( m.group( 2 ) )
             {
             case "gem":
-                return state.context.layout.gemArtifactSnapshot( name, version, m.group( 1 ) );
+                return state.context.factory.gemArtifactSnapshot( artifactId, version, m.group( 1 ) );
             case "pom":
-                return state.context.layout.pomSnapshot( name, version, m.group( 1 ) );
+                return state.context.factory.pomSnapshot( artifactId, version, m.group( 1 ) );
             case "gem.sha1":
-                RubygemsFile file = state.context.layout.gemArtifactSnapshot( name, version, m.group( 1 ) );
-                return state.context.layout.sha1( file );
+                RubygemsFile file = state.context.factory.gemArtifactSnapshot( artifactId, version, m.group( 1 ) );
+                return state.context.factory.sha1( file );
             case "pom.sha1":
-                file = state.context.layout.pomSnapshot( name, version, m.group( 1 ) );
-                return state.context.layout.sha1( file );
+                file = state.context.factory.pomSnapshot( artifactId, version, m.group( 1 ) );
+                return state.context.factory.sha1( file );
             default:
             }
         }
-        switch( state.part )
+        switch( state.name )
         {
         case "maven-metadata.xml":
-            return state.context.layout.mavenMetadataSnapshot( name, version );
+            return state.context.factory.mavenMetadataSnapshot( artifactId, version );
         case "maven-metadata.xml.sha1":
-            MavenMetadataSnapshotFile file = state.context.layout.mavenMetadataSnapshot( name, version );
-            return state.context.layout.sha1( file );
+            MavenMetadataSnapshotFile file = state.context.factory.mavenMetadataSnapshot( artifactId, version );
+            return state.context.factory.sha1( file );
         case "":
-            return state.context.layout.directory( state.context.original );
+            return state.context.factory.directory( state.context.original );
         default:
-            return state.context.layout.notFound( state.context.original );
+            return state.context.factory.notFound( state.context.original );
         }
     }
 }

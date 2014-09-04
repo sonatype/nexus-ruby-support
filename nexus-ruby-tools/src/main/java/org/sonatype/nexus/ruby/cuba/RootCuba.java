@@ -5,7 +5,12 @@ import java.util.regex.Pattern;
 
 import org.sonatype.nexus.ruby.RubygemsFile;
 
-
+/**
+ * cuba for /
+ *  
+ * @author christian
+ *
+ */
 public class RootCuba implements Cuba
 {
     private static final Pattern SPECS = Pattern.compile( "^((prerelease_|latest_)?specs).4.8(.gz)?$" );
@@ -28,9 +33,14 @@ public class RootCuba implements Cuba
         this.maven = maven;
     }
     
+    /**   
+     * directories [api, quick, gems, maven]
+     * 
+     * files [specs.4.8, latest_specs.4.8, prerelease_specs.4.8, specs.4.8.gz, latest_specs.4.8.gz, prerelease_specs.4.8.gz]
+     */
     public RubygemsFile on( State state )
     {
-        switch( state.part )
+        switch( state.name )
         {
         case API:
             return state.nested( api );
@@ -41,19 +51,19 @@ public class RootCuba implements Cuba
         case MAVEN:
             return state.nested( maven );
         case "":
-            return state.context.layout.directory( state.context.original,
-                                                   new String[] { "api", "quick", "gems", "maven" } );
+            return state.context.factory.directory( state.context.original,
+                                                    new String[] { "api", "quick", "gems", "maven" } );
         default:
         }
-        Matcher m = SPECS.matcher( state.part );
+        Matcher m = SPECS.matcher( state.name );
         if ( m.matches() )
         {
             if ( m.group( 3 ) == null )
             {
-                return state.context.layout.specsIndexFile( m.group( 1 ) );
+                return state.context.factory.specsIndexFile( m.group( 1 ) );
             }
-            return state.context.layout.specsIndexZippedFile( m.group( 1 ) );
+            return state.context.factory.specsIndexZippedFile( m.group( 1 ) );
         }
-        return state.context.layout.notFound( state.context.original );
+        return state.context.factory.notFound( state.context.original );
     }
 }

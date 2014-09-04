@@ -6,10 +6,10 @@ public class GemArtifactFile extends RubygemsFile {
     private final boolean snapshot;
     private GemFile gem;
 
-    GemArtifactFile( Layout layout, String storage, String remote,
+    GemArtifactFile( RubygemsFileFactory factory, String storage, String remote,
                      String name, String version, boolean snapshot )
     {
-        super( layout, FileType.GEM_ARTIFACT, storage, remote, name );
+        super( factory, FileType.GEM_ARTIFACT, storage, remote, name );
         this.version = version;
         this.snapshot = snapshot;
     }
@@ -31,7 +31,7 @@ public class GemArtifactFile extends RubygemsFile {
             String platform = dependencies.platform( version() );
             if ( platform != null )
             {
-                this.gem = layout.gemFile( name(), version(), platform );
+                this.gem = factory.gemFile( name(), version(), platform );
             }
         }
         return this.gem;
@@ -39,6 +39,6 @@ public class GemArtifactFile extends RubygemsFile {
 
     public DependencyFile dependency()
     {
-        return layout.dependencyFile( name() );
+        return factory.dependencyFile( name() );
     }
 }

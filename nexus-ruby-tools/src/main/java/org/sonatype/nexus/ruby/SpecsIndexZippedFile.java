@@ -5,9 +5,9 @@ public class SpecsIndexZippedFile extends RubygemsFile {
     
     private final SpecsIndexType specsType;
     
-    SpecsIndexZippedFile( Layout layout, String storage, String remote, String name )
+    SpecsIndexZippedFile( RubygemsFileFactory factory, String storage, String remote, String name )
     {
-        super( layout, FileType.SPECS_INDEX_ZIPPED, storage, remote, name );
+        super( factory, FileType.SPECS_INDEX_ZIPPED, storage, remote, name );
         specsType = SpecsIndexType.fromFilename( storagePath() );
     }
 
@@ -18,6 +18,6 @@ public class SpecsIndexZippedFile extends RubygemsFile {
     
     public SpecsIndexFile unzippedSpecsIndexFile()
     {
-        return layout.specsIndexFile( name() );
+        return factory.specsIndexFile( name() );
     }
 }

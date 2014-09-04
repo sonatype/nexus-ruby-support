@@ -8,18 +8,18 @@ public class RubygemsFile {
         NEW_INSTANCE, NOT_EXISTS, ERROR, NO_PAYLOAD, TEMP_UNAVAILABLE, FORBIDDEN, PAYLOAD
     }
  
-    protected final Layout layout;
+    final RubygemsFileFactory factory;
     private final String name;
     private final String storage;
     private final String remote;
     private final FileType type;
     
-    private Object context;
+    private Object payload;
     private State state = State.NEW_INSTANCE;
     
-    RubygemsFile( Layout layout, FileType type, String storage, String remote, String name )
+    RubygemsFile( RubygemsFileFactory factory, FileType type, String storage, String remote, String name )
     {
-        this.layout = layout;
+        this.factory = factory;
         this.type = type;
         this.storage = storage;
         this.remote = remote;
@@ -129,13 +129,13 @@ public class RubygemsFile {
 
     public Object get()
     {
-        return context;
+        return payload;
     }
 
     public void set( Object context )
     {
         state = context == null ? State.NO_PAYLOAD : State.PAYLOAD;
-        this.context = context;
+        this.payload = context;
     }
     
     public void setException( Exception e )
@@ -148,7 +148,7 @@ public class RubygemsFile {
     {
         if( hasException() )
         {
-            return (Exception) context;
+            return (Exception) payload;
         }
         else
         {
@@ -163,7 +163,7 @@ public class RubygemsFile {
 
     public void resetState()
     {
-        context = null;
+        payload = null;
         state = State.NEW_INSTANCE;
     }
 

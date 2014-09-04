@@ -5,30 +5,41 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.State;
 import org.sonatype.nexus.ruby.cuba.Cuba;
 
+/**
+ * cuba for /maven/releases/rubygems/{artifactId}
+ * 
+ * @author christian
+ *
+ */
 public class MavenReleasesRubygemsArtifactIdCuba implements Cuba
 {
     
-    private final String name;
+    private final String artifactId;
 
-    public MavenReleasesRubygemsArtifactIdCuba( String name )
+    public MavenReleasesRubygemsArtifactIdCuba( String artifactId )
     {
-        this.name = name;
+        this.artifactId = artifactId;
     }
-    
+
+    /**
+     * directories one for each version of the gem with given name/artifactId
+     * 
+     * files [maven-metadata.xml,maven-metadata.xml.sha1]
+     */
     @Override
     public RubygemsFile on( State state )
     {
-        switch( state.part )
+        switch( state.name )
         {
         case "maven-metadata.xml":
-            return state.context.layout.mavenMetadata( name, false );
+            return state.context.factory.mavenMetadata( artifactId, false );
         case "maven-metadata.xml.sha1":
-            MavenMetadataFile file = state.context.layout.mavenMetadata( name, false );
-            return state.context.layout.sha1( file );
+            MavenMetadataFile file = state.context.factory.mavenMetadata( artifactId, false );
+            return state.context.factory.sha1( file );
         case "":
-            return state.context.layout.gemArtifactIdDirectory( state.context.original, name, false );
+            return state.context.factory.gemArtifactIdDirectory( state.context.original, artifactId, false );
         default:
-            return state.nested( new MavenReleasesRubygemsArtifactIdVersionCuba( name, state.part ) );
+            return state.nested( new MavenReleasesRubygemsArtifactIdVersionCuba( artifactId, state.name ) );
         }
     }
 }

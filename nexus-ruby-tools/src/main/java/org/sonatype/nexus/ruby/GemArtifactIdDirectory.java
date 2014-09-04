@@ -6,10 +6,10 @@ public class GemArtifactIdDirectory extends Directory {
     
     private final boolean prereleased;
 
-    GemArtifactIdDirectory( Layout layout, String storage, String remote, String name,
+    GemArtifactIdDirectory( RubygemsFileFactory factory, String storage, String remote, String name,
                             boolean prereleased )
     {
-        super( layout, storage, remote, name );
+        super( factory, storage, remote, name );
         items.add( "maven-metadata.xml" );
         items.add( "maven-metadata.xml.sha1" );
         this.prereleased = prereleased;
@@ -27,7 +27,7 @@ public class GemArtifactIdDirectory extends Directory {
     
     public DependencyFile dependency()
     {
-        return this.layout.dependencyFile( name() );
+        return this.factory.dependencyFile( name() );
     }
     
     public void setItems( DependencyData data )

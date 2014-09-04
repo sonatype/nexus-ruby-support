@@ -169,7 +169,7 @@ public class DefaultBootstrapTest
     {
         for( String path : pathes )
         {
-            assertThat( path, bootstrap.get( path ).type(), equalTo( type ) );
+            assertThat( path, bootstrap.file( path ).type(), equalTo( type ) );
         }
     }
 }

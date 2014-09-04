@@ -4,6 +4,12 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.State;
 import org.sonatype.nexus.ruby.cuba.Cuba;
 
+/**
+ * cuba for /maven/prereleases/
+ * 
+ * @author christian
+ *
+ */
 public class MavenPrereleasesCuba implements Cuba
 {
     static final String RUBYGEMS = "rubygems";
@@ -15,17 +21,20 @@ public class MavenPrereleasesCuba implements Cuba
         mavenPrereleasesRubygems = cuba;
     }
 
+    /**
+     * directory [rubygems]
+     */
     @Override
     public RubygemsFile on( State state )
     {
-        switch( state.part )
+        switch( state.name )
         {
         case RUBYGEMS:
             return state.nested( mavenPrereleasesRubygems );
         case "":
-            return state.context.layout.directory( state.context.original, RUBYGEMS );
+            return state.context.factory.directory( state.context.original, RUBYGEMS );
         default:
-            return state.context.layout.notFound( state.context.original );
+            return state.context.factory.notFound( state.context.original );
         }
     }
 }

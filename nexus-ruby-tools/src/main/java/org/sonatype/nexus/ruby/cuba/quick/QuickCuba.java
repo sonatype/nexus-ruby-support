@@ -4,6 +4,12 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.State;
 import org.sonatype.nexus.ruby.cuba.Cuba;
 
+/**
+ * cuba for /quick/
+ * 
+ * @author christian
+ *
+ */
 public class QuickCuba implements Cuba
 {
     static final String MARSHAL_4_8 = "Marshal.4.8";
@@ -14,19 +20,22 @@ public class QuickCuba implements Cuba
     {
         this.quickMarshal = cuba;
     }
-    
+
+    /**
+     * directory [Marshal.4.8]
+     */
     @Override
     public RubygemsFile on( State state )
     {       
-        switch( state.part )
+        switch( state.name )
         {
         case MARSHAL_4_8:
             return state.nested( quickMarshal );
         case "":
-            return state.context.layout.directory( state.context.original, 
+            return state.context.factory.directory( state.context.original, 
                                                    MARSHAL_4_8 );
         default:
-            return state.context.layout.notFound( state.context.original );
+            return state.context.factory.notFound( state.context.original );
         }
     }
 }

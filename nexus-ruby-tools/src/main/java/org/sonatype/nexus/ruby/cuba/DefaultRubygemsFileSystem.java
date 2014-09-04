@@ -1,7 +1,6 @@
 package org.sonatype.nexus.ruby.cuba;
 
-import org.sonatype.nexus.ruby.DefaultLayout;
-import org.sonatype.nexus.ruby.Layout;
+import org.sonatype.nexus.ruby.RubygemsFileFactory;
 import org.sonatype.nexus.ruby.cuba.api.ApiCuba;
 import org.sonatype.nexus.ruby.cuba.api.ApiV1Cuba;
 import org.sonatype.nexus.ruby.cuba.api.ApiV1DependenciesCuba;
@@ -13,10 +12,12 @@ import org.sonatype.nexus.ruby.cuba.maven.MavenReleasesCuba;
 import org.sonatype.nexus.ruby.cuba.maven.MavenReleasesRubygemsCuba;
 import org.sonatype.nexus.ruby.cuba.quick.QuickCuba;
 import org.sonatype.nexus.ruby.cuba.quick.QuickMarshalCuba;
+import org.sonatype.nexus.ruby.layout.DefaultLayout;
+import org.sonatype.nexus.ruby.layout.Layout;
 
 public class DefaultRubygemsFileSystem extends RubygemsFileSystem
 {
-    public DefaultRubygemsFileSystem( Layout fileLayout, Layout getLayout, Layout postLayout, Layout deleteLayout )
+    public DefaultRubygemsFileSystem( RubygemsFileFactory fileLayout, Layout getLayout, Layout postLayout, Layout deleteLayout )
     {
         super( fileLayout, getLayout, postLayout, deleteLayout,
                // TODO move to javax.inject
@@ -31,14 +32,9 @@ public class DefaultRubygemsFileSystem extends RubygemsFileSystem
     {
         this( new DefaultLayout(), getLayout, postLayout, deleteLayout );
     }
-
-    private DefaultRubygemsFileSystem( Layout layout )
-    {
-        this( layout, layout, layout, layout );
-    }
     
     public DefaultRubygemsFileSystem()
     {
-        this( new DefaultLayout() );
+        this( new DefaultLayout(), null, null, null );
     }
 }

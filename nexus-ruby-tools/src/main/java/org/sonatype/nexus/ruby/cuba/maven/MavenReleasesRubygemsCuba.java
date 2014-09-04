@@ -4,16 +4,25 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.State;
 import org.sonatype.nexus.ruby.cuba.Cuba;
 
+/**
+ * cuba for /maven/releases/rubygems/
+ * 
+ * @author christian
+ *
+ */
 public class MavenReleasesRubygemsCuba implements Cuba
 {
-    
+
+    /**
+     * directories one for each gem (name without version)
+     */
     @Override
     public RubygemsFile on( State state )
     {
-        if ( state.part.isEmpty() )
+        if ( state.name.isEmpty() )
         {
-            return state.context.layout.rubygemsDirectory( state.context.original );
+            return state.context.factory.rubygemsDirectory( state.context.original );
         }
-        return state.nested( new MavenReleasesRubygemsArtifactIdCuba( state.part ) );
+        return state.nested( new MavenReleasesRubygemsArtifactIdCuba( state.name ) );
     }
 }

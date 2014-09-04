@@ -7,6 +7,12 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.State;
 import org.sonatype.nexus.ruby.cuba.Cuba;
 
+/**
+ * cuba for /maven/prereleases/rubygems/{artifactId}/{version}/
+ * 
+ * @author christian
+ *
+ */
 public class MavenReleasesRubygemsArtifactIdVersionCuba implements Cuba
 {
 
@@ -20,34 +26,40 @@ public class MavenReleasesRubygemsArtifactIdVersionCuba implements Cuba
         this.name = name;
         this.version = version;
     }
-    
+
+    /**
+     * directories one for each version of the gem with given name/artifactId
+     * 
+     * files [{artifactId}-{version}.gem,{artifactId}-{version}.gem.sha1,
+     *        {artifactId}-{version}.pom,{artifactId}-{version}.pom.sha1]
+     */
     @Override
     public RubygemsFile on( State state )
     {
-        Matcher m = FILE.matcher( state.part );
+        Matcher m = FILE.matcher( state.name );
         if ( m.matches() )
         {
             switch( m.group( 1 ) )
             {
             case "gem":
-                return state.context.layout.gemArtifact( name, version );
+                return state.context.factory.gemArtifact( name, version );
             case "pom":
-                return state.context.layout.pom( name, version );
+                return state.context.factory.pom( name, version );
             case "gem.sha1":
-                RubygemsFile file = state.context.layout.gemArtifact( name, version );
-                return state.context.layout.sha1( file );
+                RubygemsFile file = state.context.factory.gemArtifact( name, version );
+                return state.context.factory.sha1( file );
             case "pom.sha1":
-                file = state.context.layout.pom( name, version );
-                return state.context.layout.sha1( file );
+                file = state.context.factory.pom( name, version );
+                return state.context.factory.sha1( file );
             default:
             }
         }
-        switch( state.part )
+        switch( state.name )
         {
         case "":
-            return state.context.layout.gemArtifactIdVersionDirectory( state.context.original, name, version );
+            return state.context.factory.gemArtifactIdVersionDirectory( state.context.original, name, version );
         default:
-            return state.context.layout.notFound( state.context.original );
+            return state.context.factory.notFound( state.context.original );
         }
     }
 }

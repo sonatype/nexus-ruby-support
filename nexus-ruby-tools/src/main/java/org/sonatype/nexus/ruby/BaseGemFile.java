@@ -26,16 +26,16 @@ public class BaseGemFile extends RubygemsFile {
         return platform;
     }
 
-    BaseGemFile( Layout layout, FileType type, String storage, String remote, 
+    BaseGemFile( RubygemsFileFactory factory, FileType type, String storage, String remote, 
                  String filename )
     {
-        this( layout, type, storage, remote, filename, null, null );
+        this( factory, type, storage, remote, filename, null, null );
     }
     
-    BaseGemFile( Layout layout, FileType type, String storage, String remote, 
+    BaseGemFile( RubygemsFileFactory factory, FileType type, String storage, String remote, 
                  String name, String version, String platform )
     {
-        super( layout, type, storage, remote, name );
+        super( factory, type, storage, remote, name );
         this.filename = toFilename( name, version, platform );
         this.version = version;
         this.platform = platform;

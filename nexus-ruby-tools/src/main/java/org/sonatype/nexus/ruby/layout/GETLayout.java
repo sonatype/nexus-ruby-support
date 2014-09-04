@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.BundlerApiFile;
-import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.DependencyData;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.GemArtifactFile;
@@ -42,13 +40,6 @@ public class GETLayout extends DefaultLayout
         this.store = store;
     }
 
-    protected void retrieveUnzipped( SpecsIndexFile specs )
-    {
-        // just make sure we have a zipped file, i.e. create an empty one
-        retrieveZipped( specs.zippedSpecsIndexFile() );
-        store.retrieve( specs );
-    }
-    
     protected void retrieveZipped( SpecsIndexZippedFile specs )
     {
         store.retrieve( specs );
@@ -58,7 +49,9 @@ public class GETLayout extends DefaultLayout
     public SpecsIndexFile specsIndexFile( String name )
     {
         SpecsIndexFile specs = super.specsIndexFile( name );
-        retrieveUnzipped( specs );
+        // just make sure we have a zipped file, i.e. create an empty one
+        retrieveZipped( specs.zippedSpecsIndexFile() );
+        store.retrieve( specs );
         return specs;
     }
 

@@ -3,9 +3,9 @@ package org.sonatype.nexus.ruby;
 
 public class RubygemsDirectory extends Directory {
     
-    RubygemsDirectory( Layout layout, String storage, String remote )
+    RubygemsDirectory( RubygemsFileFactory factory, String storage, String remote )
     {
-        super( layout, storage, remote, "rubygems" );
+        super( factory, storage, remote, "rubygems" );
     }
     
     public void setItems( String... items )

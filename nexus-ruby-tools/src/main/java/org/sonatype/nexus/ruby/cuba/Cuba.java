@@ -5,6 +5,11 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 
 public interface Cuba
 {   
-    RubygemsFile on( State cuba );
+    /**
+     * create the RubygemsFile for the given <code>State</code>
+     * @param cuba
+     * @return RubygemsFile
+     */
+    RubygemsFile on( State state );
 
 }

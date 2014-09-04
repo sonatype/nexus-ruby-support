@@ -3,28 +3,25 @@ package org.sonatype.nexus.ruby.cuba;
 import java.io.InputStream;
 
 import org.sonatype.nexus.ruby.FileType;
-import org.sonatype.nexus.ruby.Layout;
 import org.sonatype.nexus.ruby.RubygemsFile;
+import org.sonatype.nexus.ruby.RubygemsFileFactory;
+import org.sonatype.nexus.ruby.layout.Layout;
 
 public class RubygemsFileSystem
 {
     private final Cuba cuba;
     
-    private final Layout fileLayout;
+    private final RubygemsFileFactory factory;
     
     private final Layout getLayout;
 
     private final Layout postLayout;
 
     private final Layout deleteLayout;
-    
-    protected RubygemsFileSystem( Layout layout, Cuba cuba ){
-        this( layout, layout, layout, layout, cuba );
-    }
 
-    protected RubygemsFileSystem( Layout fileLayout, Layout getLayout, Layout postLayout, Layout deleteLayout, Cuba cuba ){
+    protected RubygemsFileSystem( RubygemsFileFactory factory, Layout getLayout, Layout postLayout, Layout deleteLayout, Cuba cuba ){
         this.cuba = cuba;
-        this.fileLayout = fileLayout;
+        this.factory = factory;
         this.getLayout = getLayout;
         this.postLayout = postLayout;
         this.deleteLayout = deleteLayout;
@@ -32,12 +29,12 @@ public class RubygemsFileSystem
 
     public RubygemsFile file( String path )
     {
-        return visit( fileLayout, path, "" );
+        return visit( factory, path, null );
     }
 
     public RubygemsFile file( String path, String query )
     {
-        return visit( fileLayout, path, query );
+        return visit( factory, path, query );
     }
 
     public RubygemsFile get( String path )
@@ -45,30 +42,30 @@ public class RubygemsFileSystem
         return visit( getLayout, path, null );
     }
 
-    public RubygemsFile get( String original, String query )
+    public RubygemsFile get( String path, String query )
     {
-        return visit( getLayout, original, query );
+        return visit( getLayout, path, query );
     }
 
-    private RubygemsFile visit( Layout layout, String original, String query )
+    private RubygemsFile visit( RubygemsFileFactory factory, String originalPath, String query )
     {
         //normalize PATH-Separator from Windows platform to valid URL-Path
         //    https://github.com/sonatype/nexus-ruby-support/issues/38
-        original = original.replace( '\\', '/' );
-        if ( !original.startsWith( "/" ) )
+        originalPath = originalPath.replace( '\\', '/' );
+        if ( !originalPath.startsWith( "/" ) )
         {
-            original = "/" + original;
+            originalPath = "/" + originalPath;
         }
-        String path = original;
+        String path = originalPath;
         if ( query == null )
         { 
-            if ( original.contains( "?" ) )
+            if ( originalPath.contains( "?" ) )
             {
-                int index = original.indexOf( "?" );
+                int index = originalPath.indexOf( "?" );
                 if ( index > -1 )
                 {
-                    query = original.substring( index + 1 );
-                    path = original.substring( 0, index );
+                    query = originalPath.substring( index + 1 );
+                    path = originalPath.substring( 0, index );
                 }
             }
             else
@@ -77,7 +74,7 @@ public class RubygemsFileSystem
             }
         }
                 
-        return new State( new Context( layout, original, query ), path, null ).nested( cuba );
+        return new State( new Context( factory, originalPath, query ), path, null ).nested( cuba );
     }
 
     public RubygemsFile post( InputStream is, String path )
@@ -91,7 +88,7 @@ public class RubygemsFileSystem
             }
             return file;
         }
-        RubygemsFile file = visit( fileLayout, path, "" );
+        RubygemsFile file = visit( factory, path, "" );
         file.markAsForbidden();
         return file;
     }
@@ -101,9 +98,9 @@ public class RubygemsFileSystem
         postLayout.addGem( is, file );
     }
 
-    public RubygemsFile delete( String original )
+    public RubygemsFile delete( String path )
     {
-        return visit( deleteLayout, original, "" );
+        return visit( deleteLayout, path, "" );
     }
 
     public String toString()

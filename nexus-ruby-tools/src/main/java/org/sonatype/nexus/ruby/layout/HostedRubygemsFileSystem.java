@@ -1,6 +1,5 @@
 package org.sonatype.nexus.ruby.layout;
 
-import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 

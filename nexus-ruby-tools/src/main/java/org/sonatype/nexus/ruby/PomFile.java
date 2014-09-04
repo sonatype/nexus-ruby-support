@@ -5,10 +5,10 @@ public class PomFile extends RubygemsFile {
     private final String version;
     private final boolean snapshot;
 
-    PomFile( Layout layout, String storage, String remote,
+    PomFile( RubygemsFileFactory factory, String storage, String remote,
              String name, String version, boolean snapshot )
     {
-        super( layout, FileType.POM, storage, remote, name );
+        super( factory, FileType.POM, storage, remote, name );
         this.version = version;
         this.snapshot = snapshot;
     }
@@ -26,11 +26,11 @@ public class PomFile extends RubygemsFile {
     public GemspecFile gemspec( DependencyData dependencies )
     {
         String platform = dependencies.platform( version() );
-        return layout.gemspecFile( name(), version(), platform );
+        return factory.gemspecFile( name(), version(), platform );
     }
 
     public DependencyFile dependency()
     {
-        return layout.dependencyFile( name() );
+        return factory.dependencyFile( name() );
     }
 }

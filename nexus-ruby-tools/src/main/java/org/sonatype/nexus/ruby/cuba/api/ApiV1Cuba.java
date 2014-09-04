@@ -4,6 +4,12 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.State;
 import org.sonatype.nexus.ruby.cuba.Cuba;
 
+/**
+ * cuba for /api/v1
+ * 
+ * @author christian
+ *
+ */
 public class ApiV1Cuba implements Cuba
 {
     private static final String GEMS = "gems";
@@ -16,21 +22,24 @@ public class ApiV1Cuba implements Cuba
         this.apiV1Dependencies = cuba;
     }
     
+    /**
+     * directory [dependencies], files [api_key,gems]
+     */
     @Override
     public RubygemsFile on( State state )
     {
-        switch( state.part )
+        switch( state.name )
         {
         case DEPENDENCIES:
             return state.nested( apiV1Dependencies );
         case GEMS:
         case API_KEY:
-            return state.context.layout.apiV1File( state.part );
+            return state.context.factory.apiV1File( state.name );
         case "":
-            return state.context.layout.directory( state.context.original,
+            return state.context.factory.directory( state.context.original,
                                                    new String[] { API_KEY, DEPENDENCIES } );
         default:
-            return state.context.layout.notFound( state.context.original );
+            return state.context.factory.notFound( state.context.original );
         }
     }
 }
