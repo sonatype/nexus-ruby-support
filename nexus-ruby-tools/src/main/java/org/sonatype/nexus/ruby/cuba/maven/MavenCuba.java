@@ -11,8 +11,8 @@ import org.sonatype.nexus.ruby.cuba.Cuba;
  */
 public class MavenCuba implements Cuba
 {
-    static final String RELEASES = "releases";
-    static final String PRERELEASES = "prereleases";
+    public static final String RELEASES = "releases";
+    public static final String PRERELEASES = "prereleases";
 
     private final Cuba releases;
     private final Cuba prereleases;

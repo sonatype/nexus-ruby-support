@@ -1,6 +1,11 @@
 package org.sonatype.nexus.ruby;
 
-
+/**
+ * represents /maven/prereleases/rubygems/{name}/{version}-SNAPSHOT/maven-metadata.xml
+ * 
+ * @author christian
+ *
+ */
 public class MavenMetadataSnapshotFile extends RubygemsFile {
     
     private final String version;
@@ -12,11 +17,19 @@ public class MavenMetadataSnapshotFile extends RubygemsFile {
         this.version = version;
     }
 
+    /**
+     * version of the gem
+     * @return
+     */
     public String version()
     {
         return version;
     }
 
+    /**
+     * retrieve the associated DependencyFile
+     * @return
+     */
     public DependencyFile dependency()
     {
         return factory.dependencyFile( name() );

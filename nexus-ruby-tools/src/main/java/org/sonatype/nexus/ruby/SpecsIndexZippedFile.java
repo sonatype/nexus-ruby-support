@@ -1,6 +1,11 @@
 package org.sonatype.nexus.ruby;
 
-
+/**
+ * represents /specs.4.8.gz or /prereleased_specs.4.8.gz or /latest_specs.4.8.gz
+ *  
+ * @author christian
+ *
+ */
 public class SpecsIndexZippedFile extends RubygemsFile {
     
     private final SpecsIndexType specsType;
@@ -11,11 +16,19 @@ public class SpecsIndexZippedFile extends RubygemsFile {
         specsType = SpecsIndexType.fromFilename( storagePath() );
     }
 
+    /** 
+     * retrieve the SpecsIndexType
+     * @return
+     */
     public SpecsIndexType specsType()
     {
         return specsType;
     }
-    
+
+    /**
+     * get the un-gzipped version of this file
+     * @return
+     */
     public SpecsIndexFile unzippedSpecsIndexFile()
     {
         return factory.specsIndexFile( name() );

@@ -32,7 +32,7 @@ public class BaseGemFile extends RubygemsFile {
     private final String platform;
     
     /**
-     * contructor using the full filename of a gem
+     * contructor using the full filename of a gem. there is no version nor platform info available
      * 
      * @param factory
      * @param type
@@ -79,7 +79,7 @@ public class BaseGemFile extends RubygemsFile {
     /**
      * the version of the gem
      * 
-     * @return 
+     * @return can be <code>null</code>
      */
     public String version()
     {
@@ -89,7 +89,7 @@ public class BaseGemFile extends RubygemsFile {
     /**
      * the platform of the gem
      * 
-     * @return 
+     * @return can be <code>null</code>
      */
     public String platform()
     {

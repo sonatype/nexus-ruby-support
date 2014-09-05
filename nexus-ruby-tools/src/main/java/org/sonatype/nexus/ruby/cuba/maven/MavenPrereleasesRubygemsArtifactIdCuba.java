@@ -14,6 +14,8 @@ import org.sonatype.nexus.ruby.cuba.State;
 public class MavenPrereleasesRubygemsArtifactIdCuba implements Cuba
 {
     
+    public static final String SNAPSHOT = "-SNAPSHOT";
+
     private final String name;
 
     public MavenPrereleasesRubygemsArtifactIdCuba( String name )
@@ -31,16 +33,16 @@ public class MavenPrereleasesRubygemsArtifactIdCuba implements Cuba
     {
         switch( state.name )
         {
-        case "maven-metadata.xml":
+        case MavenReleasesRubygemsArtifactIdCuba.MAVEN_METADATA_XML:
             return state.context.factory.mavenMetadata( name, true );
-        case "maven-metadata.xml.sha1":
+        case MavenReleasesRubygemsArtifactIdCuba.MAVEN_METADATA_XML + ".sha1":
             MavenMetadataFile file = state.context.factory.mavenMetadata( name, true );
             return state.context.factory.sha1( file );
         case "":
             return state.context.factory.gemArtifactIdDirectory( state.context.original, name, true );
         default:
             return state.nested( new MavenPrereleasesRubygemsArtifactIdVersionCuba( name,
-                                                                                    state.name.replace( "-SNAPSHOT", "" ) ) );
+                                                                                    state.name.replace( SNAPSHOT, "" ) ) );
         }
     }
 }

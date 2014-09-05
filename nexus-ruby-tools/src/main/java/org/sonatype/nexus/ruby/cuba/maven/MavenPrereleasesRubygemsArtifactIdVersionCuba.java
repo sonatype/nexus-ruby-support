@@ -58,9 +58,9 @@ public class MavenPrereleasesRubygemsArtifactIdVersionCuba implements Cuba
         }
         switch( state.name )
         {
-        case "maven-metadata.xml":
+        case MavenReleasesRubygemsArtifactIdCuba.MAVEN_METADATA_XML:
             return state.context.factory.mavenMetadataSnapshot( artifactId, version );
-        case "maven-metadata.xml.sha1":
+        case MavenReleasesRubygemsArtifactIdCuba.MAVEN_METADATA_XML + ".sha1":
             MavenMetadataSnapshotFile file = state.context.factory.mavenMetadataSnapshot( artifactId, version );
             return state.context.factory.sha1( file );
         case "":           

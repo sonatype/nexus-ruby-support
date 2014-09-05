@@ -1,13 +1,23 @@
 package org.sonatype.nexus.ruby;
 
-
+/**
+ * represents /gems/{name}-{version}.gem or /gems/{name}-{platform}-{version}.gem or /gems/{filename}.gem
+ * @author christian
+ *
+ */
 public class GemFile extends BaseGemFile {
     
+    /**
+     * setup with full filename
+     */
     GemFile( RubygemsFileFactory factory, String storage, String remote, String filename )
     {
         super( factory, FileType.GEM, storage, remote, filename );
     }
     
+    /**
+     * setup with name, version and platform
+     */
     GemFile( RubygemsFileFactory factory, String storage, String remote,
              String name, String version, String platform )
     {
@@ -15,6 +25,11 @@ public class GemFile extends BaseGemFile {
                name, version, platform );
     }
 
+    /**
+     * retrieve the associated gemspec
+     * 
+     * @return
+     */
     public GemspecFile gemspec(){
         if ( version() != null )
         {

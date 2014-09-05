@@ -1,6 +1,17 @@
 package org.sonatype.nexus.ruby;
 
 
+/**
+ * it abstracts any file within the rubygems repository. it carries the name, the local path and the remote path.
+ * 
+ * you can pass in a payload which is meant to retrieve the actual content of the underlying file from the local
+ * storage. the payload can be an exception which also sets the state to ERROR.
+ * 
+ * beside the PAYLOAD and ERROR state it can have other states: NOT_EXISTS, NO_PAYLOAD, TEMP_UNAVAILABLE, FORBIDDEN
+ * 
+ * @author christian
+ *
+ */
 public class RubygemsFile {
     
     public static enum State
@@ -8,7 +19,11 @@ public class RubygemsFile {
         NEW_INSTANCE, NOT_EXISTS, ERROR, NO_PAYLOAD, TEMP_UNAVAILABLE, FORBIDDEN, PAYLOAD
     }
  
+    /**
+     * factory to create associated objects
+     */
     final RubygemsFileFactory factory;
+    
     private final String name;
     private final String storage;
     private final String remote;
@@ -26,24 +41,44 @@ public class RubygemsFile {
         this.name = name;
     }
 
+    /**
+     * name of the file - meaning of name depends on file-type
+     * @return
+     */
     public String name(){
         return name;
     }
     
+    /**
+     * local path of the file
+     * @return
+     */
     public String storagePath(){
         return storage;
     }
     
+    /**
+     * remote path of the file
+     * @return
+     */
     public String remotePath()
     {
         return remote;
     }
     
+    /**
+     * type of the file
+     * @return
+     */
     public FileType type()
     {
         return type;
     }
 
+    /**
+     * state of the file
+     * @return
+     */
     public State state()
     {
         return state;
@@ -127,23 +162,43 @@ public class RubygemsFile {
         return true;
     }
 
+    /**
+     * retrieve the payload - whatever was set via {@link RubygemsFile#set(Object)} or 
+     * {@link RubygemsFile#setException(Exception)}
+     * 
+     * @return
+     */
     public Object get()
     {
         return payload;
     }
 
-    public void set( Object context )
+    /**
+     * sets the payload and set the state to NO_PAYLOAD or PAYLOAD respectively
+     * 
+     * @param payload
+     */
+    public void set( Object payload )
     {
-        state = context == null ? State.NO_PAYLOAD : State.PAYLOAD;
-        this.payload = context;
+        state = payload == null ? State.NO_PAYLOAD : State.PAYLOAD;
+        this.payload = payload;
     }
     
+    /**
+     * sets the state to ERROR and the exception as payload
+     * @param exception (should not be null)
+     */
     public void setException( Exception e )
     {
         set( e );
         state = State.ERROR;
     }
 
+    /**
+     * retrieve the exception if state == ERROR otherwise null
+     * 
+     * @return
+     */
     public Exception getException()
     {
         if( hasException() )
@@ -156,55 +211,91 @@ public class RubygemsFile {
         }
     }
 
+    /**
+     * true if state == ERROR
+     * 
+     * @return
+     */
     public boolean hasException()
     {
         return state == State.ERROR;
     }
 
+    /**
+     * reset the payload and state to NEW_INSTANCE - same as newly constructed object
+     */
     public void resetState()
     {
         payload = null;
         state = State.NEW_INSTANCE;
     }
 
+    /**
+     * any state member of NEW_INSTANCE, NO_PAYLOAD, State.PAYLOAD will return true
+     * @return
+     */
     public boolean exists()
     {
         return state == State.NEW_INSTANCE || state == State.NO_PAYLOAD || state == State.PAYLOAD;
     }
     
+    /**
+     * state == NOT_EXISTS
+     * @return
+     */
     public boolean notExists()
     {
         return state == State.NOT_EXISTS;
     }
     
+    /**
+     * state == NO_PAYLOAD
+     * @return
+     */
     public boolean hasNoPayload()
     {
         return state == State.NO_PAYLOAD;
     }
     
+    /**
+     * state == PAYLOAD
+     * @return
+     */
     public boolean hasPayload()
     {
         return state == State.PAYLOAD;
     }
 
-    public void markAsNotExists()
-    {
-        state = State.NOT_EXISTS;
-    }
-    
-    public void markAsTempUnavailable()
-    {
-        state = State.TEMP_UNAVAILABLE;
-    }
-    
-    public void markAsForbidden()
-    {
-        state = State.FORBIDDEN;
-    }
-
+    /**
+     * state == FORBIDDEN
+     * @return
+     */
     public boolean forbidden()
     {
         return state == State.FORBIDDEN;
     }
 
+    /**
+     * make file as not existing (state = NOT_EXISTS)
+     */
+    public void markAsNotExists()
+    {
+        state = State.NOT_EXISTS;
+    }
+    
+    /**
+     * make file as temporary unavailable (state = TEMP_UNAVAILABLE)
+     */
+    public void markAsTempUnavailable()
+    {
+        state = State.TEMP_UNAVAILABLE;
+    }
+    
+    /**
+     * make file as forbidden (state = FORBIDDEN)
+     */
+    public void markAsForbidden()
+    {
+        state = State.FORBIDDEN;
+    }
 }

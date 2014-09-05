@@ -14,6 +14,8 @@ import org.sonatype.nexus.ruby.cuba.Cuba;
 public class MavenReleasesRubygemsArtifactIdCuba implements Cuba
 {
     
+    public static final String MAVEN_METADATA_XML = "maven-metadata.xml";
+
     private final String artifactId;
 
     public MavenReleasesRubygemsArtifactIdCuba( String artifactId )
@@ -31,9 +33,9 @@ public class MavenReleasesRubygemsArtifactIdCuba implements Cuba
     {
         switch( state.name )
         {
-        case "maven-metadata.xml":
+        case MavenReleasesRubygemsArtifactIdCuba.MAVEN_METADATA_XML:
             return state.context.factory.mavenMetadata( artifactId, false );
-        case "maven-metadata.xml.sha1":
+        case MavenReleasesRubygemsArtifactIdCuba.MAVEN_METADATA_XML + ".sha1":
             MavenMetadataFile file = state.context.factory.mavenMetadata( artifactId, false );
             return state.context.factory.sha1( file );
         case "":

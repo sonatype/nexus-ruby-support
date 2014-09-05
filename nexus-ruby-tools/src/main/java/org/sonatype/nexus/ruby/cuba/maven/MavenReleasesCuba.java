@@ -12,7 +12,7 @@ import org.sonatype.nexus.ruby.cuba.Cuba;
  */
 public class MavenReleasesCuba implements Cuba
 {
-    static final String RUBYGEMS = "rubygems";
+    public static final String RUBYGEMS = "rubygems";
     
     private final Cuba mavenReleasesRubygems;
 
@@ -29,10 +29,10 @@ public class MavenReleasesCuba implements Cuba
     {
         switch( state.name )
         {
-        case RUBYGEMS:
+        case MavenReleasesCuba.RUBYGEMS:
             return state.nested( mavenReleasesRubygems );
         case "":
-            return state.context.factory.directory( state.context.original, RUBYGEMS );
+            return state.context.factory.directory( state.context.original, MavenReleasesCuba.RUBYGEMS );
         default:
             return state.context.factory.notFound( state.context.original );
         }

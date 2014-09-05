@@ -7,6 +7,10 @@ import org.sonatype.nexus.ruby.cuba.api.ApiCuba;
 import org.sonatype.nexus.ruby.cuba.api.ApiV1Cuba;
 import org.sonatype.nexus.ruby.cuba.api.ApiV1DependenciesCuba;
 import org.sonatype.nexus.ruby.cuba.gems.GemsCuba;
+import org.sonatype.nexus.ruby.cuba.maven.MavenCuba;
+import org.sonatype.nexus.ruby.cuba.maven.MavenPrereleasesRubygemsArtifactIdCuba;
+import org.sonatype.nexus.ruby.cuba.maven.MavenReleasesCuba;
+import org.sonatype.nexus.ruby.cuba.maven.MavenReleasesRubygemsArtifactIdCuba;
 import org.sonatype.nexus.ruby.cuba.quick.QuickCuba;
 import org.sonatype.nexus.ruby.cuba.quick.QuickMarshalCuba;
 
@@ -22,14 +26,9 @@ public class DefaultRubygemsFileFactory implements RubygemsFileFactory {
     
     private static final String API_V1 = "/" + RootCuba.API + "/" + ApiCuba.V1;
     private static final String API_V1_DEPS = API_V1 + "/" + ApiV1Cuba.DEPENDENCIES;
-
-    private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
-    private static final String SNAPSHOT = "-SNAPSHOT";
-    private static final String RUBYGEMS = "/rubygems";
-    private static final String MAVEN_PRERELEASED = "/" + RootCuba.MAVEN + "/prereleases";
-    private static final String MAVEN_RELEASED = "/" + RootCuba.MAVEN + "/releases";
-    private static final String MAVEN_PRERELEASED_RUBYGEMS = MAVEN_PRERELEASED + RUBYGEMS;
-    private static final String MAVEN_RELEASED_RUBYGEMS = MAVEN_RELEASED + RUBYGEMS;
+    
+    private static final String MAVEN_PRERELEASED_RUBYGEMS = "/" + RootCuba.MAVEN + "/" + MavenCuba.PRERELEASES + "/" + MavenReleasesCuba.RUBYGEMS;
+    private static final String MAVEN_RELEASED_RUBYGEMS = "/" + RootCuba.MAVEN + "/" + MavenCuba.RELEASES + "/" + MavenReleasesCuba.RUBYGEMS;;
     
     
     private final static SecureRandom random = new SecureRandom();
@@ -50,7 +49,7 @@ public class DefaultRubygemsFileFactory implements RubygemsFileFactory {
     private String toPath( String name, String version, String timestamp, boolean snapshot )
     {
         String v1 = snapshot ? version + "-" + timestamp : version;
-        String v2 = snapshot ? version + SNAPSHOT : version;
+        String v2 = snapshot ? version + MavenPrereleasesRubygemsArtifactIdCuba.SNAPSHOT : version;
         return join( snapshot ? MAVEN_PRERELEASED_RUBYGEMS : MAVEN_RELEASED_RUBYGEMS, 
                      SEPARATOR, name, SEPARATOR, v2, SEPARATOR, name + '-' + v1 );
     }
@@ -126,7 +125,9 @@ public class DefaultRubygemsFileFactory implements RubygemsFileFactory {
     @Override
     public MavenMetadataSnapshotFile mavenMetadataSnapshot( String name, String version )
     {
-        String path = join(  MAVEN_PRERELEASED_RUBYGEMS, SEPARATOR, name, SEPARATOR, version + SNAPSHOT, SEPARATOR, MAVEN_METADATA_XML );
+        String path = join( MAVEN_PRERELEASED_RUBYGEMS, SEPARATOR, name, SEPARATOR,
+                            version + MavenPrereleasesRubygemsArtifactIdCuba.SNAPSHOT,
+                            SEPARATOR, MavenReleasesRubygemsArtifactIdCuba.MAVEN_METADATA_XML );
         return new MavenMetadataSnapshotFile( this, path, name, version );
     }
 
@@ -138,7 +139,7 @@ public class DefaultRubygemsFileFactory implements RubygemsFileFactory {
     public MavenMetadataFile mavenMetadata( String name, boolean prereleased )
     {
         String path = join( prereleased ? MAVEN_PRERELEASED_RUBYGEMS : MAVEN_RELEASED_RUBYGEMS,
-                            SEPARATOR, name, SEPARATOR, MAVEN_METADATA_XML );
+                            SEPARATOR, name, SEPARATOR, MavenReleasesRubygemsArtifactIdCuba.MAVEN_METADATA_XML );
         return new MavenMetadataFile( this, path, name, prereleased );
     }
 
@@ -320,8 +321,7 @@ public class DefaultRubygemsFileFactory implements RubygemsFileFactory {
      * @see org.sonatype.nexus.ruby.RubygemsFileFactory#specsIndexFile(java.lang.String)
      */
     @Override
-    public
-    SpecsIndexFile specsIndexFile( String name )
+    public SpecsIndexFile specsIndexFile( String name )
     {
         return new SpecsIndexFile( this, join( SEPARATOR, name, RootCuba._4_8 ), name );
     }
