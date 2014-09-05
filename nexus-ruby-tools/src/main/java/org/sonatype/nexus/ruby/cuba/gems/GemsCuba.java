@@ -15,7 +15,9 @@ import org.sonatype.nexus.ruby.cuba.Cuba;
  */
 public class GemsCuba implements Cuba
 {
-    private static Pattern FILE = Pattern.compile( "^([^/]/)?([^/]+).gem$" );
+    public static final String GEM = ".gem";
+    
+    private static Pattern FILE = Pattern.compile( "^([^/]/)?([^/]+)" + GEM + "$" );
 
     /**
      * no sub-directories

@@ -63,8 +63,8 @@ public class MavenPrereleasesRubygemsArtifactIdVersionCuba implements Cuba
         case "maven-metadata.xml.sha1":
             MavenMetadataSnapshotFile file = state.context.factory.mavenMetadataSnapshot( artifactId, version );
             return state.context.factory.sha1( file );
-        case "":
-            return state.context.factory.directory( state.context.original );
+        case "":           
+            return state.context.factory.gemArtifactIdVersionDirectory( state.context.original, artifactId, version, true );
         default:
             return state.context.factory.notFound( state.context.original );
         }

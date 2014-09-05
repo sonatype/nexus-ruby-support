@@ -5,10 +5,10 @@ public class MavenMetadataFile extends RubygemsFile {
     
     private final boolean prereleased;
 
-    MavenMetadataFile( RubygemsFileFactory factory, String storage, String remote, String name,
+    MavenMetadataFile( RubygemsFileFactory factory, String path, String name,
                        boolean prereleased )
     {
-        super( factory, FileType.MAVEN_METADATA, storage, remote, name );
+        super( factory, FileType.MAVEN_METADATA, path, path, name );
         this.prereleased = prereleased;
     }
 

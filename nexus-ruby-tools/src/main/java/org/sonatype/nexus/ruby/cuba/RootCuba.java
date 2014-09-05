@@ -13,12 +13,14 @@ import org.sonatype.nexus.ruby.RubygemsFile;
  */
 public class RootCuba implements Cuba
 {
-    private static final Pattern SPECS = Pattern.compile( "^((prerelease_|latest_)?specs).4.8(.gz)?$" );
-
+    public static final String _4_8 = ".4.8";
+    public static final String GZ = ".gz";
     public static final String API = "api";
     public static final String QUICK = "quick";
     public static final String GEMS = "gems";
     public static final String MAVEN = "maven";
+
+    private static final Pattern SPECS = Pattern.compile( "^((prerelease_|latest_)?specs)" + _4_8 + "(" + GZ + ")?$" );
     
     private final Cuba api;
     private final Cuba quick;

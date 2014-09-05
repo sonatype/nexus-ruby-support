@@ -15,7 +15,9 @@ import org.sonatype.nexus.ruby.cuba.Cuba;
  */
 public class ApiV1DependenciesCuba implements Cuba
 {
-    private static Pattern FILE = Pattern.compile( "^([^/]+).json.rz$" );
+    public static final String JSON_RZ = ".json.rz";
+    
+    private static Pattern FILE = Pattern.compile( "^([^/]+)" + JSON_RZ + "$" );
 
     /**
      * no sub-directories

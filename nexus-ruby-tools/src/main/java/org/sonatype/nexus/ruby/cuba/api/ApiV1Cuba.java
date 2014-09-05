@@ -14,7 +14,7 @@ public class ApiV1Cuba implements Cuba
 {
     private static final String GEMS = "gems";
     private static final String API_KEY = "api_key";
-    static final String DEPENDENCIES = "dependencies";
+    public static final String DEPENDENCIES = "dependencies";
     
     private final Cuba apiV1Dependencies;
     

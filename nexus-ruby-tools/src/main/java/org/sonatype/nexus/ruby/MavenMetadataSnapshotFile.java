@@ -5,10 +5,10 @@ public class MavenMetadataSnapshotFile extends RubygemsFile {
     
     private final String version;
 
-    MavenMetadataSnapshotFile( RubygemsFileFactory factory, String storage, String remote, String name,
+    MavenMetadataSnapshotFile( RubygemsFileFactory factory, String path, String name,
                                String version )
     {
-        super( factory, FileType.MAVEN_METADATA_SNAPSHOT, storage, remote, name );
+        super( factory, FileType.MAVEN_METADATA_SNAPSHOT, path, path, name );
         this.version = version;
     }
 

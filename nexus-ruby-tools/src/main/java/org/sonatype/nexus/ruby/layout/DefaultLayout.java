@@ -5,6 +5,12 @@ import java.io.InputStream;
 import org.sonatype.nexus.ruby.DefaultRubygemsFileFactory;
 import org.sonatype.nexus.ruby.RubygemsFile;
 
+/** 
+ * adds dummy implementation for {@link Layout#addGem(InputStream, RubygemsFile)}
+ * 
+ * @author christian
+ *
+ */
 public class DefaultLayout extends DefaultRubygemsFileFactory implements Layout {
 
     /*

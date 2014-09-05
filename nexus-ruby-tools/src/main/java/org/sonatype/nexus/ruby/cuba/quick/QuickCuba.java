@@ -12,7 +12,7 @@ import org.sonatype.nexus.ruby.cuba.Cuba;
  */
 public class QuickCuba implements Cuba
 {
-    static final String MARSHAL_4_8 = "Marshal.4.8";
+    public static final String MARSHAL_4_8 = "Marshal.4.8";
 
     private final Cuba quickMarshal;
     

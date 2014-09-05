@@ -12,7 +12,7 @@ import org.sonatype.nexus.ruby.cuba.Cuba;
  */
 public class ApiCuba implements Cuba
 {
-    static final String V1 = "v1";
+    public static final String V1 = "v1";
 
     private final Cuba apiV1;
     

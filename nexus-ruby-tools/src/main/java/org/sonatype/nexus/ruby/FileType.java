@@ -1,5 +1,14 @@
 package org.sonatype.nexus.ruby;
 
+/**
+ * enum of possible file types with a rubygems repo including
+ * the gem-artifacts and some virtual files like "not_found", etc
+ * 
+ * they all carry the mime-type, the encoding and a varyAccept boolean.
+ * 
+ * @author christian
+ *
+ */
 public enum FileType {
 
     GEM( "binary/octet-stream", true ),

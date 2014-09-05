@@ -4,20 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.sonatype.nexus.ruby.ApiV1File;
-import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyFile;
-import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.FileType;
-import org.sonatype.nexus.ruby.GemArtifactFile;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
 import org.sonatype.nexus.ruby.IOUtil;
-import org.sonatype.nexus.ruby.MavenMetadataFile;
-import org.sonatype.nexus.ruby.MavenMetadataSnapshotFile;
-import org.sonatype.nexus.ruby.PomFile;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
-import org.sonatype.nexus.ruby.Sha1File;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
@@ -65,7 +58,7 @@ public class HostedPOSTLayout extends NoopDefaultLayout
                 break;
             case API_V1:
                 store.create( store.getInputStream( file ), 
-                              ( (ApiV1File) file ).gem( filename.replaceFirst( ".gem$", "" ) ) );
+                              ( (ApiV1File) file ).gem( filename ) );
                 store.delete( file );
                 break;
             default:

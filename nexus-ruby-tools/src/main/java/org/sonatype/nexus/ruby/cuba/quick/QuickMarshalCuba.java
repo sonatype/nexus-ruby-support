@@ -15,7 +15,9 @@ import org.sonatype.nexus.ruby.cuba.Cuba;
  */
 public class QuickMarshalCuba implements Cuba
 {
-    private static Pattern FILE = Pattern.compile( "^([^/]/)?([^/]+).gemspec.rz$" );
+    public static final String GEMSPEC_RZ = ".gemspec.rz";
+    
+    private static Pattern FILE = Pattern.compile( "^([^/]/)?([^/]+)" + GEMSPEC_RZ + "$" );
 
     /**
      * no sub-directories

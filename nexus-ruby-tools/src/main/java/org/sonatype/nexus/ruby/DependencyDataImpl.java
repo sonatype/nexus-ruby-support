@@ -2,7 +2,12 @@ package org.sonatype.nexus.ruby;
 
 import org.jruby.embed.ScriptingContainer;
 
-
+/**
+ * a wrapper around a JRuby object
+ * 
+ * @author christian
+ *
+ */
 public class DependencyDataImpl extends ScriptWrapper implements DependencyData
 {   
     private final long modified;

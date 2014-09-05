@@ -28,7 +28,7 @@ import org.sonatype.nexus.ruby.Sha1File;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
-public class GETLayout extends DefaultLayout
+public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.Layout
 {
 
     protected final RubygemsGateway gateway;

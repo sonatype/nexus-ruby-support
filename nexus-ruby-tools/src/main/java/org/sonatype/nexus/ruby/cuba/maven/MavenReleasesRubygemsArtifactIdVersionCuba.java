@@ -18,12 +18,12 @@ public class MavenReleasesRubygemsArtifactIdVersionCuba implements Cuba
 
     private static Pattern FILE = Pattern.compile( "^.*\\.(gem|pom|gem.sha1|pom.sha1)$" );
     
-    private final String name;
+    private final String artifactId;
     private final String version;
 
-    public MavenReleasesRubygemsArtifactIdVersionCuba( String name, String version )
+    public MavenReleasesRubygemsArtifactIdVersionCuba( String artifactId, String version )
     {
-        this.name = name;
+        this.artifactId = artifactId;
         this.version = version;
     }
 
@@ -42,14 +42,14 @@ public class MavenReleasesRubygemsArtifactIdVersionCuba implements Cuba
             switch( m.group( 1 ) )
             {
             case "gem":
-                return state.context.factory.gemArtifact( name, version );
+                return state.context.factory.gemArtifact( artifactId, version );
             case "pom":
-                return state.context.factory.pom( name, version );
+                return state.context.factory.pom( artifactId, version );
             case "gem.sha1":
-                RubygemsFile file = state.context.factory.gemArtifact( name, version );
+                RubygemsFile file = state.context.factory.gemArtifact( artifactId, version );
                 return state.context.factory.sha1( file );
             case "pom.sha1":
-                file = state.context.factory.pom( name, version );
+                file = state.context.factory.pom( artifactId, version );
                 return state.context.factory.sha1( file );
             default:
             }
@@ -57,7 +57,7 @@ public class MavenReleasesRubygemsArtifactIdVersionCuba implements Cuba
         switch( state.name )
         {
         case "":
-            return state.context.factory.gemArtifactIdVersionDirectory( state.context.original, name, version );
+            return state.context.factory.gemArtifactIdVersionDirectory( state.context.original, artifactId, version, false );
         default:
             return state.context.factory.notFound( state.context.original );
         }

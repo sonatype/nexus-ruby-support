@@ -5,9 +5,9 @@ public class SpecsIndexFile extends RubygemsFile {
     
     private final SpecsIndexType specsType;
     
-    SpecsIndexFile( RubygemsFileFactory factory, String storage, String remote, String name )
+    SpecsIndexFile( RubygemsFileFactory factory, String path, String name )
     {
-        super( factory, FileType.SPECS_INDEX, storage, remote, name );
+        super( factory, FileType.SPECS_INDEX, path, path, name );
         specsType = SpecsIndexType.fromFilename( storagePath() );
     }
     

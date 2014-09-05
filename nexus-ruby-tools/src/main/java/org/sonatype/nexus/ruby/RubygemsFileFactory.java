@@ -39,8 +39,7 @@ public interface RubygemsFileFactory {
      * @param version
      * @return RubygemsDirectory
      */
-    // TODO handle the prerelease case
-    Directory gemArtifactIdVersionDirectory( String path, String artifactId, String version );//, boolean prereleases );
+    Directory gemArtifactIdVersionDirectory( String path, String artifactId, String version, boolean prereleases );
 
     /**
      * create <code>GemFile</code> /gems/{name}-{version}.gem or /gems/{name}-{version}-{platform}.gem

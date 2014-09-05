@@ -5,10 +5,10 @@ public class PomFile extends RubygemsFile {
     private final String version;
     private final boolean snapshot;
 
-    PomFile( RubygemsFileFactory factory, String storage, String remote,
-             String name, String version, boolean snapshot )
+    PomFile( RubygemsFileFactory factory, String path,
+              String name, String version, boolean snapshot )
     {
-        super( factory, FileType.POM, storage, remote, name );
+        super( factory, FileType.POM, path, path, name );
         this.version = version;
         this.snapshot = snapshot;
     }
