@@ -8,6 +8,20 @@ import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
+/**
+ * layout for HTTP DELETE request. allows to delete
+ * <li><code>SpecsIndexZippedFile</code></li>
+ * <li><code>GemFile</code></li>
+ * <li><code>GemspecFile</code></li>
+ * <li><code>DependencyFile</code></li>
+ * 
+ * and disallows
+ * <li><code>SpecsIndexFile</code></li>
+ * <li><code>ApiV1File</code></li>
+ * 
+ * @author christian
+ *
+ */
 public class DELETELayout extends NoopDefaultLayout
 {
     public DELETELayout( RubygemsGateway gateway, Storage store )
