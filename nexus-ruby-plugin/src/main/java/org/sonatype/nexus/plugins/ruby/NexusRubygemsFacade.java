@@ -16,7 +16,6 @@ import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageCollectionItem;
-import org.sonatype.nexus.proxy.item.DefaultStorageFileItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
@@ -62,7 +61,7 @@ public class NexusRubygemsFacade
     public RubygemsFile file( ResourceStoreRequest request )
     {
         String[] pathAndQeury = extractGemsQuery( request );
-        return filesystem.get( pathAndQeury[ 0 ], pathAndQeury[ 1 ] );
+        return filesystem.file( pathAndQeury[ 0 ], pathAndQeury[ 1 ] );
     }
 
     public RubygemsFile file( String path )
@@ -168,6 +167,7 @@ public class NexusRubygemsFacade
             this.repository = repository;
         }
 
+        @SuppressWarnings( "deprecation" )
         @Override
         public Collection<StorageItem> list() throws AccessDeniedException,
                 NoSuchResourceStoreException, IllegalOperationException,
