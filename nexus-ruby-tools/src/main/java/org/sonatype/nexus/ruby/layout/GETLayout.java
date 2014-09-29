@@ -40,6 +40,12 @@ public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.
         this.store = store;
     }
 
+    /**
+     * this allows sub-classes to add more functionality, like creating an
+     * empty SpecsIndexZippedFile.
+     * 
+     * @param specs
+     */
     protected void retrieveZipped( SpecsIndexZippedFile specs )
     {
         store.retrieve( specs );
@@ -51,6 +57,7 @@ public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.
         SpecsIndexFile specs = super.specsIndexFile( name );
         // just make sure we have a zipped file, i.e. create an empty one
         retrieveZipped( specs.zippedSpecsIndexFile() );
+        // now retrieve the unzipped one
         store.retrieve( specs );
         return specs;
     }

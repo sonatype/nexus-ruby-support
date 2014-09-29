@@ -14,6 +14,19 @@ import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
+/**
+ * on hosted rubygems repositories you can delete only gem files. deleting
+ * a gem file also means to adjust the specs.4.8 indices and their associated
+ * dependency file as well deleting the gemspec file of the gem.
+ * 
+ * note: to restrict deleting to gem file is more precaution then a necessity.
+ * <li>it is possible to regenerate the gemspec file from the gem</li>
+ * <li>to generate the dependencies file from the stored gems of the same name</li>
+ * <li>even the specs.4.8 can be regenerated from the stored gems</li>
+ * 
+ * @author christian
+ *
+ */
 public class HostedDELETELayout extends NoopDefaultLayout
 {
 
@@ -78,6 +91,12 @@ public class HostedDELETELayout extends NoopDefaultLayout
         return file;
     }
 
+    /**
+     * delete the gem and its metadata in the specs.4.8 indices and
+     * dependency file
+     *  
+     * @param file
+     */
     private void deleteGemFile( GemFile file )
     {
         store.retrieve( file );
@@ -98,6 +117,12 @@ public class HostedDELETELayout extends NoopDefaultLayout
         }
     }
 
+    /**
+     * delete given spec (a Ruby Object) and delete it from all the specs.4.8 indices.
+     * 
+     * @param spec
+     * @throws IOException
+     */
     private void deleteSpecFromIndex( Object spec ) throws IOException
     {
         SpecsIndexZippedFile release = null;

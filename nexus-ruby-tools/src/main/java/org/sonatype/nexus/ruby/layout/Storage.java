@@ -14,6 +14,9 @@ import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
  * the payload. these CRUD methods do NOT throw exceptions but sets those exceptions
  * as payload of the passed in <code>RubygemsFile</code>. 
  * 
+ * for GroupRepositories the <code>SpecsIndexFile</code>, <code>SpecsIndexZippedFile</code> 
+ * and <code>DependencyFile</code> needs to be merged, all other files will be served the first find.
+ *  
  * @author christian
  *
  */

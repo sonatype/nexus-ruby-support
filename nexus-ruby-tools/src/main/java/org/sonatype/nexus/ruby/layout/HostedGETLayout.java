@@ -67,6 +67,11 @@ public class HostedGETLayout extends GETLayout
         return gemspec;
     }
 
+    /**
+     * create the gemspec from the stored gem file. if the gem file does not 
+     * exists, the <code>GemspecFile</code> gets makred as NOT_EXISTS. 
+     * @param gemspec
+     */
     protected void createGemspec( GemspecFile gemspec )
     {
         GemFile gem = gemspec.gem();
@@ -105,6 +110,11 @@ public class HostedGETLayout extends GETLayout
         return file;
     }
 
+    /**
+     * create the <code>DependencyFile</code> for the given gem name
+     * 
+     * @param file
+     */
     protected void createDependency( DependencyFile file )
     {
         try
