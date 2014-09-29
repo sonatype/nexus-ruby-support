@@ -54,7 +54,9 @@ public class RootCuba implements Cuba
             return state.nested( maven );
         case "":
             return state.context.factory.directory( state.context.original,
-                                                    new String[] { "api", "quick", "gems", "maven" } );
+                                                    new String[] { "api/", "quick/", "gems/", "maven/",
+                                                                   "specs.4.8", "latest_specs.4.8", "prerelease_specs.4.8",
+                                                                   "specs.4.8.gz", "latest_specs.4.8.gz", "prerelease_specs.4.8.gz" } );
         default:
         }
         Matcher m = SPECS.matcher( state.name );

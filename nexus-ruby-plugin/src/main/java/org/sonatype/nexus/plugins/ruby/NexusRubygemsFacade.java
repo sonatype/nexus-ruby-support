@@ -186,10 +186,14 @@ public class NexusRubygemsFacade
             for( StorageItem i : result )
             {
                 items.remove( i.getName() );
+                items.remove( i.getName() + "/" );
             }
             for( String item : items )
             {
-                result.add( new DirectoryItemStorageItem( repository, dir.storagePath() + "/" + item ) );
+                if ( ! item.endsWith( "/" ) )
+                {
+                    result.add( new DirectoryItemStorageItem( repository, dir.storagePath() + "/" + item ) );
+                }
             }
             return result;
         }
