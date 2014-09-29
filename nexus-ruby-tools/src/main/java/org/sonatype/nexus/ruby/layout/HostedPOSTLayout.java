@@ -17,6 +17,23 @@ import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
 import com.jcraft.jzlib.GZIPInputStream;
 
+/**
+ * to make a HTTP POST to hosted repository allows only two path:
+ * <li>/api/v1/gem</li>
+ * <li>/gems/{name-version(-platform)}.gem</li>
+ * 
+ * all other paths are forbidden.
+ * 
+ * when uploading a gem all the specs.4.8 files will be updated.
+ * 
+ * the dependency file for the gemname and gemspec file will be generated on
+ * demand.
+ * 
+ * @see HostedGETLayout
+ * 
+ * @author christian
+ *
+ */
 public class HostedPOSTLayout extends NoopDefaultLayout
 {
 
@@ -81,7 +98,13 @@ public class HostedPOSTLayout extends NoopDefaultLayout
             IOUtil.close( is );
         }
     }
-    
+   
+    /**
+     * add a spec (Ruby Object) to the specs.4.8 indices.
+     * 
+     * @param spec
+     * @throws IOException
+     */
     private void addSpecToIndex( Object spec ) throws IOException
     { 
         for ( SpecsIndexType type : SpecsIndexType.values() )

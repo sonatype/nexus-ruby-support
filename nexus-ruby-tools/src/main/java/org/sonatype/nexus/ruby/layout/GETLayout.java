@@ -28,6 +28,19 @@ import org.sonatype.nexus.ruby.Sha1File;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
+/**
+ * a base layout for HTTP GET requests.
+ * 
+ * <li>ensure the zipped specs.4.8 are in place before retrieving the specs.4.8 itself</li>
+ * <li>generate the pom.xml from the associated gemspec file</li>
+ * <li>attach the gem with the right platform the <code>GemArtifactFile</code>s</li>
+ * <li>collect all <code>DependencyFile</code>s and merge them for the <code>BundlerApiFile</code> payload</li>
+ * <li>generate the <code>Sha1File<code>s and <code>MavenMetadataFile</code>s on the fly</li>
+ * <li>generate directory listing for some "virtual" directories</li> 
+ * 
+ * @author christian
+ *
+ */
 public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.Layout
 {
 
@@ -70,6 +83,16 @@ public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.
         return specs;
     }
  
+    /**
+     * subclasses can overwrite this, to collect the dependencies files differently. i.e.
+     * a proxy might want to load only the missing or expired dependency files.
+     * 
+     * @param file with the list of gem-names
+     * @param deps the result set of <code>InputStream<code>s to all the <code>DependencyFile</code> of the 
+     * given list of gem-names
+     * 
+     * @throws IOException
+     */
     protected void retrieveAll( BundlerApiFile file, List<InputStream> deps ) throws IOException
     {
         for( String name: file.gemnames() )
@@ -157,7 +180,12 @@ public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.
         return file;
     }
 
-    protected void setPomContext( PomFile file, boolean snapshot )
+    /**
+     * generate the pom.xml and set it as payload to the given <code>PomFile</code>
+     * @param file
+     * @param snapshot
+     */
+    protected void setPomPayload( PomFile file, boolean snapshot )
     {
         try
         {
@@ -177,10 +205,17 @@ public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.
         }
     }
 
+    /**
+     * retrieve the gem with the right platform and attach it to the <code>GemArtifactFile</code>
+     * 
+     * @param file
+     */
     protected void setGemArtifactPayload( GemArtifactFile file )
     {
         try
         {   
+            // the dependency-data is needed to find out 
+            // whether the gem has the default platform or the java platform
             GemFile gem = file.gem( newDependencyData( file.dependency() ) );
             if ( gem == null )
             {
@@ -188,6 +223,7 @@ public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.
             }
             else
             {
+                // retrieve the gem and set it as payload
                 store.retrieve( gem );
                 file.set( gem.get() );
             }
@@ -202,7 +238,7 @@ public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.
     public PomFile pomSnapshot( String name, String version, String timestamp )
     {
         PomFile file = super.pomSnapshot( name, version, timestamp );
-        setPomContext( file, true );
+        setPomPayload( file, true );
         return file;
     }
 
@@ -210,7 +246,7 @@ public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.
     public PomFile pom( String name, String version )
     { 
         PomFile file = super.pom( name, version );
-        setPomContext( file, false );
+        setPomPayload( file, false );
         return file;
     }
 
@@ -282,6 +318,13 @@ public class GETLayout extends DefaultLayout implements org.sonatype.nexus.ruby.
         return newDependencyData( file );
     }
     
+    /**
+     * load all the dependency data into an object.
+     * 
+     * @param file
+     * @return
+     * @throws IOException
+     */
     protected DependencyData newDependencyData( DependencyFile file ) throws IOException
     {
         return gateway.dependencies( store.getInputStream( file ), file.name(), store.getModified( file ) );

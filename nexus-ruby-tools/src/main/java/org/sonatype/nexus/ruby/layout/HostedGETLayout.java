@@ -14,6 +14,14 @@ import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
+/**
+ * this hosted layout for HTTP GET will ensure that the zipped version of the specs.4.8
+ * do exists before retrieving the unzipped ones. it also creates missing gemspec and dependency
+ * files if missing.
+ * 
+ * @author christian
+ *
+ */
 public class HostedGETLayout extends GETLayout
 {
     public HostedGETLayout( RubygemsGateway gateway, Storage store )

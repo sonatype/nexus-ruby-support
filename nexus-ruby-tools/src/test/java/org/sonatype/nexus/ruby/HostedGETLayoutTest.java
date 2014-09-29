@@ -301,7 +301,7 @@ public class HostedGETLayoutTest
                           };
         assertFiletypeWithNullPayload( pathes, FileType.DIRECTORY );
         
-        assertDirectory( "/", "api", "quick", "gems", "maven" );
+        assertDirectory( "/", "api/", "quick/", "gems/", "maven/", "specs.4.8", "latest_specs.4.8", "prerelease_specs.4.8", "specs.4.8.gz", "latest_specs.4.8.gz", "prerelease_specs.4.8.gz" );
         assertDirectory( "/api", "v1" );
         assertDirectory( "/api/v1", "api_key", "dependencies" );
         assertDirectory( "/api/v1/dependencies" );//"hufflepuf.json.rz", "pre.json.rz", "zip.json.rz" );

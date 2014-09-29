@@ -24,9 +24,12 @@ import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
  * <li>to generate the dependencies file from the stored gems of the same name</li>
  * <li>even the specs.4.8 can be regenerated from the stored gems</li>
  * 
+ * @see HostedGETLayout
+ * 
  * @author christian
  *
  */
+// TODO why not using DELETELayout instead of NoopDefaultLayout ?
 public class HostedDELETELayout extends NoopDefaultLayout
 {
 
