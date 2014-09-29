@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
-import org.sonatype.nexus.ruby.layout.CachingStorage;
+import org.sonatype.nexus.ruby.layout.CachingProxyStorage;
 import org.sonatype.nexus.ruby.layout.GETLayout;
 import org.sonatype.nexus.ruby.layout.ProxiedGETLayout;
 import org.sonatype.nexus.ruby.layout.SimpleStorage;
@@ -50,7 +50,7 @@ public class ProxiesGETLayoutTest
     public static Collection<Object[]> stores() throws IOException{
         return Arrays.asList( new Object[][]{ 
             { new SimpleStorage( new File( "src/test/repo" ) ) },
-            { new CachingStorage( proxyBase(),  new File( "src/test/repo" ).toURI().toURL() )
+            { new CachingProxyStorage( proxyBase(),  new File( "src/test/repo" ).toURI().toURL() )
               {
 
                   protected URL toUrl( RubygemsFile file ) throws MalformedURLException
@@ -66,10 +66,10 @@ public class ProxiesGETLayoutTest
 
     public ProxiesGETLayoutTest( Storage store )
     {
-        if ( store instanceof CachingStorage )
+        if ( store instanceof CachingProxyStorage )
         {
             fileSystem = new DefaultRubygemsFileSystem( new ProxiedGETLayout( new DefaultRubygemsGateway( new TestScriptingContainer() ), 
-                                                                              (CachingStorage) store ),
+                                                                              (CachingProxyStorage) store ),
                                                         null, null );
         }
         else

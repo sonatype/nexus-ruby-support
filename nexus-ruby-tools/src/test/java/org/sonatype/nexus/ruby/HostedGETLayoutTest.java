@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
-import org.sonatype.nexus.ruby.layout.CachingStorage;
+import org.sonatype.nexus.ruby.layout.CachingProxyStorage;
 import org.sonatype.nexus.ruby.layout.HostedGETLayout;
 import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.Storage;
@@ -58,7 +58,7 @@ public class HostedGETLayoutTest
     public static Collection<Object[]> stores() throws IOException{
         return Arrays.asList( new Object[][]{ 
             { new SimpleStorage( hostedBase() ) },
-            { new CachingStorage( proxyBase(), hostedBase().toURI().toURL() )
+            { new CachingProxyStorage( proxyBase(), hostedBase().toURI().toURL() )
               {
 
                   protected URL toUrl( RubygemsFile file ) throws MalformedURLException

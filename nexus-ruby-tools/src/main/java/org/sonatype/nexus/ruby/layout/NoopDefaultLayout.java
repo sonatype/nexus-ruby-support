@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.sonatype.nexus.ruby.BundlerApiFile;
-import org.sonatype.nexus.ruby.DefaultLayout;
 import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.GemArtifactFile;
 import org.sonatype.nexus.ruby.IOUtil;
@@ -17,6 +16,15 @@ import org.sonatype.nexus.ruby.Sha1File;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
+/**
+ * adds default behavior for all <code>RubygemsFile</code>:
+ * <li>all the generated files are marked as forbidden</li>
+ * <li>all other files get passed to the <code>DefaultLayout</code>
+ * 
+ * it adds a few helper methods for sub classes.
+ * 
+ * @author christian
+ */
 public class NoopDefaultLayout extends DefaultLayout
 {
     protected final RubygemsGateway gateway;
@@ -105,6 +113,14 @@ public class NoopDefaultLayout extends DefaultLayout
         return file;
     }
 
+    /**
+     * on an empty storage there are no specs.4.8.gz, latest_specs.4.8.gz or prereleased_specs.4.8.gz
+     * files. this method will create fresh and empty such files (having an empty index).
+     * 
+     * @param type
+     * @return
+     * @throws IOException
+     */
     protected SpecsIndexZippedFile ensureSpecsIndexZippedFile( SpecsIndexType type ) throws IOException
     {
         SpecsIndexZippedFile specs = super.specsIndexZippedFile( type );
@@ -126,6 +142,12 @@ public class NoopDefaultLayout extends DefaultLayout
         return specs;
     }
 
+    /**
+     * delete underlying file from storage.
+     * 
+     * @param file
+     * @throws IOException
+     */
     protected void delete( RubygemsFile file ) throws IOException
     {
         store.delete( file );

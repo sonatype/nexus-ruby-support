@@ -18,11 +18,23 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 
+/**
+ * simple storage implementation using the system's filesystem.
+ * it uses <code>InputStream</code>s as payload.
+ * 
+ * @author christian
+ *
+ */
 public class SimpleStorage implements Storage
 {
     private final SecureRandom random = new SecureRandom();
     private final File basedir;
     
+    /**
+     * create the storage with given base-directory.
+     * 
+     * @param basedir
+     */
     public SimpleStorage( File basedir )
     {
         this.basedir = basedir;
@@ -51,6 +63,11 @@ public class SimpleStorage implements Storage
         return is;
     }
 
+    /**
+     * convert <code>RubygemsFile</code> into a <code>Path</code>.
+     * @param file
+     * @return
+     */
     protected Path toPath( RubygemsFile file )
     {
         return new File( basedir, file.storagePath() ).toPath();
@@ -175,6 +192,12 @@ public class SimpleStorage implements Storage
         }
     }
 
+    /**
+     * create a directory if it is not existing
+     * 
+     * @param parent
+     * @throws IOException
+     */
     protected void createDirectory( Path parent ) throws IOException
     {
         if ( !Files.exists( parent ) )
