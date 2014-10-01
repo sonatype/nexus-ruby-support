@@ -1,3 +1,17 @@
+<!--
+
+    Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+
+    This program is licensed to you under the Apache License Version 2.0,
+    and you may not use this file except in compliance with the Apache License Version 2.0.
+    You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the Apache License Version 2.0 is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+
+-->
 # design notes #
 
 some files on rubygems.org are actually virtual, like <http://rubygems.org/gems/maven-tools-1.0.3.gem>. storing all gems inside a single directory may or may not the right thing. the nexus-ruby-tools decided it is not a good thing to do because of past inode on the filesystem with such huge directories.
