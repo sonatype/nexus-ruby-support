@@ -1,6 +1,7 @@
 package org.sonatype.nexus.ruby.cuba.api;
 
 import org.sonatype.nexus.ruby.RubygemsFile;
+import org.sonatype.nexus.ruby.cuba.RootCuba;
 import org.sonatype.nexus.ruby.cuba.State;
 import org.sonatype.nexus.ruby.cuba.Cuba;
 
@@ -14,16 +15,17 @@ public class ApiCuba implements Cuba
 {
     public static final String V1 = "v1";
 
-    private final Cuba apiV1;
+    private final Cuba v1;
+    private final Cuba quick;
     
-    
-    public ApiCuba( Cuba cuba )
+    public ApiCuba( Cuba v1, Cuba quick )
     {
-        this.apiV1 = cuba;
+        this.v1 = v1;
+        this.quick = quick;
     }
     
     /**
-     * directory [v1]
+     * directory [v1,quick]
      */
     @Override
     public RubygemsFile on( State state )
@@ -31,9 +33,11 @@ public class ApiCuba implements Cuba
         switch( state.name )
         {
         case V1:
-            return state.nested( apiV1 );
+            return state.nested( v1 );
+        case RootCuba.QUICK:
+            return state.nested( quick );
         case "":
-            String[] items = { V1 };
+            String[] items = { V1, RootCuba.QUICK };
             return state.context.factory.directory( state.context.original, items );
         default:
             return state.context.factory.notFound( state.context.original );
