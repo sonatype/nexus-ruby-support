@@ -11,10 +11,8 @@
 
   <groupId>org.sonatype.nexus.plugins</groupId>
   <artifactId>nexus-ruby-plugin</artifactId>
+  <name>${project.groupId}:${project.artifactId}</name>
   <packaging>nexus-plugin</packaging>
-
-  <name>Nexus Ruby Plugin</name>
-  <description>Nexus Ruby Plugin</description>
 
   <properties>
     <pluginName>Nexus Ruby Plugin</pluginName>

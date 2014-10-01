@@ -10,7 +10,7 @@
   <artifactId>nexus</artifactId>
   <version>1.2.1</version>
   <packaging>gem</packaging>
-  <name>Gem Command to interact with Nexus server</name>
+  <name>${project.groupId}:${project.artifactId}</name>
   <description>Adds a command to RubyGems for uploading gems to a nexus server.</description>
   <url>https://github.com/sonatype/nexus-ruby-support/tree/master/nexus-gem</url>
   <properties>
