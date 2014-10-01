@@ -43,7 +43,6 @@ public class DefaultProxyRubyRepository
     extends AbstractProxyRepository
     implements ProxyRubyRepository, Repository
 {
-
   public static final String ID = "rubygems-proxy";
 
   private final ContentClass contentClass;
@@ -92,8 +91,6 @@ public class DefaultProxyRubyRepository
   public RepositoryKind getRepositoryKind() {
     return repositoryKind;
   }
-
-  // ==
 
   @Override
   protected DefaultProxyRubyRepositoryConfiguration getExternalConfiguration(boolean forWrite) {
@@ -166,7 +163,6 @@ public class DefaultProxyRubyRepository
   protected AbstractStorageItem doRetrieveRemoteItem(ResourceStoreRequest request)
       throws ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
   {
-
     RubygemsFile file = facade.file(request.getRequestPath());
 
     // make the remote request with the respective remote path

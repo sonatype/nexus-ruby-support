@@ -89,8 +89,6 @@ public class DefaultHostedRubyRepository
     return repositoryKind;
   }
 
-  // ==
-
   @Override
   protected DefaultHostedRubyRepositoryConfiguration getExternalConfiguration(boolean forWrite) {
     return (DefaultHostedRubyRepositoryConfiguration) super.getExternalConfiguration(forWrite);
@@ -162,9 +160,7 @@ public class DefaultHostedRubyRepository
     gateway.purgeBrokenDepencencyFiles(directory);
   }
 
-  protected String getBaseDirectory() throws ItemNotFoundException,
-                                             LocalStorageException
-  {
+  protected String getBaseDirectory() throws ItemNotFoundException, LocalStorageException {
     // TODO use getApplicationConfiguration().getWorkingDirectory()
     return this.getLocalUrl().replace("file:", "");
   }

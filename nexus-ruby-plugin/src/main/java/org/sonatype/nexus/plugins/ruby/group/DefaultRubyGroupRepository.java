@@ -86,15 +86,10 @@ public class DefaultRubyGroupRepository
     return repositoryKind;
   }
 
-  // ==
-
   @Override
   protected DefaultRubyGroupRepositoryConfiguration getExternalConfiguration(boolean forWrite) {
     return (DefaultRubyGroupRepositoryConfiguration) super.getExternalConfiguration(forWrite);
   }
-
-
-  // ==
 
   @Override
   public void deleteItem(ResourceStoreRequest request) throws UnsupportedStorageOperationException {

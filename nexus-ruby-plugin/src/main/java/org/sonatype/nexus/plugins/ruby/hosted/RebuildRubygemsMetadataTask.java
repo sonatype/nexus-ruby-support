@@ -21,10 +21,7 @@ public class RebuildRubygemsMetadataTask
   }
 
   @Override
-  public Object doRun()
-      throws Exception
-  {
-
+  public Object doRun() throws Exception {
     if (getRepositoryId() != null) {
       Repository repository = getRepositoryRegistry().getRepository(getRepositoryId());
 
@@ -33,7 +30,6 @@ public class RebuildRubygemsMetadataTask
         HostedRubyRepository rubyRepository = repository.adaptToFacet(HostedRubyRepository.class);
 
         rubyRepository.recreateMetadata();
-
       }
       else {
         getLogger().info(

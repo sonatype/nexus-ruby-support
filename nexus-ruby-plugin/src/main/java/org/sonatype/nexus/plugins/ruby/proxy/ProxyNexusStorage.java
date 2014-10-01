@@ -15,7 +15,6 @@ public class ProxyNexusStorage
     extends NexusStorage
     implements ProxyStorage
 {
-
   private final ProxyRubyRepository repository;
 
   public ProxyNexusStorage(ProxyRubyRepository repository) {

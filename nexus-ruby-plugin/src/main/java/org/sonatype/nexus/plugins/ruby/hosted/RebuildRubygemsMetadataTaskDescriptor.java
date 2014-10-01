@@ -19,8 +19,7 @@ public class RebuildRubygemsMetadataTaskDescriptor
 
   public static final String REPO_FIELD_ID = "repositoryId";
 
-  private final RepoComboFormField repoField = new RepoComboFormField(REPO_FIELD_ID,
-      FormField.MANDATORY);
+  private final RepoComboFormField repoField = new RepoComboFormField(REPO_FIELD_ID, FormField.MANDATORY);
 
   public String getId() {
     return ID;

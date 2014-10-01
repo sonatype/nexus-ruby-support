@@ -6,7 +6,6 @@ import javax.inject.Named;
 public class SyncRubygemsMetadataTask
     extends AbstractProxyScheduledTask
 {
-
   public static final String ACTION = "SYNCRUBYGEMSMETADATA";
 
   @Override

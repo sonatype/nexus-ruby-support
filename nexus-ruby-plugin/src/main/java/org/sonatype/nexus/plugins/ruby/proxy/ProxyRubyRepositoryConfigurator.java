@@ -16,7 +16,6 @@ import org.sonatype.nexus.proxy.storage.local.fs.DefaultFSLocalRepositoryStorage
 public class ProxyRubyRepositoryConfigurator
     extends AbstractProxyRepositoryConfigurator
 {
-
   private final LocalRepositoryStorage storage;
 
   @Inject

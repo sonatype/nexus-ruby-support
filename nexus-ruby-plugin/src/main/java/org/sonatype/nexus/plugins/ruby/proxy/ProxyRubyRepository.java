@@ -9,11 +9,9 @@ import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.repository.ProxyRepository;
 
-
 public interface ProxyRubyRepository
     extends RubyRepository, ProxyRepository
 {
-
   int getArtifactMaxAge();
 
   void setArtifactMaxAge(int maxAge);

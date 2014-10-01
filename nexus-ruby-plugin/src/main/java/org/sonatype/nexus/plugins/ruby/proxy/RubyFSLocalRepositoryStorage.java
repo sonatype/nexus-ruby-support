@@ -23,7 +23,6 @@ import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 public class RubyFSLocalRepositoryStorage
     extends DefaultFSLocalRepositoryStorage
 {
-
   private final NexusRubygemsFacade fileSystem = new NexusRubygemsFacade(new DefaultRubygemsFileSystem());
 
   @Inject

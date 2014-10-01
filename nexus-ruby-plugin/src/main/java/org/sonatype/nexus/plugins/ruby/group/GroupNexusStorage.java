@@ -47,7 +47,6 @@ public class GroupNexusStorage
     this.gateway = gateway;
   }
 
-
   @Override
   public void retrieve(DependencyFile file) {
     doRetrieve(file);
@@ -76,13 +75,11 @@ public class GroupNexusStorage
     ResourceStoreRequest req = new ResourceStoreRequest(file.storagePath());
     // TODO is synchronized really needed
     synchronized (repository) {
-
       List<StorageItem> items = repository.doRetrieveItems(req);
       if (items.size() == 1) {
         return items.get(0);
       }
       return store(file, items);
-
     }
   }
 
@@ -110,7 +107,6 @@ public class GroupNexusStorage
     }
 
     if (outdated) {
-
       switch (file.type()) {
         case DEPENDENCY:
           return merge((DependencyFile) file, items);
@@ -133,9 +129,7 @@ public class GroupNexusStorage
       for (StorageItem item : items) {
         streams.add(new GZIPInputStream(((StorageFileItem) item).getInputStream()));
       }
-      return storeSpecsIndex(file,
-          gateway.mergeSpecs(streams,
-              file.specsType() == SpecsIndexType.LATEST));
+      return storeSpecsIndex(file, gateway.mergeSpecs(streams, file.specsType() == SpecsIndexType.LATEST));
     }
     finally {
       if (streams != null) {
@@ -201,7 +195,6 @@ public class GroupNexusStorage
     }
   }
 
-
   @Override
   public void retrieve(BundlerApiFile file) {
     try {
@@ -213,7 +206,6 @@ public class GroupNexusStorage
       file.setException(e);
     }
   }
-
 
   @Override
   public boolean isExpired(DependencyFile file) {

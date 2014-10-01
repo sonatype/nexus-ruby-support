@@ -19,9 +19,7 @@ public abstract class AbstractProxyScheduledTask
       // is this a proxied rubygems repository at all?
       if (repository.getRepositoryKind().isFacetAvailable(ProxyRubyRepository.class)) {
         ProxyRubyRepository rubyRepository = repository.adaptToFacet(ProxyRubyRepository.class);
-
         doRun(rubyRepository);
-
       }
       else {
         getLogger().info(
@@ -40,5 +38,4 @@ public abstract class AbstractProxyScheduledTask
 
     return null;
   }
-
 }
