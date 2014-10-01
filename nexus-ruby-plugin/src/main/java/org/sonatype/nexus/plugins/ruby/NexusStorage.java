@@ -33,7 +33,6 @@ import org.sonatype.nexus.ruby.layout.Storage;
 public class NexusStorage
     implements Storage
 {
-
   protected final RubyRepository repository;
 
   public NexusStorage(RubyRepository repository) {
@@ -67,8 +66,9 @@ public class NexusStorage
   public void retrieve(SpecsIndexFile specs) {
     SpecsIndexZippedFile source = specs.zippedSpecsIndexFile();
     try {
-      StorageFileItem item = (StorageFileItem) repository
-          .retrieveDirectItem(new ResourceStoreRequest(source.storagePath()));
+      StorageFileItem item = (StorageFileItem)
+          repository.retrieveDirectItem(new ResourceStoreRequest(source.storagePath()));
+
       DefaultStorageFileItem unzippedItem =
           new DefaultStorageFileItem(repository,
               new ResourceStoreRequest(specs.storagePath()),
@@ -143,8 +143,8 @@ public class NexusStorage
     }
     catch (NoSuchMethodError e) {
       try {
-        Constructor<PreparedContentLocator> c = PreparedContentLocator.class
-            .getConstructor(new Class[]{InputStream.class, String.class});
+        Constructor<PreparedContentLocator> c =
+            PreparedContentLocator.class.getConstructor(new Class[]{InputStream.class, String.class});
         return c.newInstance(is, mime);
       }
       catch (Exception ee) {
@@ -177,7 +177,6 @@ public class NexusStorage
   @Override
   public void memory(String data, RubygemsFile file) {
     memory(new ByteArrayInputStream(data.getBytes()), file, data.getBytes().length);
-
   }
 
   private void memory(InputStream data, RubygemsFile file, long length) {

@@ -27,7 +27,6 @@ import org.sonatype.nexus.ruby.cuba.RubygemsFileSystem;
 
 public class NexusRubygemsFacade
 {
-
   private final RubygemsFileSystem filesystem;
 
   public NexusRubygemsFacade(RubygemsFileSystem filesystem) {
@@ -172,7 +171,6 @@ public class NexusRubygemsFacade
       }
       return result;
     }
-
   }
 
   @SuppressWarnings("deprecation")

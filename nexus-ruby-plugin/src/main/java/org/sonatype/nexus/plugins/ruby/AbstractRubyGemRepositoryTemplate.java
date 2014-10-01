@@ -19,11 +19,8 @@ public abstract class AbstractRubyGemRepositoryTemplate
   }
 
   @Override
-  public RubyRepository create()
-      throws ConfigurationException, IOException
-  {
+  public RubyRepository create() throws ConfigurationException, IOException {
     RubyRepository rubyRepository = (RubyRepository) super.create();
-
     return rubyRepository;
   }
 }
