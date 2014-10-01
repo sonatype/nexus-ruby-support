@@ -4,45 +4,43 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-public interface RubygemsGateway {
+public interface RubygemsGateway
+{
+  void recreateRubygemsIndex(String directory);
 
-    void recreateRubygemsIndex( String directory );
+  void purgeBrokenDepencencyFiles(String directory);
 
-    void purgeBrokenDepencencyFiles( String directory );
+  void purgeBrokenGemspecFiles(String directory);
 
-    void purgeBrokenGemspecFiles( String directory );
-    
-    ByteArrayInputStream createGemspecRz( Object spec );
-    
-    InputStream emptyIndex();
+  ByteArrayInputStream createGemspecRz(Object spec);
 
-    Object spec( InputStream gem );
-    
-    String pom( InputStream specRz, boolean snapshot );
+  InputStream emptyIndex();
 
-    InputStream addSpec( Object spec, InputStream specsDump, SpecsIndexType type );
+  Object spec(InputStream gem);
 
-    InputStream deleteSpec( Object spec, InputStream specsDump );
+  String pom(InputStream specRz, boolean snapshot);
 
-    InputStream deleteSpec( Object spec, InputStream specsIndex, InputStream refSpecs );
+  InputStream addSpec(Object spec, InputStream specsDump, SpecsIndexType type);
 
-    InputStream mergeSpecs( List<InputStream> streams, boolean latest );
+  InputStream deleteSpec(Object spec, InputStream specsDump);
 
-    Map<String, InputStream> splitDependencies( InputStream bundlerResult );
+  InputStream deleteSpec(Object spec, InputStream specsIndex, InputStream refSpecs);
 
-    InputStream mergeDependencies( List<InputStream> deps );
+  InputStream mergeSpecs(List<InputStream> streams, boolean latest);
 
-    InputStream mergeDependencies( List<InputStream> deps, boolean unique );
+  Map<String, InputStream> splitDependencies(InputStream bundlerResult);
 
-    InputStream createDependencies( List<InputStream> gemspecs );
+  InputStream mergeDependencies(List<InputStream> deps);
 
-    String filename( Object spec );
+  InputStream mergeDependencies(List<InputStream> deps, boolean unique);
 
-    String name( Object spec );
-    
-    DependencyData dependencies( InputStream inputStream, String name, long modified );
+  InputStream createDependencies(List<InputStream> gemspecs);
 
-    List<String> listAllVersions( String name, InputStream inputStream,
-                                  long modified, boolean prerelease );
+  String filename(Object spec);
 
+  String name(Object spec);
+
+  DependencyData dependencies(InputStream inputStream, String name, long modified);
+
+  List<String> listAllVersions(String name, InputStream inputStream, long modified, boolean prerelease);
 }

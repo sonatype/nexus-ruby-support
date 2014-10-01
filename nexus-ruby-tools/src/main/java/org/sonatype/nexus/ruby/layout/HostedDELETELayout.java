@@ -18,149 +18,125 @@ import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
  * on hosted rubygems repositories you can delete only gem files. deleting
  * a gem file also means to adjust the specs.4.8 indices and their associated
  * dependency file as well deleting the gemspec file of the gem.
- * 
+ *
  * note: to restrict deleting to gem file is more precaution then a necessity.
  * <li>it is possible to regenerate the gemspec file from the gem</li>
  * <li>to generate the dependencies file from the stored gems of the same name</li>
  * <li>even the specs.4.8 can be regenerated from the stored gems</li>
- * 
- * @see HostedGETLayout
- * 
- * @author christian
  *
+ * @author christian
+ * @see HostedGETLayout
  */
 // TODO why not using DELETELayout instead of NoopDefaultLayout ?
-public class HostedDELETELayout extends NoopDefaultLayout
+public class HostedDELETELayout
+    extends NoopDefaultLayout
 {
+  public HostedDELETELayout(RubygemsGateway gateway, Storage store) {
+    super(gateway, store);
+  }
 
-    public HostedDELETELayout( RubygemsGateway gateway, Storage store )
-    {
-        super( gateway, store );
-    }
+  @Override
+  public SpecsIndexFile specsIndexFile(String name) {
+    SpecsIndexFile file = super.specsIndexFile(name);
+    file.markAsForbidden();
+    return file;
+  }
 
-    @Override
-    public SpecsIndexFile specsIndexFile( String name )
-    {
-        SpecsIndexFile file = super.specsIndexFile( name );
-        file.markAsForbidden();
-        return file;
-    }
+  @Override
+  public GemspecFile gemspecFile(String name, String version, String platform) {
+    GemspecFile file = super.gemspecFile(name, version, platform);
+    file.markAsForbidden();
+    return file;
+  }
 
-    @Override
-    public GemspecFile gemspecFile( String name, String version, String platform )
-    {
-        GemspecFile file = super.gemspecFile( name, version, platform );
-        file.markAsForbidden();
-        return file;
-    }
+  @Override
+  public GemspecFile gemspecFile(String name) {
+    GemspecFile file = super.gemspecFile(name);
+    file.markAsForbidden();
+    return file;
+  }
 
-    @Override
-    public GemspecFile gemspecFile( String name )
-    {
-        GemspecFile file = super.gemspecFile( name );
-        file.markAsForbidden();
-        return file;
-    }
+  @Override
+  public DependencyFile dependencyFile(String name) {
+    DependencyFile file = super.dependencyFile(name);
+    file.markAsForbidden();
+    return file;
+  }
 
-    @Override
-    public DependencyFile dependencyFile( String name )
-    {
-        DependencyFile file = super.dependencyFile( name );
-        file.markAsForbidden();
-        return file;
-    }
+  @Override
+  public ApiV1File apiV1File(String name) {
+    ApiV1File file = super.apiV1File(name);
+    file.markAsForbidden();
+    return file;
+  }
 
-    @Override
-    public ApiV1File apiV1File( String name )
-    { 
-        ApiV1File file = super.apiV1File( name );
-        file.markAsForbidden();
-        return file;
-    }
-    
-    @Override
-    public GemFile gemFile( String name, String version, String platform )
-    {
-        GemFile file = super.gemFile( name, version, platform );
-        deleteGemFile( file );
-        return file;
-    }
+  @Override
+  public GemFile gemFile(String name, String version, String platform) {
+    GemFile file = super.gemFile(name, version, platform);
+    deleteGemFile(file);
+    return file;
+  }
 
-    @Override
-    public GemFile gemFile( String name )
-    {
-        GemFile file = super.gemFile( name );
-        deleteGemFile( file );
-        return file;
-    }
+  @Override
+  public GemFile gemFile(String name) {
+    GemFile file = super.gemFile(name);
+    deleteGemFile(file);
+    return file;
+  }
 
-    /**
-     * delete the gem and its metadata in the specs.4.8 indices and
-     * dependency file
-     *  
-     * @param file
-     */
-    private void deleteGemFile( GemFile file )
-    {
-        store.retrieve( file );
-        try( InputStream is = store.getInputStream( file ) )
-        {
-            Object spec = gateway.spec( is );
-            
-            deleteSpecFromIndex( spec );
-            
-            // delete dependencies so the next request will recreate it
-            delete( super.dependencyFile( gateway.name( spec ) ) );
-            delete( super.gemspecFile( file.filename() ) );
-            store.delete( file );
+  /**
+   * delete the gem and its metadata in the specs.4.8 indices and
+   * dependency file
+   */
+  private void deleteGemFile(GemFile file) {
+    store.retrieve(file);
+    try (InputStream is = store.getInputStream(file)) {
+      Object spec = gateway.spec(is);
+
+      deleteSpecFromIndex(spec);
+
+      // delete dependencies so the next request will recreate it
+      delete(super.dependencyFile(gateway.name(spec)));
+      delete(super.gemspecFile(file.filename()));
+      store.delete(file);
+    }
+    catch (IOException e) {
+      file.setException(e);
+    }
+  }
+
+  /**
+   * delete given spec (a Ruby Object) and delete it from all the specs.4.8 indices.
+   */
+  private void deleteSpecFromIndex(Object spec) throws IOException {
+    SpecsIndexZippedFile release = null;
+    for (SpecsIndexType type : SpecsIndexType.values()) {
+      InputStream content = null;
+      InputStream rin = null;
+      SpecsIndexZippedFile specs = ensureSpecsIndexZippedFile(type);
+      try (InputStream in = new GZIPInputStream(store.getInputStream(specs))) {
+        switch (type) {
+          case RELEASE:
+            release = specs;
+          case PRERELEASE:
+            content = gateway.deleteSpec(spec, in);
+            break;
+          case LATEST:
+            // if we delete the entry from latest we need to use the releases to
+            // recreate the latest index
+            store.retrieve(release);
+            rin = new GZIPInputStream(store.getInputStream(release));
+            content = gateway.deleteSpec(spec, in, rin);
         }
-        catch (IOException e)
-        {
-            file.setException( e );
+        // if nothing was added the result is NULL
+        if (content != null) {
+          store.update(IOUtil.toGzipped(content), specs);
         }
+      }
+      finally {
+        IOUtil.close(rin);
+        IOUtil.close(content);
+      }
     }
-
-    /**
-     * delete given spec (a Ruby Object) and delete it from all the specs.4.8 indices.
-     * 
-     * @param spec
-     * @throws IOException
-     */
-    private void deleteSpecFromIndex( Object spec ) throws IOException
-    {
-        SpecsIndexZippedFile release = null;
-        for (SpecsIndexType type : SpecsIndexType.values())
-        {
-            InputStream content = null;
-            InputStream rin = null;
-            SpecsIndexZippedFile specs = ensureSpecsIndexZippedFile( type );
-            try( InputStream in = new GZIPInputStream( store.getInputStream( specs ) ) )
-            {
-                switch( type )
-                {
-                case RELEASE:
-                    release = specs;
-                case PRERELEASE:
-                    content = gateway.deleteSpec( spec, in );
-                    break;
-                case LATEST:           
-                    // if we delete the entry from latest we need to use the releases to 
-                    // recreate the latest index
-                    store.retrieve( release );
-                    rin = new GZIPInputStream( store.getInputStream( release ) );
-                    content = gateway.deleteSpec( spec, in, rin );
-                }
-                // if nothing was added the result is NULL
-                if ( content != null )
-                {
-                    store.update( IOUtil.toGzipped( content ), specs );
-                }
-            }
-            finally
-            {
-                IOUtil.close( rin );
-                IOUtil.close( content );
-            }
-        }
-    }
+  }
 }

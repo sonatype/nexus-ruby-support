@@ -15,27 +15,29 @@ import org.sonatype.nexus.ruby.cuba.quick.QuickMarshalCuba;
 import org.sonatype.nexus.ruby.layout.DefaultLayout;
 import org.sonatype.nexus.ruby.layout.Layout;
 
-public class DefaultRubygemsFileSystem extends RubygemsFileSystem
+public class DefaultRubygemsFileSystem
+    extends RubygemsFileSystem
 {
-    public DefaultRubygemsFileSystem( RubygemsFileFactory fileLayout, Layout getLayout, Layout postLayout, Layout deleteLayout )
-    {
-        super( fileLayout, getLayout, postLayout, deleteLayout,
-               // TODO move to javax.inject
-               new RootCuba( new ApiCuba( new ApiV1Cuba( new ApiV1DependenciesCuba() ), 
-                                          new QuickCuba( new QuickMarshalCuba() ) ),
-                             new QuickCuba( new QuickMarshalCuba() ),
-                             new GemsCuba(),
-                             new MavenCuba( new MavenReleasesCuba( new MavenReleasesRubygemsCuba() ), 
-                                            new MavenPrereleasesCuba( new MavenPrereleasesRubygemsCuba() ) ) ) );
-    }
+  public DefaultRubygemsFileSystem(RubygemsFileFactory fileLayout,
+                                   Layout getLayout,
+                                   Layout postLayout,
+                                   Layout deleteLayout)
+  {
+    super(fileLayout, getLayout, postLayout, deleteLayout,
+        // TODO move to javax.inject
+        new RootCuba(new ApiCuba(new ApiV1Cuba(new ApiV1DependenciesCuba()),
+            new QuickCuba(new QuickMarshalCuba())),
+            new QuickCuba(new QuickMarshalCuba()),
+            new GemsCuba(),
+            new MavenCuba(new MavenReleasesCuba(new MavenReleasesRubygemsCuba()),
+                new MavenPrereleasesCuba(new MavenPrereleasesRubygemsCuba()))));
+  }
 
-    public DefaultRubygemsFileSystem( Layout getLayout, Layout postLayout, Layout deleteLayout )
-    {
-        this( new DefaultLayout(), getLayout, postLayout, deleteLayout );
-    }
-    
-    public DefaultRubygemsFileSystem()
-    {
-        this( new DefaultLayout(), null, null, null );
-    }
+  public DefaultRubygemsFileSystem(Layout getLayout, Layout postLayout, Layout deleteLayout) {
+    this(new DefaultLayout(), getLayout, postLayout, deleteLayout);
+  }
+
+  public DefaultRubygemsFileSystem() {
+    this(new DefaultLayout(), null, null, null);
+  }
 }
