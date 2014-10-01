@@ -8,7 +8,5 @@ import org.sonatype.nexus.proxy.repository.HostedRepository;
 public interface HostedRubyRepository
     extends RubyRepository, HostedRepository
 {
-
-    void recreateMetadata() throws LocalStorageException, ItemNotFoundException;
-
+  void recreateMetadata() throws LocalStorageException, ItemNotFoundException;
 }

@@ -19,38 +19,40 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 
 @Singleton
-@Named( "rubyfile" )
-public class RubyFSLocalRepositoryStorage 
+@Named("rubyfile")
+public class RubyFSLocalRepositoryStorage
     extends DefaultFSLocalRepositoryStorage
 {
-   
-    private final NexusRubygemsFacade fileSystem = new NexusRubygemsFacade( new DefaultRubygemsFileSystem() );
 
-    @Inject
-    public RubyFSLocalRepositoryStorage( Wastebasket wastebasket,
-            LinkPersister linkPersister, MimeSupport mimeSupport, FSPeer fsPeer )
-    {
-        super( wastebasket, linkPersister, mimeSupport, fsPeer );
+  private final NexusRubygemsFacade fileSystem = new NexusRubygemsFacade(new DefaultRubygemsFileSystem());
+
+  @Inject
+  public RubyFSLocalRepositoryStorage(Wastebasket wastebasket,
+                                      LinkPersister linkPersister,
+                                      MimeSupport mimeSupport,
+                                      FSPeer fsPeer)
+  {
+    super(wastebasket, linkPersister, mimeSupport, fsPeer);
+  }
+
+  @Override
+  public void storeItem(Repository repository, StorageItem item)
+      throws UnsupportedStorageOperationException, LocalStorageException
+  {
+    if (!item.getPath().startsWith("/.nexus")) {
+
+      RubygemsFile file = fileSystem.file(item.getResourceStoreRequest());
+
+      switch (file.type()) {
+        case NOT_FOUND:
+          break;
+        case BUNDLER_API:
+          return;
+        default:
+          item.getResourceStoreRequest().setRequestPath(file.storagePath());
+          ((AbstractStorageItem) item).setPath(file.storagePath());
+      }
     }
-
-    @Override
-    public void storeItem( Repository repository, StorageItem item )
-            throws UnsupportedStorageOperationException, LocalStorageException
-    {
-        if ( ! item.getPath().startsWith( "/.nexus" ) )
-        {
-
-            RubygemsFile file = fileSystem.file( item.getResourceStoreRequest() );
-            
-            switch ( file.type() )
-            {
-            case NOT_FOUND: break;
-            case BUNDLER_API: return;
-            default:
-                item.getResourceStoreRequest().setRequestPath( file.storagePath() ); 
-                ((AbstractStorageItem) item).setPath( file.storagePath() );
-            }
-        }
-        super.storeItem( repository, item );
-    }    
+    super.storeItem(repository, item);
+  }
 }

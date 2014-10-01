@@ -14,16 +14,14 @@ public interface ProxyRubyRepository
     extends RubyRepository, ProxyRepository
 {
 
-    int getArtifactMaxAge();
+  int getArtifactMaxAge();
 
-    void setArtifactMaxAge( int maxAge );
+  void setArtifactMaxAge(int maxAge);
 
-    int getMetadataMaxAge();
+  int getMetadataMaxAge();
 
-    void setMetadataMaxAge( int metadataMaxAge );
-    
-    @SuppressWarnings( "deprecation" )
-    void syncMetadata( ) throws LocalStorageException, ItemNotFoundException, 
-        RemoteAccessException, AccessDeniedException, org.sonatype.nexus.proxy.StorageException, 
-        IllegalOperationException, NoSuchResourceStoreException;
+  void setMetadataMaxAge(int metadataMaxAge);
+
+  @SuppressWarnings("deprecation")
+  void syncMetadata() throws LocalStorageException, ItemNotFoundException, RemoteAccessException, AccessDeniedException, org.sonatype.nexus.proxy.StorageException, IllegalOperationException, NoSuchResourceStoreException;
 }

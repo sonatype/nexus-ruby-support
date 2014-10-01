@@ -1,6 +1,5 @@
 package org.sonatype.nexus.plugins.ruby.group;
 
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
 import org.sonatype.nexus.configuration.model.CRepositoryExternalConfigurationHolderFactory;
@@ -12,54 +11,53 @@ import org.sonatype.nexus.plugins.ruby.RubyRepositoryTemplateProvider;
 import org.sonatype.nexus.proxy.repository.GroupRepository;
 import org.sonatype.nexus.proxy.repository.RepositoryWritePolicy;
 
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+
 public class DefaultRubyGroupRepositoryTemplate
     extends AbstractRubyGemRepositoryTemplate
 {
-    public DefaultRubyGroupRepositoryTemplate( RubyRepositoryTemplateProvider provider, String id, String description )
-    {
-        super( provider, id, description, new RubyContentClass(), RubyGroupRepository.class );
-    }
+  public DefaultRubyGroupRepositoryTemplate(RubyRepositoryTemplateProvider provider, String id, String description) {
+    super(provider, id, description, new RubyContentClass(), RubyGroupRepository.class);
+  }
 
-    public DefaultRubyGroupRepositoryConfiguration getExternalConfiguration( boolean forWrite )
-    {
-        return (DefaultRubyGroupRepositoryConfiguration) getCoreConfiguration().getExternalConfiguration()
-            .getConfiguration( forWrite );
-    }
-    
-    @Override
-    protected CRepositoryCoreConfiguration initCoreConfiguration()
-    {
-        CRepository repo = new DefaultCRepository();
+  public DefaultRubyGroupRepositoryConfiguration getExternalConfiguration(boolean forWrite) {
+    return (DefaultRubyGroupRepositoryConfiguration) getCoreConfiguration().getExternalConfiguration()
+        .getConfiguration(forWrite);
+  }
 
-        repo.setId( "" );
-        repo.setName( "" );
+  @Override
+  protected CRepositoryCoreConfiguration initCoreConfiguration() {
+    CRepository repo = new DefaultCRepository();
 
-        repo.setProviderRole( GroupRepository.class.getName() );
-        repo.setProviderHint( DefaultRubyGroupRepository.ID );
+    repo.setId("");
+    repo.setName("");
 
-        // groups should not participate in searches
-        repo.setSearchable( false );
-        
-        Xpp3Dom ex = new Xpp3Dom( DefaultCRepository.EXTERNAL_CONFIGURATION_NODE_NAME );
-        repo.setExternalConfiguration( ex );
+    repo.setProviderRole(GroupRepository.class.getName());
+    repo.setProviderHint(DefaultRubyGroupRepository.ID);
 
-        DefaultRubyGroupRepositoryConfiguration exConf = new DefaultRubyGroupRepositoryConfiguration( ex );
-        repo.externalConfigurationImple = exConf;
+    // groups should not participate in searches
+    repo.setSearchable(false);
 
-        repo.setWritePolicy( RepositoryWritePolicy.READ_ONLY.name() );
+    Xpp3Dom ex = new Xpp3Dom(DefaultCRepository.EXTERNAL_CONFIGURATION_NODE_NAME);
+    repo.setExternalConfiguration(ex);
 
-        CRepositoryCoreConfiguration result =
-            new CRepositoryCoreConfiguration( getTemplateProvider().getApplicationConfiguration(), repo,
-                new CRepositoryExternalConfigurationHolderFactory<DefaultRubyGroupRepositoryConfiguration>()
-                {
-                    public DefaultRubyGroupRepositoryConfiguration createExternalConfigurationHolder(
-                                                                                                       CRepository config )
-                    {
-                        return new DefaultRubyGroupRepositoryConfiguration( (Xpp3Dom) config
-                            .getExternalConfiguration() );
-                    }
-                } );
+    DefaultRubyGroupRepositoryConfiguration exConf = new DefaultRubyGroupRepositoryConfiguration(ex);
+    repo.externalConfigurationImple = exConf;
 
-        return result;
-    }
+    repo.setWritePolicy(RepositoryWritePolicy.READ_ONLY.name());
+
+    CRepositoryCoreConfiguration result =
+        new CRepositoryCoreConfiguration(getTemplateProvider().getApplicationConfiguration(), repo,
+            new CRepositoryExternalConfigurationHolderFactory<DefaultRubyGroupRepositoryConfiguration>()
+            {
+              public DefaultRubyGroupRepositoryConfiguration createExternalConfigurationHolder(
+                  CRepository config)
+              {
+                return new DefaultRubyGroupRepositoryConfiguration((Xpp3Dom) config
+                    .getExternalConfiguration());
+              }
+            });
+
+    return result;
+  }
 }

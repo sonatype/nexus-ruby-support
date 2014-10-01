@@ -7,8 +7,6 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.slf4j.Logger;
 import org.sonatype.nexus.configuration.Configurator;
 import org.sonatype.nexus.configuration.model.CRepository;
 import org.sonatype.nexus.configuration.model.CRepositoryCoreConfiguration;
@@ -34,172 +32,155 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.layout.HostedRubygemsFileSystem;
 
-@Named( DefaultHostedRubyRepository.ID )
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.slf4j.Logger;
+
+@Named(DefaultHostedRubyRepository.ID)
 public class DefaultHostedRubyRepository
     extends AbstractRepository
     implements HostedRubyRepository, Repository
 {
-    public static final String ID = "rubygems-hosted";
+  public static final String ID = "rubygems-hosted";
 
-    private final ContentClass contentClass;
+  private final ContentClass contentClass;
 
-    private final HostedRubyRepositoryConfigurator configurator;
+  private final HostedRubyRepositoryConfigurator configurator;
 
-    private final RubygemsGateway gateway;
+  private final RubygemsGateway gateway;
 
-    private final RepositoryKind repositoryKind;
+  private final RepositoryKind repositoryKind;
 
-    private final NexusRubygemsFacade facade;
+  private final NexusRubygemsFacade facade;
 
-    @Inject
-    public DefaultHostedRubyRepository( @Named( RubyContentClass.ID ) ContentClass contentClass,
-                                        HostedRubyRepositoryConfigurator configurator,
-                                        RubygemsGateway gateway )
-             throws LocalStorageException, ItemNotFoundException{
-        this.contentClass = contentClass;
-        this.configurator = configurator;
-        this.repositoryKind = new DefaultRepositoryKind( HostedRubyRepository.class,
-                                                         Arrays.asList( new Class<?>[] { RubyRepository.class } ) );
-        this.gateway = gateway;
-        this.facade = new NexusRubygemsFacade( new HostedRubygemsFileSystem( gateway, new NexusStorage( this ) ) );
-    }
+  @Inject
+  public DefaultHostedRubyRepository(@Named(RubyContentClass.ID) ContentClass contentClass,
+                                     HostedRubyRepositoryConfigurator configurator,
+                                     RubygemsGateway gateway)
+      throws LocalStorageException, ItemNotFoundException
+  {
+    this.contentClass = contentClass;
+    this.configurator = configurator;
+    this.repositoryKind = new DefaultRepositoryKind(HostedRubyRepository.class,
+        Arrays.asList(new Class<?>[]{RubyRepository.class}));
+    this.gateway = gateway;
+    this.facade = new NexusRubygemsFacade(new HostedRubygemsFileSystem(gateway, new NexusStorage(this)));
+  }
 
-    @Override
-    protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator()
+  @Override
+  protected Configurator<Repository, CRepositoryCoreConfiguration> getConfigurator() {
+    return configurator;
+  }
+
+  @Override
+  protected CRepositoryExternalConfigurationHolderFactory<?> getExternalConfigurationHolderFactory() {
+    return new CRepositoryExternalConfigurationHolderFactory<DefaultHostedRubyRepositoryConfiguration>()
     {
-        return configurator;
+      public DefaultHostedRubyRepositoryConfiguration createExternalConfigurationHolder(CRepository config) {
+        return new DefaultHostedRubyRepositoryConfiguration((Xpp3Dom) config.getExternalConfiguration());
+      }
+    };
+  }
+
+  public ContentClass getRepositoryContentClass() {
+    return contentClass;
+  }
+
+  public RepositoryKind getRepositoryKind() {
+    return repositoryKind;
+  }
+
+  // ==
+
+  @Override
+  protected DefaultHostedRubyRepositoryConfiguration getExternalConfiguration(boolean forWrite) {
+    return (DefaultHostedRubyRepositoryConfiguration) super.getExternalConfiguration(forWrite);
+  }
+
+  @SuppressWarnings("deprecation")
+  public void storeItem(ResourceStoreRequest request, InputStream is, Map<String, String> userAttributes)
+      throws UnsupportedStorageOperationException, IllegalOperationException, org.sonatype.nexus.proxy.StorageException, AccessDeniedException
+  {
+    RubygemsFile file = facade.file(request.getRequestPath());
+    if (file == null) {
+      throw new UnsupportedStorageOperationException("only gem-files can be stored");
+    }
+    request.setRequestPath(file.storagePath());
+    // first check permissions, i.e. is redeploy allowed
+    try {
+      checkConditions(request, getResultingActionOnWrite(request));
+    }
+    catch (ItemNotFoundException e) {
+      throw new AccessDeniedException(request, e.getMessage());
     }
 
-    @Override
-    protected CRepositoryExternalConfigurationHolderFactory<?> getExternalConfigurationHolderFactory()
-    {
-        return new CRepositoryExternalConfigurationHolderFactory<DefaultHostedRubyRepositoryConfiguration>()
-        {
-            public DefaultHostedRubyRepositoryConfiguration createExternalConfigurationHolder( CRepository config )
-            {
-                return new DefaultHostedRubyRepositoryConfiguration( (Xpp3Dom) config.getExternalConfiguration() );
-            }
-        };
-    }
+    // now store the gem
+    facade.handleMutation(this, facade.post(is, file));
+  }
 
-    public ContentClass getRepositoryContentClass()
-    {
-        return contentClass;
-    }
+  @SuppressWarnings("deprecation")
+  @Override
+  public void deleteItem(ResourceStoreRequest request)
+      throws org.sonatype.nexus.proxy.StorageException, UnsupportedStorageOperationException, IllegalOperationException, ItemNotFoundException
+  {
+    facade.handleMutation(this, facade.delete(request.getRequestPath()));
+  }
 
-    public RepositoryKind getRepositoryKind()
-    {
-        return repositoryKind;
-    }
+  @Override
+  public void moveItem(ResourceStoreRequest from, ResourceStoreRequest to)
+      throws UnsupportedStorageOperationException
+  {
+    throw new UnsupportedStorageOperationException(from.getRequestPath());
+  }
 
-    // ==
+  @SuppressWarnings("deprecation")
+  @Override
+  public StorageItem retrieveDirectItem(ResourceStoreRequest request)
+      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+  {
+    // bypass access control
+    return super.retrieveItem(false, request);
+  }
 
-    @Override
-    protected DefaultHostedRubyRepositoryConfiguration getExternalConfiguration( boolean forWrite )
-    {
-        return (DefaultHostedRubyRepositoryConfiguration) super.getExternalConfiguration( forWrite );
+  @SuppressWarnings("deprecation")
+  @Override
+  public StorageItem retrieveItem(boolean fromTask, ResourceStoreRequest request)
+      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+  {
+    if (fromTask && request.getRequestPath().startsWith("/.nexus")) {
+      return super.retrieveItem(true, request);
     }
+    return facade.handleRetrieve(this, request, facade.get(request));
+  }
 
-    @SuppressWarnings( "deprecation" )
-    public void storeItem(ResourceStoreRequest request, InputStream is, Map<String, String> userAttributes)
-            throws UnsupportedStorageOperationException, IllegalOperationException, 
-                   org.sonatype.nexus.proxy.StorageException, AccessDeniedException
-    {
-        RubygemsFile file = facade.file( request.getRequestPath() );
-        if( file == null )
-        {
-            throw new UnsupportedStorageOperationException( "only gem-files can be stored" );
-        }
-        request.setRequestPath( file.storagePath() );
-        // first check permissions, i.e. is redeploy allowed
-        try {
-            checkConditions(request, getResultingActionOnWrite(request));
-        }
-        catch (ItemNotFoundException e) {
-            throw new AccessDeniedException(request, e.getMessage());
-        }
-        
-        // now store the gem
-        facade.handleMutation( this, facade.post( is, file ) );
+  @Override
+  public void recreateMetadata() throws LocalStorageException, ItemNotFoundException {
+    String directory = getBaseDirectory();
+    if (getLog().isDebugEnabled()) {
+      getLog().debug("recreate rubygems metadata in " + directory);
     }
-    
-    @SuppressWarnings("deprecation")
-    @Override
-    public void deleteItem( ResourceStoreRequest request )
-            throws org.sonatype.nexus.proxy.StorageException, 
-                UnsupportedStorageOperationException, IllegalOperationException,
-                ItemNotFoundException
-    {
-        facade.handleMutation( this, facade.delete( request.getRequestPath() ) );
-    }
+    gateway.recreateRubygemsIndex(directory);
+    gateway.purgeBrokenDepencencyFiles(directory);
+  }
 
-    @Override
-    public void moveItem( ResourceStoreRequest from, ResourceStoreRequest to)
-            throws UnsupportedStorageOperationException
-    {
-        throw new UnsupportedStorageOperationException( from.getRequestPath() );
-    }
+  protected String getBaseDirectory() throws ItemNotFoundException,
+                                             LocalStorageException
+  {
+    // TODO use getApplicationConfiguration().getWorkingDirectory()
+    return this.getLocalUrl().replace("file:", "");
+  }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public StorageItem retrieveDirectItem( ResourceStoreRequest request )
-            throws IllegalOperationException,
-                   ItemNotFoundException, RemoteAccessException, 
-                   org.sonatype.nexus.proxy.StorageException
-    {
-        // bypass access control
-        return super.retrieveItem( false, request );
+  @Override
+  public Logger getLog() {
+    try {
+      return log;
     }
-    
-    @SuppressWarnings("deprecation")
-    @Override
-    public StorageItem retrieveItem( boolean fromTask, ResourceStoreRequest request )
-            throws IllegalOperationException,
-                   ItemNotFoundException, RemoteAccessException, 
-                   org.sonatype.nexus.proxy.StorageException
-    {
-        if ( fromTask && request.getRequestPath().startsWith( "/.nexus" ) )
-        {
-            return super.retrieveItem( true, request );
-        }
-        return facade.handleRetrieve( this, request, facade.get( request ) );
+    catch (java.lang.NoSuchFieldError e) {
+      try {
+        return (Logger) getClass().getSuperclass().getDeclaredMethod("getLogger").invoke(this);
+      }
+      catch (Exception ee) {
+        throw new RuntimeException("should work", ee);
+      }
     }
-
-    @Override
-    public void recreateMetadata() throws LocalStorageException, ItemNotFoundException
-    {
-        String directory = getBaseDirectory();
-        if (getLog().isDebugEnabled()){
-            getLog().debug( "recreate rubygems metadata in " + directory );
-        }
-        gateway.recreateRubygemsIndex( directory );
-        gateway.purgeBrokenDepencencyFiles( directory );
-    }
-
-    protected String getBaseDirectory() throws ItemNotFoundException,
-            LocalStorageException
-    {
-        // TODO use getApplicationConfiguration().getWorkingDirectory()
-        return this.getLocalUrl().replace( "file:", "" );
-    }
-
-    @Override
-    public Logger getLog()
-    {
-        try
-        {
-            return log;
-        }
-        catch( java.lang.NoSuchFieldError e )
-        {
-            try
-            {
-                return (Logger) getClass().getSuperclass().getDeclaredMethod( "getLogger" ).invoke( this );
-            }
-            catch ( Exception ee )
-            {
-                throw new RuntimeException( "should work", ee );
-            }
-        }
-    }
+  }
 }
