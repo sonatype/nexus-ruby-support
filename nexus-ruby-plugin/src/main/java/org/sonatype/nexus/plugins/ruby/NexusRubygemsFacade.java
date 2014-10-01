@@ -150,7 +150,8 @@ public class NexusRubygemsFacade
 
     @SuppressWarnings("deprecation")
     @Override
-    public Collection<StorageItem> list() throws AccessDeniedException, NoSuchResourceStoreException, IllegalOperationException, org.sonatype.nexus.proxy.StorageException
+    public Collection<StorageItem> list()
+        throws AccessDeniedException, NoSuchResourceStoreException, IllegalOperationException, org.sonatype.nexus.proxy.StorageException
     {
       Collection<StorageItem> result;
       try {

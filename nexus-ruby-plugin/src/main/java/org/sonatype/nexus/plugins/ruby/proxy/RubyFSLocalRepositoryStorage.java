@@ -39,7 +39,6 @@ public class RubyFSLocalRepositoryStorage
       throws UnsupportedStorageOperationException, LocalStorageException
   {
     if (!item.getPath().startsWith("/.nexus")) {
-
       RubygemsFile file = fileSystem.file(item.getResourceStoreRequest());
 
       switch (file.type()) {

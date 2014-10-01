@@ -32,9 +32,7 @@ public class SyncRubygemsMetadataTaskDescriptor
   @SuppressWarnings("rawtypes")
   public List<FormField> formFields() {
     List<FormField> fields = new ArrayList<FormField>();
-
     fields.add(repoField);
-
     return fields;
   }
 }

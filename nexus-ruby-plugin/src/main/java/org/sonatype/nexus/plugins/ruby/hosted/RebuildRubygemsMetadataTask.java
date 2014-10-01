@@ -12,7 +12,6 @@ import org.sonatype.nexus.scheduling.AbstractNexusRepositoriesTask;
 public class RebuildRubygemsMetadataTask
     extends AbstractNexusRepositoriesTask<Object>
 {
-
   public static final String ACTION = "REBUILDRUBYGEMSMETADATA";
 
   @Override
