@@ -18,12 +18,12 @@
   <parent>
     <groupId>org.sonatype.nexus.ruby</groupId>
     <artifactId>nexus-ruby-support</artifactId>
-    <version>1.4.3</version>
+    <version>1.4.4</version>
   </parent>
 
   <artifactId>nexus-ruby-tools</artifactId>
   <name>${project.groupId}:${project.artifactId}</name>
-  <version>3.1.1</version>
+  <version>3.1.2</version>
 
   <dependencies>
     <dependency>
