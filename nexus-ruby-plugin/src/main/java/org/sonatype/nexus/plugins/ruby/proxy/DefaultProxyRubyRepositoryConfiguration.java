@@ -36,7 +36,7 @@ public class DefaultProxyRubyRepositoryConfiguration
   }
 
   public int getMetadataMaxAge() {
-    return Integer.parseInt(getNodeValue(getRootNode(), METADATA_MAX_AGE, "1440"));
+    return Integer.parseInt(getNodeValue(getRootNode(), METADATA_MAX_AGE, "30"));
   }
 
   public void setMetadataMaxAge(int age) {
