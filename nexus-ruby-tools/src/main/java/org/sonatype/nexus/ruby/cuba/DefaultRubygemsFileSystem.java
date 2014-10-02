@@ -38,7 +38,7 @@ public class DefaultRubygemsFileSystem
     super(fileLayout, getLayout, postLayout, deleteLayout,
         // TODO move to javax.inject
         new RootCuba(new ApiCuba(new ApiV1Cuba(new ApiV1DependenciesCuba()),
-            new QuickCuba(new QuickMarshalCuba())),
+            new QuickCuba(new QuickMarshalCuba()), new GemsCuba()),
             new QuickCuba(new QuickMarshalCuba()),
             new GemsCuba(),
             new MavenCuba(new MavenReleasesCuba(new MavenReleasesRubygemsCuba()),

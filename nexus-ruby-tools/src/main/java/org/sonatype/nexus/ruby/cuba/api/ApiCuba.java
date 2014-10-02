@@ -30,10 +30,13 @@ public class ApiCuba
   private final Cuba v1;
 
   private final Cuba quick;
+  
+  private final Cuba gems;
 
-  public ApiCuba(Cuba v1, Cuba quick) {
+  public ApiCuba(Cuba v1, Cuba quick, Cuba gems) {
     this.v1 = v1;
     this.quick = quick;
+    this.gems = gems;
   }
 
   /**
@@ -46,8 +49,10 @@ public class ApiCuba
         return state.nested(v1);
       case RootCuba.QUICK:
         return state.nested(quick);
+      case RootCuba.GEMS:
+        return state.nested(gems);
       case "":
-        String[] items = {V1, RootCuba.QUICK};
+        String[] items = {V1, RootCuba.QUICK, RootCuba.GEMS};
         return state.context.factory.directory(state.context.original, items);
       default:
         return state.context.factory.notFound(state.context.original);
