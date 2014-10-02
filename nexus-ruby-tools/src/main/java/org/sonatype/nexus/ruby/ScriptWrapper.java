@@ -2,46 +2,43 @@ package org.sonatype.nexus.ruby;
 
 import org.jruby.embed.ScriptingContainer;
 
-
 public class ScriptWrapper
 {
+  protected final ScriptingContainer scriptingContainer;
 
-    protected final ScriptingContainer scriptingContainer;
-    private final Object object;
+  private final Object object;
 
-    public ScriptWrapper( ScriptingContainer scriptingContainer )
-    {
-        this.scriptingContainer = scriptingContainer;
-        this.object = newScript();
-    }
-    
-    public ScriptWrapper( ScriptingContainer scriptingContainer, Object object )
-    {
-        this.scriptingContainer = scriptingContainer;
-        this.object = object;
-    }
+  public ScriptWrapper(ScriptingContainer scriptingContainer) {
+    this.scriptingContainer = scriptingContainer;
+    this.object = newScript();
+  }
 
-    protected Object newScript(){
-        throw new RuntimeException( "not overwritten" );
-    }
- 
-    protected void callMethod( String methodName, Object singleArg ) {
-        scriptingContainer.callMethod( object, methodName, singleArg );
-    }
+  public ScriptWrapper(ScriptingContainer scriptingContainer, Object object) {
+    this.scriptingContainer = scriptingContainer;
+    this.object = object;
+  }
 
-    protected <T> T callMethod( String methodName, Object singleArg, Class<T> returnType ) {
-        return scriptingContainer.callMethod( object, methodName, singleArg, returnType );
-    }
+  protected Object newScript() {
+    throw new RuntimeException("not overwritten");
+  }
 
-    protected <T> T callMethod( String methodName, Object[] args, Class<T> returnType ) {
-        return scriptingContainer.callMethod( object, methodName, args, returnType );
-    }
+  protected void callMethod(String methodName, Object singleArg) {
+    scriptingContainer.callMethod(object, methodName, singleArg);
+  }
 
-    protected <T> T callMethod( String methodName, Class<T> returnType ) {
-        return scriptingContainer.callMethod( object, methodName, returnType );
-    }
-    
-    protected void callMethod( String methodName ) {
-        scriptingContainer.callMethod( object, methodName );
-    }
+  protected <T> T callMethod(String methodName, Object singleArg, Class<T> returnType) {
+    return scriptingContainer.callMethod(object, methodName, singleArg, returnType);
+  }
+
+  protected <T> T callMethod(String methodName, Object[] args, Class<T> returnType) {
+    return scriptingContainer.callMethod(object, methodName, args, returnType);
+  }
+
+  protected <T> T callMethod(String methodName, Class<T> returnType) {
+    return scriptingContainer.callMethod(object, methodName, returnType);
+  }
+
+  protected void callMethod(String methodName) {
+    scriptingContainer.callMethod(object, methodName);
+  }
 }

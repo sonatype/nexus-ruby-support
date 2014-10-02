@@ -5,18 +5,16 @@ import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 
 /**
  * this class assembles the hosted repository for GET, POST and DELETE request.
- * 
- * @author christian
  *
+ * @author christian
  */
-public class HostedRubygemsFileSystem extends DefaultRubygemsFileSystem
+public class HostedRubygemsFileSystem
+    extends DefaultRubygemsFileSystem
 {
-    public HostedRubygemsFileSystem( RubygemsGateway gateway,
-                                     Storage store )
-    {
-        super( new DefaultLayout(),
-               new HostedGETLayout( gateway, store ),
-               new HostedPOSTLayout( gateway, store ),
-               new HostedDELETELayout( gateway, store ) );
-    } 
+  public HostedRubygemsFileSystem(RubygemsGateway gateway, Storage store) {
+    super(new DefaultLayout(),
+        new HostedGETLayout(gateway, store),
+        new HostedPOSTLayout(gateway, store),
+        new HostedDELETELayout(gateway, store));
+  }
 }

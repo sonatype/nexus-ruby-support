@@ -11,34 +11,28 @@ import org.sonatype.nexus.formfields.RepoComboFormField;
 import org.sonatype.nexus.tasks.descriptors.AbstractScheduledTaskDescriptor;
 
 @Singleton
-@Named( "SyncRubygemsMetadata" )
+@Named("SyncRubygemsMetadata")
 public class SyncRubygemsMetadataTaskDescriptor
     extends AbstractScheduledTaskDescriptor
 {
-    public static final String ID = "SyncRubygemsMetadataTask";
+  public static final String ID = "SyncRubygemsMetadataTask";
 
-    public static final String REPO_FIELD_ID = "repositoryId";
+  public static final String REPO_FIELD_ID = "repositoryId";
 
-    private final RepoComboFormField repoField = new RepoComboFormField( REPO_FIELD_ID,
-                                                                         FormField.MANDATORY );
+  private final RepoComboFormField repoField = new RepoComboFormField(REPO_FIELD_ID, FormField.MANDATORY);
 
-    public String getId()
-    {
-        return ID;
-    }
+  public String getId() {
+    return ID;
+  }
 
-    public String getName()
-    {
-        return "Syncronize Rubygems Metadata Files";
-    }
+  public String getName() {
+    return "Syncronize Rubygems Metadata Files";
+  }
 
-    @SuppressWarnings( "rawtypes" )
-    public List<FormField> formFields()
-    {
-        List<FormField> fields = new ArrayList<FormField>();
-
-        fields.add( repoField );
-        
-        return fields;
-    }
+  @SuppressWarnings("rawtypes")
+  public List<FormField> formFields() {
+    List<FormField> fields = new ArrayList<FormField>();
+    fields.add(repoField);
+    return fields;
+  }
 }

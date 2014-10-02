@@ -6,21 +6,20 @@ import javax.inject.Singleton;
 import org.sonatype.nexus.proxy.registry.AbstractIdContentClass;
 
 @Singleton
-@Named( RubyContentClass.ID )
+@Named(RubyContentClass.ID)
 public class RubyContentClass
     extends AbstractIdContentClass
 {
-    public static final String ID = "rubygems";
-    public static final String NAME = "Rubygems";
+  public static final String ID = "rubygems";
 
-    public String getId()
-    {
-        return ID;
-    }
-    
-    @Override
-    public String getName()
-    {
-        return NAME;
-    }
+  public static final String NAME = "Rubygems";
+
+  public String getId() {
+    return ID;
+  }
+
+  @Override
+  public String getName() {
+    return NAME;
+  }
 }

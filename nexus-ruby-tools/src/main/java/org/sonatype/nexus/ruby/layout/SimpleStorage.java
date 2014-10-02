@@ -21,220 +21,176 @@ import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 /**
  * simple storage implementation using the system's filesystem.
  * it uses <code>InputStream</code>s as payload.
- * 
- * @author christian
  *
+ * @author christian
  */
-public class SimpleStorage implements Storage
+public class SimpleStorage
+    implements Storage
 {
-    private final SecureRandom random = new SecureRandom();
-    private final File basedir;
-    
-    /**
-     * create the storage with given base-directory.
-     * 
-     * @param basedir
-     */
-    public SimpleStorage( File basedir )
-    {
-        this.basedir = basedir;
-        this.random.setSeed( System.currentTimeMillis() );
-    }
-    
-    @Override
-    public InputStream getInputStream( RubygemsFile file )
-            throws IOException
-    {
-        if ( file.hasException() )
-        {
-            throw new IOException( file.getException() );
-        }
-        InputStream is;
-        if ( file.get() == null )
-        {
-            is = Files.newInputStream( toPath( file ) );
-        }
-        else
-        {
-            is = (InputStream) file.get();
-        }
-        // reset state since we have a payload and no exceptions
-        file.resetState();
-        return is;
-    }
+  private final SecureRandom random = new SecureRandom();
 
-    /**
-     * convert <code>RubygemsFile</code> into a <code>Path</code>.
-     * @param file
-     * @return
-     */
-    protected Path toPath( RubygemsFile file )
-    {
-        return new File( basedir, file.storagePath() ).toPath();
-    }
+  private final File basedir;
 
-    @Override
-    public long getModified( RubygemsFile file )
-    {
-        return toPath( file ).toFile().lastModified();
-    }
+  /**
+   * create the storage with given base-directory.
+   */
+  public SimpleStorage(File basedir) {
+    this.basedir = basedir;
+    this.random.setSeed(System.currentTimeMillis());
+  }
 
-    @Override
-    public void retrieve( RubygemsFile file )
-    {              
-        file.resetState();
+  @Override
+  public InputStream getInputStream(RubygemsFile file) throws IOException {
+    if (file.hasException()) {
+      throw new IOException(file.getException());
+    }
+    InputStream is;
+    if (file.get() == null) {
+      is = Files.newInputStream(toPath(file));
+    }
+    else {
+      is = (InputStream) file.get();
+    }
+    // reset state since we have a payload and no exceptions
+    file.resetState();
+    return is;
+  }
 
-        if ( Files.notExists( toPath( file ) ) )
-        {
-            file.markAsNotExists();
-        }
-        try
-        {
-            file.set( getInputStream( file ) );
-        }
-        catch ( NoSuchFileException e )
-        {
-            file.markAsNotExists();
-        }
-        catch ( IOException e )
-        {
-            file.setException( e );
-        }
-    }
-    
-    @Override
-    public void retrieve( DependencyFile file )
-    {
-        retrieve( (RubygemsFile) file );
-    }
-    
-    @Override
-    public void retrieve( SpecsIndexZippedFile file )
-    {
-        retrieve( (RubygemsFile) file );
-    }
-    
-    @Override
-    public void retrieve( SpecsIndexFile file )
-    {
-        SpecsIndexZippedFile zipped = file.zippedSpecsIndexFile();
-        retrieve( zipped );
-        if ( zipped.notExists() )
-        {
-            file.markAsNotExists();
-        }
-        if ( zipped.hasException() )
-        {
-            file.setException( zipped.getException() );
-        }
-        try
-        {
-            file.set( new GZIPInputStream( getInputStream( zipped ) ) );
-        }
-        catch (IOException e)
-        {
-            file.setException( e );
-        }
-    }
+  /**
+   * convert <code>RubygemsFile</code> into a <code>Path</code>.
+   */
+  protected Path toPath(RubygemsFile file) {
+    return new File(basedir, file.storagePath()).toPath();
+  }
 
-    @Override
-    public void create( InputStream is, RubygemsFile file )
-    {
-        Path target = toPath( file );
-        Path mutex = target.resolveSibling( target.getFileName() + ".lock" );
-        Path source = target.resolveSibling( "tmp." + Math.abs( random.nextLong() ) );
-        try
-        {
-            createDirectory( source.getParent() );
-            Files.createFile( mutex );
-            Files.copy( is, source );
-            Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
-            file.set( Files.newInputStream( target ) );
-        }
-        catch ( FileAlreadyExistsException e )
-        {
-            mutex = null;
-            file.markAsTempUnavailable();
-        }
-        catch ( IOException e )
-        {
-            file.setException( e );
-        }
-        finally
-        {
-            if ( mutex != null )
-            {
-                mutex.toFile().delete();
-            }
-            source.toFile().delete();
-        }
-    }
+  @Override
+  public long getModified(RubygemsFile file) {
+    return toPath(file).toFile().lastModified();
+  }
 
-    @Override
-    public void update( InputStream is, RubygemsFile file )
-    {
-        Path target = toPath( file );
-        Path source = target.resolveSibling( "tmp." + Math.abs( random.nextLong() ) );
-        try
-        {
-            createDirectory( source.getParent() );
-            Files.copy( is, source );
-            Files.move( source, target, StandardCopyOption.ATOMIC_MOVE );
-            file.set( Files.newInputStream( target ) );
-        }
-        catch ( IOException e )
-        {
-            file.setException( e );
-        }
-        finally
-        {
-            source.toFile().delete();
-        }
-    }
+  @Override
+  public void retrieve(RubygemsFile file) {
+    file.resetState();
 
-    /**
-     * create a directory if it is not existing
-     * 
-     * @param parent
-     * @throws IOException
-     */
-    protected void createDirectory( Path parent ) throws IOException
-    {
-        if ( !Files.exists( parent ) )
-        {
-            Files.createDirectories( parent );
-        }
+    if (Files.notExists(toPath(file))) {
+      file.markAsNotExists();
     }
+    try {
+      file.set(getInputStream(file));
+    }
+    catch (NoSuchFileException e) {
+      file.markAsNotExists();
+    }
+    catch (IOException e) {
+      file.setException(e);
+    }
+  }
 
-    @Override
-    public void delete( RubygemsFile file )
-    {
-        try
-        {
-            Files.deleteIfExists( toPath( file ) );
-        }
-        catch (IOException e)
-        {
-            file.setException( e );
-        }
-    }
+  @Override
+  public void retrieve(DependencyFile file) {
+    retrieve((RubygemsFile) file);
+  }
 
-    @Override
-    public void memory( InputStream data, RubygemsFile file )
-    {
-        file.set( data );
-    }
+  @Override
+  public void retrieve(SpecsIndexZippedFile file) {
+    retrieve((RubygemsFile) file);
+  }
 
-    @Override
-    public void memory( String data, RubygemsFile file )
-    {
-        memory( new ByteArrayInputStream( data.getBytes() ), file );
+  @Override
+  public void retrieve(SpecsIndexFile file) {
+    SpecsIndexZippedFile zipped = file.zippedSpecsIndexFile();
+    retrieve(zipped);
+    if (zipped.notExists()) {
+      file.markAsNotExists();
     }
+    if (zipped.hasException()) {
+      file.setException(zipped.getException());
+    }
+    try {
+      file.set(new GZIPInputStream(getInputStream(zipped)));
+    }
+    catch (IOException e) {
+      file.setException(e);
+    }
+  }
 
-    @Override
-    public String[] listDirectory( Directory dir )
-    {
-        return toPath( dir ).toFile().list();
+  @Override
+  public void create(InputStream is, RubygemsFile file) {
+    Path target = toPath(file);
+    Path mutex = target.resolveSibling(target.getFileName() + ".lock");
+    Path source = target.resolveSibling("tmp." + Math.abs(random.nextLong()));
+    try {
+      createDirectory(source.getParent());
+      Files.createFile(mutex);
+      Files.copy(is, source);
+      Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+      file.set(Files.newInputStream(target));
     }
-    
+    catch (FileAlreadyExistsException e) {
+      mutex = null;
+      file.markAsTempUnavailable();
+    }
+    catch (IOException e) {
+      file.setException(e);
+    }
+    finally {
+      if (mutex != null) {
+        mutex.toFile().delete();
+      }
+      source.toFile().delete();
+    }
+  }
+
+  @Override
+  public void update(InputStream is, RubygemsFile file) {
+    Path target = toPath(file);
+    Path source = target.resolveSibling("tmp." + Math.abs(random.nextLong()));
+    try {
+      createDirectory(source.getParent());
+      Files.copy(is, source);
+      Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+      file.set(Files.newInputStream(target));
+    }
+    catch (IOException e) {
+      file.setException(e);
+    }
+    finally {
+      source.toFile().delete();
+    }
+  }
+
+  /**
+   * create a directory if it is not existing
+   */
+  protected void createDirectory(Path parent) throws IOException {
+    if (!Files.exists(parent)) {
+      Files.createDirectories(parent);
+    }
+  }
+
+  @Override
+  public void delete(RubygemsFile file) {
+    try {
+      Files.deleteIfExists(toPath(file));
+    }
+    catch (IOException e) {
+      file.setException(e);
+    }
+  }
+
+  @Override
+  public void memory(InputStream data, RubygemsFile file) {
+    file.set(data);
+  }
+
+  @Override
+  public void memory(String data, RubygemsFile file) {
+    memory(new ByteArrayInputStream(data.getBytes()), file);
+  }
+
+  @Override
+  public String[] listDirectory(Directory dir) {
+    return toPath(dir).toFile().list();
+  }
+
 }

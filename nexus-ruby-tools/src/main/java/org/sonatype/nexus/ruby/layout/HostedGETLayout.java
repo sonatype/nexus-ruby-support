@@ -18,148 +18,122 @@ import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
  * this hosted layout for HTTP GET will ensure that the zipped version of the specs.4.8
  * do exists before retrieving the unzipped ones. it also creates missing gemspec and dependency
  * files if missing.
- * 
- * @author christian
  *
+ * @author christian
  */
-public class HostedGETLayout extends GETLayout
+public class HostedGETLayout
+    extends GETLayout
 {
-    public HostedGETLayout( RubygemsGateway gateway, Storage store )
-    {
-        super( gateway, store );
-    }
-    
-    @Override
-    protected void retrieveZipped( SpecsIndexZippedFile specs )
-    { 
-        super.retrieveZipped( specs );
-        if ( specs.notExists() )
-        {    
-            try( InputStream content = gateway.emptyIndex() )
-            {        
-                // just update in case so no need to deal with concurrency
-                // since once the file is there no update happen again
-                store.update( IOUtil.toGzipped( content ), specs );
-                store.retrieve( specs );
-            }
-            catch (IOException e)
-            {
-                specs.setException( e );
-            }
-        }
-    }
+  public HostedGETLayout(RubygemsGateway gateway, Storage store) {
+    super(gateway, store);
+  }
 
-    @Override
-    public GemspecFile gemspecFile( String name, String version, String platform )
-    {
-        GemspecFile gemspec = super.gemspecFile( name, version, platform );
-        
-        if ( gemspec.notExists() )
-        {
-            createGemspec( gemspec );
-        }
-    
-        return gemspec;
+  @Override
+  protected void retrieveZipped(SpecsIndexZippedFile specs) {
+    super.retrieveZipped(specs);
+    if (specs.notExists()) {
+      try (InputStream content = gateway.emptyIndex()) {
+        // just update in case so no need to deal with concurrency
+        // since once the file is there no update happen again
+        store.update(IOUtil.toGzipped(content), specs);
+        store.retrieve(specs);
+      }
+      catch (IOException e) {
+        specs.setException(e);
+      }
+    }
+  }
+
+  @Override
+  public GemspecFile gemspecFile(String name, String version, String platform) {
+    GemspecFile gemspec = super.gemspecFile(name, version, platform);
+
+    if (gemspec.notExists()) {
+      createGemspec(gemspec);
     }
 
-    @Override
-    public GemspecFile gemspecFile( String filename )
-    {
-        GemspecFile gemspec = super.gemspecFile( filename );
+    return gemspec;
+  }
 
-        if ( gemspec.notExists() )
-        {
-            createGemspec( gemspec );
-        }
-    
-        return gemspec;
+  @Override
+  public GemspecFile gemspecFile(String filename) {
+    GemspecFile gemspec = super.gemspecFile(filename);
+
+    if (gemspec.notExists()) {
+      createGemspec(gemspec);
     }
 
-    /**
-     * create the gemspec from the stored gem file. if the gem file does not 
-     * exists, the <code>GemspecFile</code> gets makred as NOT_EXISTS. 
-     * @param gemspec
-     */
-    protected void createGemspec( GemspecFile gemspec )
-    {
-        GemFile gem = gemspec.gem();
-        if( gem.notExists() )
-        {
-            gemspec.markAsNotExists();
-        }
-        else
-        {
-            try
-            {
-                Object spec = gateway.spec( store.getInputStream( gemspec.gem() ) );
-        
-                // just update in case so no need to deal with concurrency
-                // since once the file is there no update happen again
-                store.update( gateway.createGemspecRz( spec ), gemspec );
+    return gemspec;
+  }
 
-                store.retrieve( gemspec );
-            }
-            catch( IOException e )
-            {
-                gemspec.setException( e );
-            }
-        }
+  /**
+   * create the gemspec from the stored gem file. if the gem file does not
+   * exists, the <code>GemspecFile</code> gets makred as NOT_EXISTS.
+   */
+  protected void createGemspec(GemspecFile gemspec) {
+    GemFile gem = gemspec.gem();
+    if (gem.notExists()) {
+      gemspec.markAsNotExists();
+    }
+    else {
+      try {
+        Object spec = gateway.spec(store.getInputStream(gemspec.gem()));
+
+        // just update in case so no need to deal with concurrency
+        // since once the file is there no update happen again
+        store.update(gateway.createGemspecRz(spec), gemspec);
+
+        store.retrieve(gemspec);
+      }
+      catch (IOException e) {
+        gemspec.setException(e);
+      }
+    }
+  }
+
+  public DependencyFile dependencyFile(String name) {
+    DependencyFile file = super.dependencyFile(name);
+    store.retrieve(file);
+    if (file.notExists()) {
+      createDependency(file);
     }
 
-    public DependencyFile dependencyFile( String name )
-    {        
-        DependencyFile file = super.dependencyFile( name );
-        store.retrieve( file );
-        if ( file.notExists() )
-        {
-            createDependency( file );
-        }
-        
-        return file;
-    }
+    return file;
+  }
 
-    /**
-     * create the <code>DependencyFile</code> for the given gem name
-     * 
-     * @param file
-     */
-    protected void createDependency( DependencyFile file )
-    {
-        try
-        {
-            SpecsIndexFile specs = specsIndexFile( SpecsIndexType.RELEASE );
-            store.retrieve( specs );
-            List<String> versions;
-            try ( InputStream is = store.getInputStream( specs ) )
-            {
-                versions = gateway.listAllVersions( file.name(), is, store.getModified( specs ), false );
-            }
-            specs = specsIndexFile( SpecsIndexType.PRERELEASE );
-            store.retrieve( specs );
-            try ( InputStream is = store.getInputStream( specs ) )
-            {
-                versions.addAll( gateway.listAllVersions( file.name(), is, store.getModified( specs ), true ) );
-            }
-            
-            List<InputStream> gemspecs = new LinkedList<InputStream>();
-            for( String version: versions )
-            {                                                        
-                // ruby platform is not part of the gemname 
-                GemspecFile gemspec = gemspecFile( file.name() + "-" + version.replaceFirst( "-ruby$", "" ) );
-                gemspecs.add( store.getInputStream( gemspec ) );
-            }
-            
-            try ( InputStream is = gateway.createDependencies( gemspecs ) )
-            {
-                // just update in case so no need to deal with concurrency
-                // since once the file is there no update happen again
-                store.update( is, file );
-            }
-            store.retrieve( file );
-        }
-        catch( IOException e )
-        {
-            file.setException( e );
-        }
+  /**
+   * create the <code>DependencyFile</code> for the given gem name
+   */
+  protected void createDependency(DependencyFile file) {
+    try {
+      SpecsIndexFile specs = specsIndexFile(SpecsIndexType.RELEASE);
+      store.retrieve(specs);
+      List<String> versions;
+      try (InputStream is = store.getInputStream(specs)) {
+        versions = gateway.listAllVersions(file.name(), is, store.getModified(specs), false);
+      }
+      specs = specsIndexFile(SpecsIndexType.PRERELEASE);
+      store.retrieve(specs);
+      try (InputStream is = store.getInputStream(specs)) {
+        versions.addAll(gateway.listAllVersions(file.name(), is, store.getModified(specs), true));
+      }
+
+      List<InputStream> gemspecs = new LinkedList<InputStream>();
+      for (String version : versions) {
+        // ruby platform is not part of the gemname
+        GemspecFile gemspec = gemspecFile(file.name() + "-" + version.replaceFirst("-ruby$", ""));
+        gemspecs.add(store.getInputStream(gemspec));
+      }
+
+      try (InputStream is = gateway.createDependencies(gemspecs)) {
+        // just update in case so no need to deal with concurrency
+        // since once the file is there no update happen again
+        store.update(is, file);
+      }
+      store.retrieve(file);
     }
+    catch (IOException e) {
+      file.setException(e);
+    }
+  }
 }

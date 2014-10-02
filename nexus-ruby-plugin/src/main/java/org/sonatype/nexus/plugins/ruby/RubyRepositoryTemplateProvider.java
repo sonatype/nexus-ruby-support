@@ -13,32 +13,24 @@ import org.sonatype.nexus.templates.TemplateSet;
 import org.sonatype.nexus.templates.repository.AbstractRepositoryTemplateProvider;
 
 @Singleton
-@Named( RubyRepositoryTemplateProvider.PROVIDER_ID )
+@Named(RubyRepositoryTemplateProvider.PROVIDER_ID)
 public class RubyRepositoryTemplateProvider
     extends AbstractRepositoryTemplateProvider
 {
-    public static final String PROVIDER_ID = "ruby-repository";
+  public static final String PROVIDER_ID = "ruby-repository";
 
-    public TemplateSet getTemplates()
-    {
-        TemplateSet templates = new TemplateSet( null );
+  public TemplateSet getTemplates() {
+    TemplateSet templates = new TemplateSet(null);
 
-        try
-        {
-
-            templates.add( new DefaultHostedRubyRepositoryTemplate( this, DefaultHostedRubyRepository.ID,
-                    "Rubygems (hosted)" ) );
-            templates.add( new DefaultProxyRubyRepositoryTemplate( this, DefaultProxyRubyRepository.ID,
-                    "Rubygems (proxy)" ) );
-            templates.add( new DefaultRubyGroupRepositoryTemplate( this, DefaultRubyGroupRepository.ID,
-                    "Rubygems (group)" ) );
-
-        }
-        catch ( Exception e )
-        {
-            // will not happen
-        }
-
-        return templates;
+    try {
+      templates.add(new DefaultHostedRubyRepositoryTemplate(this, DefaultHostedRubyRepository.ID, "Rubygems (hosted)"));
+      templates.add(new DefaultProxyRubyRepositoryTemplate(this, DefaultProxyRubyRepository.ID, "Rubygems (proxy)"));
+      templates.add(new DefaultRubyGroupRepositoryTemplate(this, DefaultRubyGroupRepository.ID, "Rubygems (group)"));
     }
+    catch (Exception e) {
+      // will not happen
+    }
+
+    return templates;
+  }
 }

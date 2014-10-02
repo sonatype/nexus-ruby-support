@@ -6,6 +6,7 @@ import org.sonatype.nexus.ruby.DefaultRubygemsGateway;
 
 // just make a "component" out of the DefaultRubygemsGateway
 @Named
-public class NexusRubygemsGateway extends DefaultRubygemsGateway
+public class NexusRubygemsGateway
+    extends DefaultRubygemsGateway
 {
 }
