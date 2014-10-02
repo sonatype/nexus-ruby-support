@@ -112,30 +112,34 @@ public class DefaultProxyRubyRepository
   @Override
   protected boolean isOld(StorageItem item) {
     if (item.getName().contains("specs.4.8")) {
-      if (item.getName().endsWith(".gz")) {
-        if (getLog().isDebugEnabled()) {
-          getLog().debug(item + " needs remote update: " + isOld(getMetadataMaxAge(), item));
-        }
-        return isOld(getMetadataMaxAge(), item);
-      }
-      else {
-        // whenever there is retrieve call to a unzipped file it will be forwarded to call for the zipped file
-        return false;
-      }
+      // whenever there is retrieve call to the ungzipped file it will be forwarded to call for the gzipped file
+      return false;
     }
-    else if (item.getName().endsWith(".json.rz") && isOld(getMetadataMaxAge(), item)) {
-      // avoid sending a wrong HEAD request which does not trigger the expiration
-      try {
-        super.deleteItem(false, item.getResourceStoreRequest());
+    if (item.getName().endsWith(".gz")) {
+      if (getLog().isDebugEnabled()) {
+        getLog().debug(item + " needs remote update ? " + isOld(getMetadataMaxAge(), item));
       }
-      catch (@SuppressWarnings("deprecation")
-      org.sonatype.nexus.proxy.StorageException | UnsupportedStorageOperationException
-          | IllegalOperationException | ItemNotFoundException e) {
-        getLog().error("could not delete volatile file: " + item);
+      return isOld(getMetadataMaxAge(), item);
+    }
+    if (item.getName().endsWith(".json.rz")) {
+      if (getLog().isDebugEnabled()) {
+        getLog().debug(item + " needs remote update ? " + isOld(getMetadataMaxAge(), item));
       }
-      return true;
+      if (isOld(getMetadataMaxAge(), item)) {
+        // avoid sending a wrong HEAD request which does not trigger the expiration
+        try {
+          super.deleteItem(false, item.getResourceStoreRequest());
+        }
+        catch (@SuppressWarnings("deprecation") org.sonatype.nexus.proxy.StorageException
+            | UnsupportedStorageOperationException | IllegalOperationException | ItemNotFoundException e) {
+          getLog().error("could not delete volatile file: " + item);
+        }
+        return true;
+      }
+      return false;
     }
     else {
+      // all other files use artifact max age
       return isOld(getExternalConfiguration(false).getArtifactMaxAge(), item);
     }
   }
