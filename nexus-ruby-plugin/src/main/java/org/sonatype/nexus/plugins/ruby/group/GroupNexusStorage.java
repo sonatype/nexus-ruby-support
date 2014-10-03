@@ -162,7 +162,7 @@ public class GroupNexusStorage
       IOUtil.copy(content, out);
       // need to close gzip stream here
       out.close();
-      ContentLocator cl = newPreparedContentLocator(new ByteArrayInputStream(gzipped.toByteArray()),
+      ContentLocator cl = new PreparedContentLocator(new ByteArrayInputStream(gzipped.toByteArray()),
           "application/x-gzip",
           gzipped.size());
       DefaultStorageFileItem item =
@@ -188,7 +188,7 @@ public class GroupNexusStorage
         streams.add(((StorageFileItem) item).getInputStream());
       }
       content = gateway.mergeDependencies(streams, true);
-      ContentLocator cl = newPreparedContentLocator(content,
+      ContentLocator cl = new PreparedContentLocator(content,
           file.type().mime(),
           PreparedContentLocator.UNKNOWN_LENGTH);
 
