@@ -29,7 +29,6 @@ import org.sonatype.nexus.ruby.layout.HostedGETLayout;
 import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.Storage;
 
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -47,7 +46,6 @@ import static org.hamcrest.Matchers.nullValue;
 
 @RunWith(Parameterized.class)
 public class HostedDELETELayoutTest
-    extends TestCase
 {
   private static File proxyBase() throws IOException {
     File base = new File("target/proxy");

@@ -12,7 +12,6 @@
  */
 package org.sonatype.nexus.ruby;
 
-import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +20,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 public class MetadataSnapshotBuilderTest
-    extends TestCase
 {
   private MetadataSnapshotBuilder builder;
 

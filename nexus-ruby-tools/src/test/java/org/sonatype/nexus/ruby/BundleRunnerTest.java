@@ -12,7 +12,6 @@
  */
 package org.sonatype.nexus.ruby;
 
-import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,7 +24,6 @@ import static org.sonatype.nexus.ruby.TestUtils.lastLine;
 import static org.sonatype.nexus.ruby.TestUtils.numberOfLines;
 
 public class BundleRunnerTest
-    extends TestCase
 {
   private BundleRunner runner;
 

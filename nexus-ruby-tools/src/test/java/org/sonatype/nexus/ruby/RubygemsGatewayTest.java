@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
 import org.apache.commons.io.IOUtils;
 import org.jruby.embed.PathType;
 import org.jruby.embed.ScriptingContainer;
@@ -28,8 +27,12 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+
 public class RubygemsGatewayTest
-    extends TestCase
 {
   private ScriptingContainer scriptingContainer;
 
@@ -65,7 +68,7 @@ public class RubygemsGatewayTest
         "check_gemspec_rz",
         new Object[]{gem, gemspecPath},
         Boolean.class);
-    assertTrue("spec from stream equal spec from gem", equalSpecs);
+    assertThat("spec from stream equal spec from gem", equalSpecs, equalTo(true));
   }
 
   @Test
@@ -75,7 +78,8 @@ public class RubygemsGatewayTest
     Object spec = gateway.spec(new FileInputStream(gem));
     InputStream is = gateway.createGemspecRz(spec);
     is.close();
-    assertTrue("did create without inconsistent gem-name exception", true);
+    // TODO: What do we assert here???
+    assertThat("did create without inconsistent gem-name exception", true, equalTo(true));
   }
 
   @Test
@@ -86,14 +90,14 @@ public class RubygemsGatewayTest
         new FileInputStream(some),
         0,
         false);
-    assertEquals("versions size", 0, versions.size());
+    assertThat("versions size", versions, hasSize(0));
 
     versions = gateway.listAllVersions("activerecord",
         new FileInputStream(some),
         0,
         false);
-    assertEquals("versions size", 1, versions.size());
-    assertEquals("version", "3.2.11-ruby", versions.get(0));
+    assertThat("versions size", versions, hasSize(1));
+    assertThat("version", versions.get(0), equalTo("3.2.11-ruby"));
   }
 
   @Test
@@ -101,8 +105,8 @@ public class RubygemsGatewayTest
     File some = new File("src/test/resources/rb-fsevent-0.9.4.gemspec.rz");
 
     String pom = gateway.pom(new FileInputStream(some), false);
-    assertEquals("Very simple &amp; usable FSEvents API",
-        pom.replace("\n", "").replaceAll("<developers>.*$", "").replaceAll("^.*<name>|</name>.*$", ""));
+    assertThat(pom.replace("\n", "").replaceAll("<developers>.*$", "").replaceAll("^.*<name>|</name>.*$", ""),
+        equalTo("Very simple &amp; usable FSEvents API"));
   }
 
   @Test
@@ -115,7 +119,7 @@ public class RubygemsGatewayTest
         "specs_size",
         empty.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 0, size);
+    assertThat("specsfile size", size, equalTo(0));
   }
 
   @Test
@@ -128,7 +132,7 @@ public class RubygemsGatewayTest
         "specs_size",
         empty.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 0, size);
+    assertThat("specsfile size", size, equalTo(0));
   }
 
   @Test
@@ -155,7 +159,7 @@ public class RubygemsGatewayTest
         "specs_size",
         target.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 2, size);
+    assertThat("specsfile size", size, equalTo(2));
 
     // add a gem with newer version
     gem = new File("src/test/resources/gems/n/nexus-0.2.0.gem");
@@ -170,17 +174,17 @@ public class RubygemsGatewayTest
         "specs_size",
         target.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 2, size);
+    assertThat("specsfile size", size, equalTo(2));
 
     // add both the gems with older version
     is = gateway.addSpec(spec1,
         new FileInputStream(target),
         SpecsIndexType.LATEST);
-    assertNull(is);
+    assertThat("no change", is, nullValue());
     is = gateway.addSpec(specJ,
         new FileInputStream(target),
         SpecsIndexType.LATEST);
-    assertNull(is);
+    assertThat("no change", is, nullValue());
   }
 
   @Test
@@ -215,7 +219,7 @@ public class RubygemsGatewayTest
         "specs_size",
         target.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 2, size);
+    assertThat("specsfile size", size, equalTo(2));
 
     is = gateway.deleteSpec(spec, new FileInputStream(target),
         new FileInputStream(targetRef));
@@ -226,7 +230,7 @@ public class RubygemsGatewayTest
         "specs_size",
         target.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 1, size);
+    assertThat("specsfile size", size, equalTo(1));
   }
 
   @Test
@@ -246,7 +250,7 @@ public class RubygemsGatewayTest
         "specs_size",
         target.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 1, size);
+    assertThat("specsfile size", size, equalTo(1));
 
     // delete gem
     is = gateway.deleteSpec(spec, new FileInputStream(target));
@@ -258,12 +262,12 @@ public class RubygemsGatewayTest
         target.getAbsolutePath(),
         Integer.class);
 
-    assertEquals("specsfile size", 0, size);
+    assertThat("specsfile size", size, equalTo(0));
 
     // try adding released gem as prereleased
     is = gateway.addSpec(spec, new FileInputStream(empty), SpecsIndexType.PRERELEASE);
 
-    assertNull("no change", is);
+    assertThat("no change", is, nullValue());
 
     // adding to latest
     is = gateway.addSpec(spec, new FileInputStream(empty), SpecsIndexType.LATEST);
@@ -274,7 +278,7 @@ public class RubygemsGatewayTest
         "specs_size",
         target.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 1, size);
+    assertThat("specsfile size", size, equalTo(1));
   }
 
   @Test
@@ -294,7 +298,7 @@ public class RubygemsGatewayTest
         "specs_size",
         target.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 1, size);
+    assertThat("specsfile size", size, equalTo(1));
 
     // delete gem
     is = gateway.deleteSpec(spec, new FileInputStream(target));
@@ -306,12 +310,12 @@ public class RubygemsGatewayTest
         target.getAbsolutePath(),
         Integer.class);
 
-    assertEquals("specsfile size", 0, size);
+    assertThat("specsfile size", size, equalTo(0));
 
     // try adding prereleased gem as released
     is = gateway.addSpec(spec, new FileInputStream(empty), SpecsIndexType.RELEASE);
 
-    assertNull("no change", is);
+    assertThat("no change", is, nullValue());
 
     // adding to latest
     is = gateway.addSpec(spec, new FileInputStream(empty), SpecsIndexType.LATEST);
@@ -322,7 +326,7 @@ public class RubygemsGatewayTest
         "specs_size",
         target.getAbsolutePath(),
         Integer.class);
-    assertEquals("specsfile size", 1, size);
+    assertThat("specsfile size", size, equalTo(1));
   }
 
   private void dumpStream(final InputStream is, File target)

@@ -16,7 +16,6 @@ package org.sonatype.nexus.ruby;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.NoopDefaultLayout;
 
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,7 +23,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 public class NoopDefaultLayoutTest
-    extends TestCase
 {
   private final DefaultRubygemsFileSystem bootstrap = new DefaultRubygemsFileSystem(
       new NoopDefaultLayout(null, null), null, null);
