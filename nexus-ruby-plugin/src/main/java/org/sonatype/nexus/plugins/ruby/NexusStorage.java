@@ -16,7 +16,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
@@ -104,7 +103,7 @@ public class NexusStorage
       in = new GZIPInputStream(item.getInputStream());
       IOUtil.copy(in, out);
 
-      return newPreparedContentLocator(new ByteArrayInputStream(out.toByteArray()),
+      return new PreparedContentLocator(new ByteArrayInputStream(out.toByteArray()),
           "application/x-marshal-ruby",
           out.toByteArray().length);
     }
@@ -135,7 +134,7 @@ public class NexusStorage
   @Override
   public void update(InputStream is, RubygemsFile file) {
     ResourceStoreRequest request = new ResourceStoreRequest(file.storagePath());
-    ContentLocator contentLocator = newPreparedContentLocator(is, file.type().mime(), ContentLocator.UNKNOWN_LENGTH);
+    ContentLocator contentLocator = new PreparedContentLocator(is, file.type().mime(), ContentLocator.UNKNOWN_LENGTH);
     DefaultStorageFileItem fileItem = new DefaultStorageFileItem(repository, request,
         true, true, contentLocator);
 
@@ -146,23 +145,6 @@ public class NexusStorage
     }
     catch (IOException | UnsupportedStorageOperationException | IllegalOperationException e) {
       file.setException(e);
-    }
-  }
-
-  protected ContentLocator newPreparedContentLocator(InputStream is, String mime, long length) {
-    try {
-      return new PreparedContentLocator(is, mime, length);
-    }
-    catch (NoSuchMethodError e) {
-      try {
-        Constructor<PreparedContentLocator> c =
-            PreparedContentLocator.class.getConstructor(new Class[]{InputStream.class, String.class});
-        return c.newInstance(is, mime);
-      }
-      catch (Exception ee) {
-        ee.printStackTrace();
-        throw e;
-      }
     }
   }
 
@@ -192,7 +174,7 @@ public class NexusStorage
   }
 
   private void memory(InputStream data, RubygemsFile file, long length) {
-    ContentLocator cl = newPreparedContentLocator(data, file.type().mime(), length);
+    ContentLocator cl = new PreparedContentLocator(data, file.type().mime(), length);
     file.set(new DefaultStorageFileItem(repository, new ResourceStoreRequest(file.storagePath()), true, false, cl));
   }
 
