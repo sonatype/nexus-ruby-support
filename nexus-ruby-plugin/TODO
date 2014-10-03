@@ -1,5 +1,0 @@
-* delete command for nexus command
-* url option for nexus gem command
-* mirror remote server for proxy
-* api/v1 of rubygems to pass through on proxy
-* api/v1 of rubygems to pass through on group and pass on to first proxy
