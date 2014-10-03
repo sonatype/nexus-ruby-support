@@ -23,6 +23,8 @@ import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.layout.ProxyStorage;
 
+import com.google.common.base.Throwables;
+
 public class ProxyNexusStorage
     extends NexusStorage
     implements ProxyStorage
@@ -36,7 +38,6 @@ public class ProxyNexusStorage
 
   @Override
   public void retrieve(BundlerApiFile file) {
-    repository.getLog().error("=------------------> " + file);
     try {
       file.set(repository.retrieveDirectItem(new ResourceStoreRequest(file.storagePath(), false, true)));
     }
@@ -47,15 +48,12 @@ public class ProxyNexusStorage
 
   @Override
   public boolean isExpired(DependencyFile file) {
-    repository.getLog().error("=------------------> " + file);
     try {
       ResourceStoreRequest request = new ResourceStoreRequest(file.storagePath(), true, false);
       if (repository.getLocalStorage().containsItem(repository, request)) {
         StorageItem item = repository.getLocalStorage().retrieveItem(repository, request);
         long maxAge = repository.getMetadataMaxAge();
         if (maxAge > -1) {
-          repository.getLog().error(file + "" +
-              (item.isExpired() || ((System.currentTimeMillis() - item.getRemoteChecked()) > (maxAge * 60L * 1000L))));
           return item.isExpired() || ((System.currentTimeMillis() - item.getRemoteChecked()) > (maxAge * 60L * 1000L));
         }
         else {
@@ -63,8 +61,12 @@ public class ProxyNexusStorage
         }
       }
     }
-    catch (IOException | ItemNotFoundException e) {
-      repository.getLog().error("=------------------> " + file + " " + e.getMessage());
+    catch (ItemNotFoundException e) {
+      // ignore
+    }
+    catch (IOException e) {
+      // fail here
+      throw Throwables.propagate(e);
     }
     return true;
   }

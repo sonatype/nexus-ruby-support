@@ -12,6 +12,7 @@
  */
 package org.sonatype.nexus.plugins.ruby.proxy;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -30,6 +31,7 @@ import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
@@ -48,7 +50,6 @@ import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.ruby.layout.ProxiedRubygemsFileSystem;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.slf4j.Logger;
 
 @Named(DefaultProxyRubyRepository.ID)
 public class DefaultProxyRubyRepository
@@ -116,23 +117,23 @@ public class DefaultProxyRubyRepository
       return false;
     }
     if (item.getName().endsWith(".gz")) {
-      if (getLog().isDebugEnabled()) {
-        getLog().debug(item + " needs remote update ? " + isOld(getMetadataMaxAge(), item));
+      if (log.isDebugEnabled()) {
+        log.debug("{} needs remote update {} ", item, isOld(getMetadataMaxAge(), item));
       }
       return isOld(getMetadataMaxAge(), item);
     }
     if (item.getName().endsWith(".json.rz")) {
-      if (getLog().isDebugEnabled()) {
-        getLog().debug(item + " needs remote update ? " + isOld(getMetadataMaxAge(), item));
+      if (log.isDebugEnabled()) {
+        log.debug("{} needs remote update {}", item, isOld(getMetadataMaxAge(), item));
       }
       if (isOld(getMetadataMaxAge(), item)) {
         // avoid sending a wrong HEAD request which does not trigger the expiration
         try {
           super.deleteItem(false, item.getResourceStoreRequest());
         }
-        catch (@SuppressWarnings("deprecation") org.sonatype.nexus.proxy.StorageException
+        catch (@SuppressWarnings("deprecation") StorageException
             | UnsupportedStorageOperationException | IllegalOperationException | ItemNotFoundException e) {
-          getLog().error("could not delete volatile file: " + item);
+          log.error("could not delete volatile file: " + item);
         }
         return true;
       }
@@ -206,7 +207,7 @@ public class DefaultProxyRubyRepository
   @SuppressWarnings("deprecation")
   @Override
   public StorageItem retrieveDirectItem(ResourceStoreRequest request)
-      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+      throws IllegalOperationException, ItemNotFoundException, IOException
   {
     // bypass access control
     return super.retrieveItem(false, request);
@@ -215,7 +216,7 @@ public class DefaultProxyRubyRepository
   @SuppressWarnings("deprecation")
   @Override
   public StorageItem retrieveItem(ResourceStoreRequest request)
-      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException, AccessDeniedException
+      throws IllegalOperationException, ItemNotFoundException, StorageException, AccessDeniedException
   {
     // TODO do not use this since it bypasses access control
     if (request.getRequestPath().startsWith("/.nexus")) {
@@ -240,7 +241,7 @@ public class DefaultProxyRubyRepository
 
   @SuppressWarnings("deprecation")
   @Override
-  public void syncMetadata() throws ItemNotFoundException, RemoteAccessException, AccessDeniedException, org.sonatype.nexus.proxy.StorageException, IllegalOperationException, NoSuchResourceStoreException
+  public void syncMetadata() throws IllegalOperationException, ItemNotFoundException, org.sonatype.nexus.proxy.StorageException
   {
     for (SpecsIndexType type : SpecsIndexType.values()) {
       ResourceStoreRequest request = new ResourceStoreRequest(type.filepathGzipped());
@@ -254,24 +255,9 @@ public class DefaultProxyRubyRepository
 
   private String getBaseDirectory() throws ItemNotFoundException, LocalStorageException {
     String basedir = this.getLocalUrl().replace("file:", "");
-    if (getLog().isDebugEnabled()) {
-      getLog().debug("recreate rubygems metadata in " + basedir);
+    if (log.isDebugEnabled()) {
+      log.debug("recreate rubygems metadata in {}", basedir);
     }
     return basedir;
-  }
-
-  @Override
-  public Logger getLog() {
-    try {
-      return log;
-    }
-    catch (java.lang.NoSuchFieldError e) {
-      try {
-        return (Logger) getClass().getSuperclass().getSuperclass().getDeclaredMethod("getLogger").invoke(this);
-      }
-      catch (Exception ee) {
-        throw new RuntimeException("should work", ee);
-      }
-    }
   }
 }
