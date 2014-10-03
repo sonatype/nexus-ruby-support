@@ -12,6 +12,7 @@
  */
 package org.sonatype.nexus.plugins.ruby.group;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import javax.inject.Inject;
@@ -30,6 +31,7 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractGroupRepository;
@@ -43,7 +45,6 @@ import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.layout.ProxiedRubygemsFileSystem;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.slf4j.Logger;
 
 import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
 
@@ -116,7 +117,7 @@ public class DefaultRubyGroupRepository
   @SuppressWarnings("deprecation")
   @Override
   public StorageItem retrieveItem(boolean fromTask, ResourceStoreRequest request)
-      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+      throws IllegalOperationException, ItemNotFoundException, StorageException
   {
     if (fromTask && request.getRequestPath().startsWith("/.nexus")) {
       return super.retrieveItem(true, request);
@@ -126,7 +127,7 @@ public class DefaultRubyGroupRepository
 
   @SuppressWarnings("deprecation")
   public StorageItem retrieveDirectItem(ResourceStoreRequest request)
-      throws org.sonatype.nexus.proxy.StorageException, IllegalOperationException, ItemNotFoundException
+      throws IllegalOperationException, ItemNotFoundException, IOException
   {
     for (Repository repo : getMemberRepositories()) {
       try {
@@ -140,20 +141,5 @@ public class DefaultRubyGroupRepository
         "Could not find content for path %s in local storage of repository %s",
         request.getRequestPath(),
         RepositoryStringUtils.getHumanizedNameString(this)));
-  }
-
-  @Override
-  public Logger getLog() {
-    try {
-      return log;
-    }
-    catch (java.lang.NoSuchFieldError e) {
-      try {
-        return (Logger) getClass().getSuperclass().getSuperclass().getDeclaredMethod("getLogger").invoke(this);
-      }
-      catch (Exception ee) {
-        throw new RuntimeException("should work", ee);
-      }
-    }
   }
 }

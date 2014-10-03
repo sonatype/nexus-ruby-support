@@ -12,6 +12,7 @@
  */
 package org.sonatype.nexus.plugins.ruby.hosted;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
@@ -33,6 +34,7 @@ import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractRepository;
@@ -45,7 +47,6 @@ import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.layout.HostedRubygemsFileSystem;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.slf4j.Logger;
 
 @Named(DefaultHostedRubyRepository.ID)
 public class DefaultHostedRubyRepository
@@ -145,7 +146,7 @@ public class DefaultHostedRubyRepository
   @SuppressWarnings("deprecation")
   @Override
   public StorageItem retrieveDirectItem(ResourceStoreRequest request)
-      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+      throws IllegalOperationException, ItemNotFoundException, IOException
   {
     // bypass access control
     return super.retrieveItem(false, request);
@@ -154,7 +155,7 @@ public class DefaultHostedRubyRepository
   @SuppressWarnings("deprecation")
   @Override
   public StorageItem retrieveItem(boolean fromTask, ResourceStoreRequest request)
-      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+      throws IllegalOperationException, ItemNotFoundException, StorageException
   {
     if (fromTask && request.getRequestPath().startsWith("/.nexus")) {
       return super.retrieveItem(true, request);
@@ -165,8 +166,8 @@ public class DefaultHostedRubyRepository
   @Override
   public void recreateMetadata() throws LocalStorageException, ItemNotFoundException {
     String directory = getBaseDirectory();
-    if (getLog().isDebugEnabled()) {
-      getLog().debug("recreate rubygems metadata in " + directory);
+    if (log.isDebugEnabled()) {
+      log.debug("recreate rubygems metadata in {}", directory);
     }
     gateway.recreateRubygemsIndex(directory);
     gateway.purgeBrokenDepencencyFiles(directory);
@@ -175,20 +176,5 @@ public class DefaultHostedRubyRepository
   protected String getBaseDirectory() throws ItemNotFoundException, LocalStorageException {
     // TODO use getApplicationConfiguration().getWorkingDirectory()
     return this.getLocalUrl().replace("file:", "");
-  }
-
-  @Override
-  public Logger getLog() {
-    try {
-      return log;
-    }
-    catch (java.lang.NoSuchFieldError e) {
-      try {
-        return (Logger) getClass().getSuperclass().getDeclaredMethod("getLogger").invoke(this);
-      }
-      catch (Exception ee) {
-        throw new RuntimeException("should work", ee);
-      }
-    }
   }
 }
