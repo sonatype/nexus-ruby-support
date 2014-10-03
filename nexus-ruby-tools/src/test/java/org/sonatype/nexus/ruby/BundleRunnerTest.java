@@ -12,6 +12,8 @@
  */
 package org.sonatype.nexus.ruby;
 
+import org.sonatype.sisu.litmus.testsupport.TestSupport;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,6 +26,7 @@ import static org.sonatype.nexus.ruby.TestUtils.lastLine;
 import static org.sonatype.nexus.ruby.TestUtils.numberOfLines;
 
 public class BundleRunnerTest
+  extends TestSupport
 {
   private BundleRunner runner;
 

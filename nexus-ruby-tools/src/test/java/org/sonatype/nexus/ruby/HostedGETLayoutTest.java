@@ -12,7 +12,6 @@
  */
 package org.sonatype.nexus.ruby;
 
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +29,7 @@ import org.sonatype.nexus.ruby.layout.CachingProxyStorage;
 import org.sonatype.nexus.ruby.layout.HostedGETLayout;
 import org.sonatype.nexus.ruby.layout.SimpleStorage;
 import org.sonatype.nexus.ruby.layout.Storage;
+import org.sonatype.sisu.litmus.testsupport.TestSupport;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -47,6 +47,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 @RunWith(Parameterized.class)
 public class HostedGETLayoutTest
+    extends TestSupport
 {
   private static File proxyBase() throws IOException {
     File base = new File("target/proxy");

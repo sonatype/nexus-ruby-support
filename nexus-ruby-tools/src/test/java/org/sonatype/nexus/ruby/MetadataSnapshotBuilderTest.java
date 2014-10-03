@@ -12,6 +12,8 @@
  */
 package org.sonatype.nexus.ruby;
 
+import org.sonatype.sisu.litmus.testsupport.TestSupport;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 public class MetadataSnapshotBuilderTest
+    extends TestSupport
 {
   private MetadataSnapshotBuilder builder;
 

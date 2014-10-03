@@ -20,6 +20,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sonatype.sisu.litmus.testsupport.TestSupport;
+
 import org.apache.commons.io.IOUtils;
 import org.jruby.embed.PathType;
 import org.jruby.embed.ScriptingContainer;
@@ -33,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
 public class RubygemsGatewayTest
+    extends TestSupport
 {
   private ScriptingContainer scriptingContainer;
 

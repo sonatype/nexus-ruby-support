@@ -14,6 +14,7 @@ package org.sonatype.nexus.ruby;
 
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.cuba.RubygemsFileSystem;
+import org.sonatype.sisu.litmus.testsupport.TestSupport;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +25,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 public class DefaultLayoutTest
+    extends TestSupport
 {
   static class DependenciesMock
       implements DependencyData

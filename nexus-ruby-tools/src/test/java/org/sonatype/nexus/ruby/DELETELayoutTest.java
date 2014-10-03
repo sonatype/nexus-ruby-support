@@ -12,12 +12,12 @@
  */
 package org.sonatype.nexus.ruby;
 
-
 import java.io.File;
 
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
 import org.sonatype.nexus.ruby.layout.DELETELayout;
 import org.sonatype.nexus.ruby.layout.SimpleStorage;
+import org.sonatype.sisu.litmus.testsupport.TestSupport;
 
 import org.junit.Test;
 
@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
 public class DELETELayoutTest
+    extends TestSupport
 {
   private final DefaultRubygemsFileSystem bootstrap =
       new DefaultRubygemsFileSystem(new DELETELayout(null, new SimpleStorage(new File("target"))),
