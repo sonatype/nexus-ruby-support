@@ -14,15 +14,15 @@ package org.sonatype.nexus.ruby;
 
 
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
+import org.sonatype.sisu.litmus.testsupport.TestSupport;
 
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 public class DefaultBootstrapTest
-    extends TestCase
+    extends TestSupport
 {
   private final DefaultRubygemsFileSystem bootstrap = new DefaultRubygemsFileSystem();
 
