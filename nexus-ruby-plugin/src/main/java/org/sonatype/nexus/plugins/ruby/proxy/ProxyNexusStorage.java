@@ -36,7 +36,6 @@ public class ProxyNexusStorage
 
   @Override
   public void retrieve(BundlerApiFile file) {
-    repository.getLog().error("=------------------> " + file);
     try {
       file.set(repository.retrieveDirectItem(new ResourceStoreRequest(file.storagePath(), false, true)));
     }
@@ -47,7 +46,6 @@ public class ProxyNexusStorage
 
   @Override
   public boolean isExpired(DependencyFile file) {
-    repository.getLog().error("=------------------> " + file);
     try {
       ResourceStoreRequest request = new ResourceStoreRequest(file.storagePath(), true, false);
       if (repository.getLocalStorage().containsItem(repository, request)) {
@@ -64,7 +62,7 @@ public class ProxyNexusStorage
       }
     }
     catch (IOException | ItemNotFoundException e) {
-      repository.getLog().error("=------------------> " + file + " " + e.getMessage());
+      file.setException(e);
     }
     return true;
   }
