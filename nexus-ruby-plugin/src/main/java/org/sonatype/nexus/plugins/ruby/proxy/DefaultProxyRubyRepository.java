@@ -117,15 +117,16 @@ public class DefaultProxyRubyRepository
     }
     if (item.getName().endsWith(".gz")) {
       if (getLog().isDebugEnabled()) {
-        getLog().debug(item + " needs remote update ? " + isOld(getMetadataMaxAge(), item));
+        getLog().debug(item + " needs remote update ? " + isOldForVolatile(getMetadataMaxAge(), item));
       }
-      return isOld(getMetadataMaxAge(), item);
+      return isOldForVolatile(getMetadataMaxAge(), item);
     }
     if (item.getName().endsWith(".json.rz")) {
+      getLog().info(item + " needs remote update ? " + isOldForVolatile(getMetadataMaxAge(), item));
       if (getLog().isDebugEnabled()) {
-        getLog().debug(item + " needs remote update ? " + isOld(getMetadataMaxAge(), item));
+        getLog().debug(item + " needs remote update ? " + isOldForVolatile(getMetadataMaxAge(), item));
       }
-      if (isOld(getMetadataMaxAge(), item)) {
+      if (isOldForVolatile(getMetadataMaxAge(), item)) {
         // avoid sending a wrong HEAD request which does not trigger the expiration
         try {
           super.deleteItem(false, item.getResourceStoreRequest());
@@ -140,7 +141,22 @@ public class DefaultProxyRubyRepository
     }
     else {
       // all other files use artifact max age
-      return isOld(getExternalConfiguration(false).getArtifactMaxAge(), item);
+      return isOld(getArtifactMaxAge(), item);
+    }
+  }
+
+  protected boolean isOldForVolatile(int maxAge, StorageItem item) {
+    // if item is manually expired, true
+    if (item.isExpired()) {
+      return true;
+    }
+    // if repo is non-expirable, false
+    if (maxAge < 0) {
+      return false;
+    }
+    // else check age
+    else {
+      return ((System.currentTimeMillis() - item.getRemoteChecked()) > (maxAge * 60L * 1000L));
     }
   }
 
@@ -160,7 +176,7 @@ public class DefaultProxyRubyRepository
     getExternalConfiguration(true).setMetadataMaxAge(metadataMaxAge);
   }
 
-  private static Pattern BUNDLER_API_REQUEST = Pattern.compile("[?]gems=.+,.+");
+  private static Pattern BUNDLER_API_REQUEST = Pattern.compile(".*[?]gems=.+,.*");
 
   public AbstractStorageItem doCacheItem(AbstractStorageItem item)
       throws LocalStorageException
