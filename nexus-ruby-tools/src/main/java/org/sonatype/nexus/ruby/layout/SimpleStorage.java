@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.ruby.layout;
 
@@ -16,9 +16,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
@@ -39,6 +40,51 @@ import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 public class SimpleStorage
     implements Storage
 {
+
+  static interface StreamLocation {
+    InputStream openStream() throws IOException;
+  }
+
+  static class URLStreamLocation implements StreamLocation {
+    private URL url;
+
+    URLStreamLocation(URL url) {
+      this.url = url;
+    }
+
+    @Override
+    public InputStream openStream() throws IOException {
+      return url.openStream();
+    }
+  }
+
+  static class BytesStreamLocation implements StreamLocation {
+    private ByteArrayInputStream stream;
+
+    BytesStreamLocation(ByteArrayInputStream stream) {
+      this.stream = stream;
+    }
+
+    @Override
+    public InputStream openStream() throws IOException {
+      return stream;
+    }
+  }
+
+  static class URLGzipStreamLocation implements StreamLocation {
+    private StreamLocation stream;
+
+    URLGzipStreamLocation(StreamLocation stream) {
+      this.stream = stream;
+    }
+
+    @Override
+    public InputStream openStream() throws IOException {
+      return new GZIPInputStream(stream.openStream());
+    }
+  }
+  
+  
   private final SecureRandom random = new SecureRandom();
 
   private final File basedir;
@@ -61,7 +107,7 @@ public class SimpleStorage
       is = Files.newInputStream(toPath(file));
     }
     else {
-      is = (InputStream) file.get();
+      is = ((StreamLocation) file.get()).openStream();
     }
     // reset state since we have a payload and no exceptions
     file.resetState();
@@ -84,17 +130,17 @@ public class SimpleStorage
   public void retrieve(RubygemsFile file) {
     file.resetState();
 
-    if (Files.notExists(toPath(file))) {
+    Path path = toPath(file);
+    if (Files.notExists(path)) {
       file.markAsNotExists();
     }
-    try {
-      file.set(getInputStream(file));
-    }
-    catch (NoSuchFileException e) {
-      file.markAsNotExists();
-    }
-    catch (IOException e) {
-      file.setException(e);
+    else {
+      try {
+        set(file, path);
+      }
+      catch (IOException e) {
+        file.setException(e);
+      }
     }
   }
 
@@ -118,12 +164,7 @@ public class SimpleStorage
     if (zipped.hasException()) {
       file.setException(zipped.getException());
     }
-    try {
-      file.set(new GZIPInputStream(getInputStream(zipped)));
-    }
-    catch (IOException e) {
-      file.setException(e);
-    }
+    file.set(new URLGzipStreamLocation((StreamLocation) zipped.get()));
   }
 
   @Override
@@ -136,7 +177,7 @@ public class SimpleStorage
       Files.createFile(mutex);
       Files.copy(is, source);
       Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
-      file.set(Files.newInputStream(target));
+      set(file, target);
     }
     catch (FileAlreadyExistsException e) {
       mutex = null;
@@ -153,6 +194,16 @@ public class SimpleStorage
     }
   }
 
+  /**
+   * set the payload
+   * @param file which gets the payload
+   * @param path the path to the payload
+   * @throws MalformedURLException
+   */
+  private void set(RubygemsFile file, Path path) throws MalformedURLException{
+    file.set(new URLStreamLocation(path.toUri().toURL()));
+  }
+
   @Override
   public void update(InputStream is, RubygemsFile file) {
     Path target = toPath(file);
@@ -161,7 +212,7 @@ public class SimpleStorage
       createDirectory(source.getParent());
       Files.copy(is, source);
       Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
-      file.set(Files.newInputStream(target));
+      set(file, target);
     }
     catch (IOException e) {
       file.setException(e);
@@ -191,8 +242,8 @@ public class SimpleStorage
   }
 
   @Override
-  public void memory(InputStream data, RubygemsFile file) {
-    file.set(data);
+  public void memory(ByteArrayInputStream data, RubygemsFile file) {
+    file.set(new BytesStreamLocation(data));
   }
 
   @Override
@@ -204,5 +255,4 @@ public class SimpleStorage
   public String[] listDirectory(Directory dir) {
     return toPath(dir).toFile().list();
   }
-
 }

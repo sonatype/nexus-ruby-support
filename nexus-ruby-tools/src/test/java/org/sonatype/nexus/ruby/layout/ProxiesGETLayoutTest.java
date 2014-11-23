@@ -1,44 +1,44 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
-package org.sonatype.nexus.ruby;
+package org.sonatype.nexus.ruby.layout;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.zip.GZIPInputStream;
 
+import org.sonatype.nexus.ruby.DependencyFile;
+import org.sonatype.nexus.ruby.Directory;
+import org.sonatype.nexus.ruby.FileType;
+import org.sonatype.nexus.ruby.GemArtifactFile;
+import org.sonatype.nexus.ruby.RubyScriptingTestSupport;
+import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
-import org.sonatype.nexus.ruby.layout.CachingProxyStorage;
-import org.sonatype.nexus.ruby.layout.GETLayout;
-import org.sonatype.nexus.ruby.layout.ProxiedGETLayout;
-import org.sonatype.nexus.ruby.layout.SimpleStorage;
-import org.sonatype.nexus.ruby.layout.Storage;
+import org.sonatype.nexus.ruby.layout.SimpleStorage.BytesStreamLocation;
+import org.sonatype.nexus.ruby.layout.SimpleStorage.URLGzipStreamLocation;
+import org.sonatype.nexus.ruby.layout.SimpleStorage.URLStreamLocation;
 
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -48,7 +48,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 @RunWith(Parameterized.class)
 public class ProxiesGETLayoutTest
-    extends TestCase
+    extends RubyScriptingTestSupport
 {
   private static File proxyBase() throws IOException {
     File base = new File("target/proxy");
@@ -77,12 +77,12 @@ public class ProxiesGETLayoutTest
   public ProxiesGETLayoutTest(Storage store) {
     if (store instanceof CachingProxyStorage) {
       fileSystem = new DefaultRubygemsFileSystem(
-          new ProxiedGETLayout(new DefaultRubygemsGateway(new TestScriptingContainer()),
+          new ProxiedGETLayout(rubygemsGateway(),
               (CachingProxyStorage) store),
           null, null);
     }
     else {
-      fileSystem = new DefaultRubygemsFileSystem(new GETLayout(new DefaultRubygemsGateway(new TestScriptingContainer()),
+      fileSystem = new DefaultRubygemsFileSystem(new GETLayout(rubygemsGateway(),
           store)
       {
 
@@ -105,7 +105,7 @@ public class ProxiesGETLayoutTest
         "/prerelease_specs.4.8.gz",
         "/latest_specs.4.8.gz"
     };
-    assertFiletypeWithPayload(pathes, FileType.SPECS_INDEX_ZIPPED, InputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.SPECS_INDEX_ZIPPED, URLStreamLocation.class);
   }
 
   @Test
@@ -115,7 +115,7 @@ public class ProxiesGETLayoutTest
         "/prerelease_specs.4.8",
         "/latest_specs.4.8"
     };
-    assertFiletypeWithPayload(pathes, FileType.SPECS_INDEX, GZIPInputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.SPECS_INDEX, URLGzipStreamLocation.class);
   }
 
   @Test
@@ -153,12 +153,12 @@ public class ProxiesGETLayoutTest
         "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem",
         "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-123213123.gem"
     };
-    assertFiletypeWithPayload(pathes, FileType.GEM_ARTIFACT, InputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.GEM_ARTIFACT, URLStreamLocation.class);
     pathes = new String[]{
         "/maven/releases/rubygems/hufflepuf/0.1.0/hufflepuf-0.1.0.gem",
         "/maven/releases/rubygems/hufflepuf/0.1.0/hufflepuf-0.2.0.gem"
     };
-    RubygemsFile[] result = assertFiletypeWithPayload(pathes, FileType.GEM_ARTIFACT, InputStream.class);
+    RubygemsFile[] result = assertFiletypeWithPayload(pathes, FileType.GEM_ARTIFACT, URLStreamLocation.class);
     for (RubygemsFile file : result) {
       GemArtifactFile a = (GemArtifactFile) file;
       assertThat(a.gem(null).filename(), is("hufflepuf-" + a.version() + "-universal-java-1.5"));
@@ -169,13 +169,15 @@ public class ProxiesGETLayoutTest
   public void testPom() throws Exception {
     String[] pathes = {
         "/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom",
+        "/maven/releases/rubygems/my/0.1.0/my-0.1.0.pom",
         "/maven/releases/rubygems/pre/0.1.0.beta/jbundler-0.1.0.beta.pom",
         "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/jbundler-0.1.0.beta-123213123.pom"
     };
     String[] xmls = {
-        IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("zip.pom")),
-        IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("pre.pom")),
-        IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("pre-snapshot.pom"))
+        loadPomResource("zip.pom"),
+        loadPomResource("my.pom"),
+        loadPomResource("pre.pom"),
+        loadPomResource("pre-snapshot.pom")
     };
     assertFiletypeWithPayload(pathes, FileType.POM, xmls);
   }
@@ -259,7 +261,7 @@ public class ProxiesGETLayoutTest
   @Test
   public void testBundlerApi() throws Exception {
     String[] pathes = {"/api/v1/dependencies?gems=zip,pre"};
-    assertFiletypeWithPayload(pathes, FileType.BUNDLER_API, org.sonatype.nexus.ruby.ByteArrayInputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.BUNDLER_API, BytesStreamLocation.class);
   }
 
   @Test
@@ -277,21 +279,21 @@ public class ProxiesGETLayoutTest
   @Test
   public void testDependency() throws Exception {
     String[] pathes = {
-        "/api/v1/dependencies?gems=zip", "/api/v1/dependencies/pre.json.rz", "/api/v1/dependencies/z/zip.json.rz"
+        "/api/v1/dependencies?gems=zip", "/api/v1/dependencies/pre.ruby", "/api/v1/dependencies/z/zip.ruby"
     };
-    assertFiletypeWithPayload(pathes, FileType.DEPENDENCY, InputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.DEPENDENCY, URLStreamLocation.class);
   }
 
   @Test
   public void testGemspec() throws Exception {
     String[] pathes = {"/quick/Marshal.4.8/zip-2.0.2.gemspec.rz", "/quick/Marshal.4.8/z/zip-2.0.2.gemspec.rz"};
-    assertFiletypeWithPayload(pathes, FileType.GEMSPEC, InputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.GEMSPEC, URLStreamLocation.class);
   }
 
   @Test
   public void testGem() throws Exception {
     String[] pathes = {"/gems/pre-0.1.0.beta.gem", "/gems/p/pre-0.1.0.beta.gem"};
-    assertFiletypeWithPayload(pathes, FileType.GEM, InputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.GEM, URLStreamLocation.class);
   }
 
   @Test
@@ -311,20 +313,20 @@ public class ProxiesGETLayoutTest
         "specs.4.8.gz", "latest_specs.4.8.gz", "prerelease_specs.4.8.gz");
     assertDirectory("/api", "v1", "quick", "gems");
     assertDirectory("/api/v1", "api_key", "dependencies");
-    assertDirectory("/api/v1/dependencies");//"hufflepuf.json.rz", "pre.json.rz", "zip.json.rz" );
+    assertDirectory("/api/v1/dependencies");//"hufflepuf.ruby", "pre.ruby", "zip.ruby" );
     assertDirectory("/api/quick", "Marshal.4.8");
     assertDirectory("/api/quick/Marshal.4.8");
     assertDirectory("/api/gems");
     assertDirectory("/quick", "Marshal.4.8");
     assertDirectory("/quick/Marshal.4.8");
-    assertDirectory("/gems");//"hufflepuf.json.rz", "pre.json.rz", "zip.json.rz" );
+    assertDirectory("/gems");//"hufflepuf.ruby", "pre.ruby", "zip.ruby" );
     assertDirectory("/maven", "prereleases", "releases");
     assertDirectory("/maven/prereleases", "rubygems");
-    // the lookup will create a hufflepuf.json.rz !
+    // the lookup will create a hufflepuf.ruby !
     assertDirectory("/maven/prereleases/rubygems/hufflepuf", "maven-metadata.xml", "maven-metadata.xml.sha1");
-    assertDirectory("/maven/prereleases/rubygems", "hufflepuf", "pre", "zip");
+    assertDirectory("/maven/prereleases/rubygems", "hufflepuf", "my", "pre", "zip");
     assertDirectory("/maven/releases", "rubygems");
-    assertDirectory("/maven/releases/rubygems", "hufflepuf", "pre", "zip");
+    assertDirectory("/maven/releases/rubygems", "hufflepuf", "my", "pre", "zip");
     assertDirectory("/maven/releases/rubygems/hufflepuf", "0.1.0", "0.2.0", "maven-metadata.xml",
         "maven-metadata.xml.sha1");
     assertDirectory("/maven/releases/rubygems/pre", "0.1.0.beta", "maven-metadata.xml", "maven-metadata.xml.sha1");
@@ -355,6 +357,8 @@ public class ProxiesGETLayoutTest
         list.add(item);
       }
     }
+    // normalize to cope with file-system listing order issues.
+    Collections.sort(list);
     return list;
   }
 
@@ -362,9 +366,9 @@ public class ProxiesGETLayoutTest
   public void testNotFound() throws Exception {
     String[] pathes = {
         "/asa", "/asa/", "/api/a", "/api/v1ds", "/api/v1/ds",
-        "/api/v1/dependencies/jbundler.jsaon.rz", "/api/v1/dependencies/b/bundler.json.rzd",
-        "/api/v1/dependencies/basd/bundler.json.rz",
-        "/quick/Marshal.4.8/jbundler.jssaon.rz", "/quick/Marshal.4.8/b/bundler.gemspec.rzd",
+        "/api/v1/dependencies/jbundler.rubay", "/api/v1/dependencies/b/bundler.rubyd",
+        "/api/v1/dependencies/basd/bundler.ruby",
+        "/quick/Marshal.4.8/jbundler.rruubbyy", "/quick/Marshal.4.8/b/bundler.gemspec.rzd",
         "/quick/Marshal.4.8/basd/bundler.gemspec.rz",
         "/gems/jbundler.jssaonrz", "/gems/b/bundler.gemsa",
         "/gems/basd/bundler.gem",
@@ -398,22 +402,22 @@ public class ProxiesGETLayoutTest
     for (String path : pathes) {
       RubygemsFile file = fileSystem.get(path);
       assertThat(path, file.type(), equalTo(type));
-      assertThat(path, file.get(), is(instanceOf(ByteArrayInputStream.class)));
+      assertThat(path, file.get(), is(instanceOf(BytesStreamLocation.class)));
       assertThat(path, file.hasException(), is(false));
       assertThat(path, readPayload(file).replaceAll("[0-9]{8}\\.?[0-9]{6}", "2014"), equalTo(payloads[index++]));
     }
   }
 
   protected String readPayload(RubygemsFile file) {
-    ByteArrayInputStream b = (ByteArrayInputStream) file.get();
-    byte[] bb = new byte[b.available()];
     try {
+      ByteArrayInputStream b = (ByteArrayInputStream)((BytesStreamLocation) file.get()).openStream();
+      byte[] bb = new byte[b.available()];
       b.read(bb);
+      return new String(bb);
     }
     catch (IOException e) {
-      new RuntimeException(e);
+      throw new RuntimeException(e);
     }
-    return new String(bb);
   }
 
   protected RubygemsFile[] assertFiletypeWithPayload(String[] pathes, FileType type, Class<?> payload) {

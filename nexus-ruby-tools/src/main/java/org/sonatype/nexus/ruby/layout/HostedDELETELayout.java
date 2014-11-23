@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.ruby.layout;
 
@@ -20,11 +20,15 @@ import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
+import org.sonatype.nexus.ruby.GemspecHelper;
 import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.SpecsHelper;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
+
+import org.jruby.runtime.builtin.IRubyObject;
 
 /**
  * on hosted rubygems repositories you can delete only gem files. deleting
@@ -103,12 +107,13 @@ public class HostedDELETELayout
   private void deleteGemFile(GemFile file) {
     store.retrieve(file);
     try (InputStream is = store.getInputStream(file)) {
-      Object spec = gateway.spec(is);
+      GemspecHelper spec = gateway.newGemspecHelperFromGem(is);
 
-      deleteSpecFromIndex(spec);
+      deleteSpecFromIndex(spec.gemspec());
 
       // delete dependencies so the next request will recreate it
-      delete(super.dependencyFile(gateway.name(spec)));
+      delete(super.dependencyFile(spec.name()));
+      // delete the gemspec.rz altogether
       delete(super.gemspecFile(file.filename()));
       store.delete(file);
     }
@@ -120,34 +125,17 @@ public class HostedDELETELayout
   /**
    * delete given spec (a Ruby Object) and delete it from all the specs.4.8 indices.
    */
-  private void deleteSpecFromIndex(Object spec) throws IOException {
-    SpecsIndexZippedFile release = null;
+  private void deleteSpecFromIndex(IRubyObject spec) throws IOException {
+    SpecsHelper specs = gateway.newSpecsHelper();
     for (SpecsIndexType type : SpecsIndexType.values()) {
-      InputStream content = null;
-      InputStream rin = null;
-      SpecsIndexZippedFile specs = ensureSpecsIndexZippedFile(type);
-      try (InputStream in = new GZIPInputStream(store.getInputStream(specs))) {
-        switch (type) {
-          case RELEASE:
-            release = specs;
-          case PRERELEASE:
-            content = gateway.deleteSpec(spec, in);
-            break;
-          case LATEST:
-            // if we delete the entry from latest we need to use the releases to
-            // recreate the latest index
-            store.retrieve(release);
-            rin = new GZIPInputStream(store.getInputStream(release));
-            content = gateway.deleteSpec(spec, in, rin);
+      SpecsIndexZippedFile specsIndex = ensureSpecsIndexZippedFile(type);
+      try (InputStream in = new GZIPInputStream(store.getInputStream(specsIndex))) {
+        try (InputStream result = specs.deleteSpec(spec, in, type)) {
+          // if nothing was added the content is NULL
+          if (result != null) {
+            store.update(IOUtil.toGzipped(result), specsIndex);
+          }
         }
-        // if nothing was added the result is NULL
-        if (content != null) {
-          store.update(IOUtil.toGzipped(content), specs);
-        }
-      }
-      finally {
-        IOUtil.close(rin);
-        IOUtil.close(content);
       }
     }
   }

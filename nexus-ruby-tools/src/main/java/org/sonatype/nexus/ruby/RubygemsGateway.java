@@ -1,58 +1,78 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.ruby;
 
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
 
+/**
+ * factory for all the ruby classes. all those ruby classes come with java interface
+ * so they can be used easily from java.
+ * 
+ * @author christian
+ *
+ */
 public interface RubygemsGateway
 {
-  void recreateRubygemsIndex(String directory);
+  /**
+   * Cleans up resources used by gateway and terminates it along with the underlying scripting container.
+   */
+  void terminate();
 
-  void purgeBrokenDepencencyFiles(String directory);
+  /**
+   * create a new instance of <code>GemspecHelper</code>
+   * @param gemspec the stream to the rzipped marshalled Gem::Specification ruby-object
+   * @return an empty GemspecHelper
+   */
+  GemspecHelper newGemspecHelper(InputStream gemspec);
 
-  void purgeBrokenGemspecFiles(String directory);
+  /**
+   * create a new instance of <code>GemspecHelper</code>
+   * @param gem the stream to the from which the gemspec gets extracted
+   * @return an empty GemspecHelper
+   */
+  GemspecHelper newGemspecHelperFromGem(InputStream gem);
 
-  ByteArrayInputStream createGemspecRz(Object spec);
+  /**
+   * create a new instance of <code>DependencyHelper</code>
+   * @return an empty DependencyHelper
+   */
+  DependencyHelper newDependencyHelper();
 
-  InputStream emptyIndex();
+  /**
+   * create a new instance of <code>SpecsHelper</code>
+   * @return an empty SpecsHelper
+   */
+  SpecsHelper newSpecsHelper();
 
-  Object spec(InputStream gem);
+  /**
+   * create a new instance of <code>MergeSpecsHelper</code>
+   * @return an empty MergeSpecsHelper
+   */
+  MergeSpecsHelper newMergeSpecsHelper();
 
-  String pom(InputStream specRz, boolean snapshot);
+  /**
+   * create a new instance of <code>RepairHelper</code>
+   * @return an empty DependencyHelper
+   */
+  RepairHelper newRepairHelper();
 
-  InputStream addSpec(Object spec, InputStream specsDump, SpecsIndexType type);
-
-  InputStream deleteSpec(Object spec, InputStream specsDump);
-
-  InputStream deleteSpec(Object spec, InputStream specsIndex, InputStream refSpecs);
-
-  InputStream mergeSpecs(List<InputStream> streams, boolean latest);
-
-  Map<String, InputStream> splitDependencies(InputStream bundlerResult);
-
-  InputStream mergeDependencies(List<InputStream> deps);
-
-  InputStream mergeDependencies(List<InputStream> deps, boolean unique);
-
-  InputStream createDependencies(List<InputStream> gemspecs);
-
-  String filename(Object spec);
-
-  String name(Object spec);
-
-  DependencyData dependencies(InputStream inputStream, String name, long modified);
-
-  List<String> listAllVersions(String name, InputStream inputStream, long modified, boolean prerelease);
+  /**
+   * create a new instance of <code>DependencyData</code> and parse
+   * the given dependency data
+   * @param dependency the input-stream with the dependency data
+   * @param name of gem of the dependency data
+   * @param modified when the dependency data were last modified
+   * @return dependency data
+   */
+  DependencyData newDependencyData(InputStream dependency, String name, long modified);
 }

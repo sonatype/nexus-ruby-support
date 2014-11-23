@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.ruby.layout;
 
@@ -16,18 +16,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.sonatype.nexus.ruby.ApiV1File;
 import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyData;
 import org.sonatype.nexus.ruby.DependencyFile;
+import org.sonatype.nexus.ruby.DependencyHelper;
+import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.GemArtifactFile;
 import org.sonatype.nexus.ruby.GemArtifactIdDirectory;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
-import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.MavenMetadataFile;
 import org.sonatype.nexus.ruby.MavenMetadataSnapshotFile;
 import org.sonatype.nexus.ruby.MetadataBuilder;
@@ -54,7 +53,7 @@ import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
  */
 public class GETLayout
     extends DefaultLayout
-    implements org.sonatype.nexus.ruby.Layout
+    implements Layout
 {
   protected final RubygemsGateway gateway;
 
@@ -98,9 +97,11 @@ public class GETLayout
    * @param deps the result set of <code>InputStream<code>s to all the <code>DependencyFile</code> of the
    *             given list of gem-names
    */
-  protected void retrieveAll(BundlerApiFile file, List<InputStream> deps) throws IOException {
+  protected void retrieveAll(BundlerApiFile file, DependencyHelper deps) throws IOException {
     for (String name : file.gemnames()) {
-      deps.add(store.getInputStream(dependencyFile(name)));
+      try(InputStream is = store.getInputStream(dependencyFile(name))) {
+        deps.add(is);
+      }
     }
   }
 
@@ -108,20 +109,15 @@ public class GETLayout
   public BundlerApiFile bundlerApiFile(String namesCommaSeparated) {
     BundlerApiFile file = super.bundlerApiFile(namesCommaSeparated);
 
-    List<InputStream> deps = new LinkedList<>();
+    DependencyHelper deps = gateway.newDependencyHelper();
     try {
       retrieveAll(file, deps);
       if (!file.hasException()) {
-        store.memory(gateway.mergeDependencies(deps), file);
+        store.memory(deps.getInputStream(false), file);
       }
     }
     catch (IOException e) {
       file.setException(e);
-    }
-    finally {
-      for (InputStream is : deps) {
-        IOUtil.close(is);
-      }
     }
     return file;
   }
@@ -129,7 +125,12 @@ public class GETLayout
   @Override
   public RubygemsDirectory rubygemsDirectory(String path) {
     RubygemsDirectory dir = super.rubygemsDirectory(path);
-    dir.setItems(store.listDirectory(directory("/api/v1/dependencies/")));
+    Directory d = directory("/api/v1/dependencies/");
+    dir.setItems(store.listDirectory(d));
+    // copy the error over to the original directory
+    if (d.hasException()) {
+      dir.setException(d.getException());
+    }
     return dir;
   }
 
@@ -175,16 +176,40 @@ public class GETLayout
    */
   protected void setPomPayload(PomFile file, boolean snapshot) {
     try {
-      GemspecFile gemspec = file.gemspec(newDependencyData(file.dependency()));
-      if (gemspec.notExists()) {
-        file.markAsNotExists();
+      DependencyData dependencies = newDependencyData(file.dependency());
+      if ("java".equals(dependencies.platform(file.version()))) {
+        pomFromGem(file, snapshot, dependencies);
       }
       else {
-        store.memory(gateway.pom(store.getInputStream(gemspec), snapshot), file);
+        pomFromGemspec(file, snapshot, dependencies);
       }
     }
     catch (IOException e) {
       file.setException(e);
+    }
+  }
+
+  private void pomFromGemspec(PomFile file, boolean snapshot, DependencyData dependencies) throws IOException {
+    GemspecFile gemspec = file.gemspec(dependencies);
+    if (gemspec.notExists()) {
+      file.markAsNotExists();
+    }
+    else {
+      try(InputStream is = store.getInputStream(gemspec)) {
+        store.memory(gateway.newGemspecHelper(is).pom(snapshot), file);
+      }
+    }
+  }
+
+  private void pomFromGem(PomFile file, boolean snapshot, DependencyData dependencies) throws IOException {
+    GemFile gem = file.gem(dependencies);
+    if (gem.notExists()) {
+      file.markAsNotExists();
+    }
+    else {
+      try(InputStream is = store.getInputStream(gem)) {
+        store.memory(gateway.newGemspecHelperFromGem(is).pom(snapshot), file);
+      }
     }
   }
 
@@ -274,16 +299,13 @@ public class GETLayout
     return sha;
   }
 
-  @Deprecated
-  protected DependencyData newDependencies(DependencyFile file) throws IOException {
-    return newDependencyData(file);
-  }
-
   /**
    * load all the dependency data into an object.
    */
   protected DependencyData newDependencyData(DependencyFile file) throws IOException {
-    return gateway.dependencies(store.getInputStream(file), file.name(), store.getModified(file));
+    try(InputStream is = store.getInputStream(file)) {
+      return gateway.newDependencyData(is, file.name(), store.getModified(file));
+    }
   }
 
   @Override

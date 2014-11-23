@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.ruby.layout;
 
@@ -20,12 +20,16 @@ import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.GemFile;
 import org.sonatype.nexus.ruby.GemspecFile;
+import org.sonatype.nexus.ruby.GemspecHelper;
 import org.sonatype.nexus.ruby.IOUtil;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
+import org.sonatype.nexus.ruby.SpecsHelper;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexType;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
+
+import org.jruby.runtime.builtin.IRubyObject;
 
 import com.jcraft.jzlib.GZIPInputStream;
 
@@ -52,75 +56,68 @@ public class HostedPOSTLayout
   }
 
   @Override
-  public void addGem(InputStream is, RubygemsFile file) {
+  public void addGem(InputStream in, RubygemsFile file) {
     if (file.type() != FileType.GEM && file.type() != FileType.API_V1) {
       throw new RuntimeException("BUG: not allowed to store " + file);
     }
     try {
-      store.create(is, file);
+      store.create(in, file);
       if (file.hasNoPayload()) {
         // an error or something else but we need the payload now
         return;
       }
-      is = store.getInputStream(file);
-      Object spec = gateway.spec(is);
+      GemspecHelper spec;
+      try(InputStream is = store.getInputStream(file)) {
+        spec = gateway.newGemspecHelperFromGem(is);
+      }
 
-      String filename = gateway.filename(spec);
       // check gemname matches coordinates from its specification
       switch (file.type()) {
         case GEM:
-          if (!(((GemFile) file).filename() + ".gem").equals(filename)) {
+          if (!(((GemFile) file).filename() + ".gem").equals(spec.filename())) {
             store.delete(file);
             // now set the error for further processing
-            file.setException(new IOException("filename from " + file + " does not match gemname: " + filename));
+            file.setException(new IOException("filename from " + file + " does not match gemname: " + spec.filename()));
             return;
           }
           break;
         case API_V1:
-          store.create(store.getInputStream(file),
-              ((ApiV1File) file).gem(filename));
+          try (InputStream is = store.getInputStream(file)) {
+            store.create(is, ((ApiV1File) file).gem(spec.filename()));
+          }
           store.delete(file);
           break;
         default:
           throw new RuntimeException("BUG");
       }
 
-      addSpecToIndex(spec);
+      addSpecToIndex(spec.gemspec());
 
       // delete dependencies so the next request will recreate it
-      delete(super.dependencyFile(gateway.name(spec)));
+      delete(super.dependencyFile(spec.name()));
       // delete gemspec so the next request will recreate it
-      delete(super.gemspecFile(gateway.filename(spec).replaceFirst(".gem$", "")));
+      delete(super.gemspecFile(spec.filename().replaceFirst(".gem$", "")));
     }
     catch (IOException e) {
       file.setException(e);
-    }
-    finally {
-      IOUtil.close(is);
     }
   }
 
   /**
    * add a spec (Ruby Object) to the specs.4.8 indices.
    */
-  private void addSpecToIndex(Object spec) throws IOException {
+  private void addSpecToIndex(IRubyObject spec) throws IOException {
+    SpecsHelper specs = gateway.newSpecsHelper();
     for (SpecsIndexType type : SpecsIndexType.values()) {
-      InputStream content = null;
-      SpecsIndexZippedFile specs = ensureSpecsIndexZippedFile(type);
+      SpecsIndexZippedFile specsIndex = ensureSpecsIndexZippedFile(type);
 
-      try (InputStream in = new GZIPInputStream(store.getInputStream(specs))) {
-        content = gateway.addSpec(spec, in, type);
-
-        // if nothing was added the content is NULL
-        if (content != null) {
-          store.update(IOUtil.toGzipped(content), specs);
-          if (specs.hasException()) {
-            throw new IOException(specs.getException());
+      try (InputStream in = new GZIPInputStream(store.getInputStream(specsIndex))) {
+        try (InputStream result = specs.addSpec(spec, in, type)) {
+          // if nothing was added the content is NULL
+          if (result != null) {
+            store.update(IOUtil.toGzipped(result), specsIndex);
           }
         }
-      }
-      finally {
-        IOUtil.close(content);
       }
     }
   }

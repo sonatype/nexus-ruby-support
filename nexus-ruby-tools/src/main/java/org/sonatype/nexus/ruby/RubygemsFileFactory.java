@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.ruby;
 
@@ -36,7 +36,7 @@ public interface RubygemsFileFactory
   /**
    * create <code>Directory</code> /maven/releases/rubygems/{artifactId} or /maven/prerelease/rubygems/{artifactId}
    *
-   * @param prerelease flag to create released or prereleased gem, i.e. without or with SNAPSHOT in version
+   * @param prereleases flag to create released or prereleased gem, i.e. without or with SNAPSHOT in version
    * @return RubygemsDirectory
    */
   Directory gemArtifactIdDirectory(String path, String artifactId, boolean prereleases);
@@ -81,7 +81,7 @@ public interface RubygemsFileFactory
   GemspecFile gemspecFile(String filename);
 
   /**
-   * create <code>DependencyFile</code> /api/v1/dependencies/{name}.json.rz for
+   * create <code>DependencyFile</code> /api/v1/dependencies/{name}.ruby for
    * a given gem-name
    *
    * @param name of the gemfile
@@ -123,9 +123,6 @@ public interface RubygemsFileFactory
 
   /**
    * create <code>SpecsIndexFile</code> /specs.4.8 or /latest_specs.4.8 or /prerelease_specs.4.8
-   *
-   * @param SpecsIndexType of the spec to create
-   * @return SpecsIndexFile
    */
   SpecsIndexFile specsIndexFile(SpecsIndexType type);
 
@@ -133,15 +130,11 @@ public interface RubygemsFileFactory
    * create <code>SpecsIndexZippedFile</code> /specs.4.8.gz or /latest_specs.4.8.gz or /prerelease_specs.4.8.gz
    *
    * @param name which is either 'specs' or 'latest_specs' or 'prerelease_specs'
-   * @return SpecsIndexZippedFile
    */
   SpecsIndexZippedFile specsIndexZippedFile(String name);
 
   /**
    * create <code>SpecsIndexZippedFile</code> /specs.4.8 or /latest_specs.4.8 or /prerelease_specs.4.8
-   *
-   * @param SpecsIndexType of the spec to create
-   * @return SpecsIndexZippedFile
    */
   SpecsIndexZippedFile specsIndexZippedFile(SpecsIndexType type);
 

@@ -1,37 +1,35 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
-package org.sonatype.nexus.ruby;
+package org.sonatype.nexus.ruby.layout;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.zip.GZIPInputStream;
 
+import org.sonatype.nexus.ruby.FileType;
+import org.sonatype.nexus.ruby.GemArtifactFile;
+import org.sonatype.nexus.ruby.RubyScriptingTestSupport;
+import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
-import org.sonatype.nexus.ruby.layout.CachingProxyStorage;
-import org.sonatype.nexus.ruby.layout.HostedDELETELayout;
-import org.sonatype.nexus.ruby.layout.HostedGETLayout;
-import org.sonatype.nexus.ruby.layout.SimpleStorage;
-import org.sonatype.nexus.ruby.layout.Storage;
+import org.sonatype.nexus.ruby.layout.SimpleStorage.BytesStreamLocation;
+import org.sonatype.nexus.ruby.layout.SimpleStorage.URLGzipStreamLocation;
+import org.sonatype.nexus.ruby.layout.SimpleStorage.URLStreamLocation;
 
-import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +45,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 @RunWith(Parameterized.class)
 public class HostedDELETELayoutTest
-    extends TestCase
+    extends RubyScriptingTestSupport
 {
   private static File proxyBase() throws IOException {
     File base = new File("target/proxy");
@@ -83,10 +81,10 @@ public class HostedDELETELayoutTest
 
   public HostedDELETELayoutTest(Storage store) throws IOException {
     fileSystem = new DefaultRubygemsFileSystem(
-        new HostedGETLayout(new DefaultRubygemsGateway(new TestScriptingContainer()),
+        new HostedGETLayout(rubygemsGateway(),
             store),
         null,
-        new HostedDELETELayout(new DefaultRubygemsGateway(new TestScriptingContainer()),
+        new HostedDELETELayout(rubygemsGateway(),
             new SimpleStorage(hostedBase())));
     // delete proxy files
     proxyBase();
@@ -104,7 +102,7 @@ public class HostedDELETELayoutTest
         "/prerelease_specs.4.8.gz",
         "/latest_specs.4.8.gz"
     };
-    assertFiletypeWithPayload(pathes, FileType.SPECS_INDEX_ZIPPED, InputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.SPECS_INDEX_ZIPPED, URLStreamLocation.class);
   }
 
   @Test
@@ -114,7 +112,7 @@ public class HostedDELETELayoutTest
         "/prerelease_specs.4.8",
         "/latest_specs.4.8"
     };
-    assertFiletypeWithPayload(pathes, FileType.SPECS_INDEX, GZIPInputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.SPECS_INDEX, URLGzipStreamLocation.class);
   }
 
   @Test
@@ -140,13 +138,13 @@ public class HostedDELETELayoutTest
     };
     assertNotFound(pathes, FileType.SHA1);
 
-    // these files carry a timestamp of creation of the json.rz file
+    // these files carry a timestamp of creation of the .ruby file
     pathes = new String[]{
         "/maven/prereleases/rubygems/pre/maven-metadata.xml.sha1",
         "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/maven-metadata.xml.sha1",
         "/maven/releases/rubygems/pre/maven-metadata.xml.sha1"
     };
-    assertFiletypeWithPayload(pathes, FileType.SHA1, ByteArrayInputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.SHA1, BytesStreamLocation.class);
   }
 
   @Test
@@ -155,7 +153,7 @@ public class HostedDELETELayoutTest
         "/maven/releases/rubygems/pre/0.1.0.beta/pre-0.1.0.beta.gem",
         "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/pre-0.1.0.beta-123213123.gem"
     };
-    assertFiletypeWithPayload(pathes, FileType.GEM_ARTIFACT, InputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.GEM_ARTIFACT, URLStreamLocation.class);
 
     pathes = new String[]{"/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.gem"};
     assertNotFound(pathes, FileType.GEM_ARTIFACT);
@@ -164,7 +162,7 @@ public class HostedDELETELayoutTest
         "/maven/releases/rubygems/hufflepuf/0.1.0/hufflepuf-0.1.0.gem",
         "/maven/releases/rubygems/hufflepuf/0.1.0/hufflepuf-0.2.0.gem"
     };
-    RubygemsFile[] result = assertFiletypeWithPayload(pathes, FileType.GEM_ARTIFACT, InputStream.class);
+    RubygemsFile[] result = assertFiletypeWithPayload(pathes, FileType.GEM_ARTIFACT, URLStreamLocation.class);
     for (RubygemsFile file : result) {
       GemArtifactFile a = (GemArtifactFile) file;
       assertThat(a.gem(null).filename(), is("hufflepuf-" + a.version() + "-universal-java-1.5"));
@@ -178,8 +176,8 @@ public class HostedDELETELayoutTest
         "/maven/prereleases/rubygems/pre/0.1.0.beta-SNAPSHOT/jbundler-0.1.0.beta-123213123.pom"
     };
     String[] xmls = {
-        IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("pre.pom")),
-        IOUtils.toString(Thread.currentThread().getContextClassLoader().getResourceAsStream("pre-snapshot.pom"))
+        loadPomResource("pre.pom"),
+        loadPomResource("pre-snapshot.pom")
     };
     assertFiletypeWithPayload(pathes, FileType.POM, xmls);
     pathes = new String[]{"/maven/releases/rubygems/zip/2.0.2/zip-2.0.2.pom"};
@@ -264,7 +262,7 @@ public class HostedDELETELayoutTest
   @Test
   public void testBundlerApi() throws Exception {
     String[] pathes = {"/api/v1/dependencies?gems=zip,pre"};
-    assertFiletypeWithPayload(pathes, FileType.BUNDLER_API, org.sonatype.nexus.ruby.ByteArrayInputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.BUNDLER_API, BytesStreamLocation.class);
   }
 
   @Test
@@ -282,9 +280,9 @@ public class HostedDELETELayoutTest
   @Test
   public void testDependency() throws Exception {
     String[] pathes = {
-        "/api/v1/dependencies?gems=zip", "/api/v1/dependencies/pre.json.rz", "/api/v1/dependencies/z/zip.json.rz"
+        "/api/v1/dependencies?gems=zip", "/api/v1/dependencies/pre.ruby", "/api/v1/dependencies/z/zip.ruby"
     };
-    assertFiletypeWithPayload(pathes, FileType.DEPENDENCY, InputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.DEPENDENCY, URLStreamLocation.class);
   }
 
   @Test
@@ -292,7 +290,7 @@ public class HostedDELETELayoutTest
     String[] pathes = {
         "/quick/Marshal.4.8/pre-0.1.0.beta.gemspec.rz", "/quick/Marshal.4.8/p/pre-0.1.0.beta.gemspec.rz"
     };
-    assertFiletypeWithPayload(pathes, FileType.GEMSPEC, InputStream.class);
+    assertFiletypeWithPayload(pathes, FileType.GEMSPEC, URLStreamLocation.class);
     pathes = new String[]{"/quick/Marshal.4.8/zip-2.0.2.gemspec.rz", "/quick/Marshal.4.8/z/zip-2.0.2.gemspec.rz"};
     assertNotFound(pathes, FileType.GEMSPEC);
   }
@@ -300,8 +298,8 @@ public class HostedDELETELayoutTest
   @Test
   public void testGem() throws Exception {
     String[] pathes = {"/gems/pre-0.1.0.beta.gem", "/gems/p/pre-0.1.0.beta.gem"};
-    assertFiletypeWithPayload(pathes, FileType.GEM, InputStream.class);
-    pathes = new String[]{"/gems/zip-2.0.2.gem", "/gems/zip-2.0.2.gem"};
+    assertFiletypeWithPayload(pathes, FileType.GEM, URLStreamLocation.class);
+    pathes = new String[]{"/gems/zip-2.0.2.gem", "/gems/z/zip-2.0.2.gem"};
     assertNotFound(pathes, FileType.GEM);
   }
 
@@ -322,9 +320,9 @@ public class HostedDELETELayoutTest
   public void testNotFound() throws Exception {
     String[] pathes = {
         "/asa", "/asa/", "/api/a", "/api/v1ds", "/api/v1/ds",
-        "/api/v1/dependencies/jbundler.jsaon.rz", "/api/v1/dependencies/b/bundler.json.rzd",
-        "/api/v1/dependencies/basd/bundler.json.rz",
-        "/quick/Marshal.4.8/jbundler.jssaon.rz", "/quick/Marshal.4.8/b/bundler.gemspec.rzd",
+        "/api/v1/dependencies/jbundler.jruby", "/api/v1/dependencies/b/bundler.rubyd",
+        "/api/v1/dependencies/basd/bundler.ruby",
+        "/quick/Marshal.4.8/jbundler.jruby.rz", "/quick/Marshal.4.8/b/bundler.gemspec.rzd",
         "/quick/Marshal.4.8/basd/bundler.gemspec.rz",
         "/gems/jbundler.jssaonrz", "/gems/b/bundler.gemsa",
         "/gems/basd/bundler.gem",
@@ -358,22 +356,22 @@ public class HostedDELETELayoutTest
     for (String path : pathes) {
       RubygemsFile file = fileSystem.get(path);
       assertThat(path, file.type(), equalTo(type));
-      assertThat(path, file.get(), is(instanceOf(ByteArrayInputStream.class)));
+      assertThat(path, file.get(), is(instanceOf(BytesStreamLocation.class)));
       assertThat(path, file.hasException(), is(false));
       assertThat(path, readPayload(file).replaceAll("[0-9]{8}\\.?[0-9]{6}", "2014"), equalTo(payloads[index++]));
     }
   }
 
   protected String readPayload(RubygemsFile file) {
-    ByteArrayInputStream b = (ByteArrayInputStream) file.get();
-    byte[] bb = new byte[b.available()];
     try {
+      ByteArrayInputStream b = (ByteArrayInputStream)((BytesStreamLocation) file.get()).openStream();
+      byte[] bb = new byte[b.available()];
       b.read(bb);
+      return new String(bb);
     }
     catch (IOException e) {
-      new RuntimeException(e);
+      throw new RuntimeException(e);
     }
-    return new String(bb);
   }
 
   protected RubygemsFile[] assertFiletypeWithPayload(String[] pathes, FileType type, Class<?> payload) {
@@ -407,27 +405,6 @@ public class HostedDELETELayoutTest
   protected void assertNotFound(String[] pathes, FileType type) {
     assertFiletypeWithNullPayload(pathes, type, false);
   }
-
-  //
-  //    protected void assertNotFound( String[] pathes, FileType type )
-  //    {
-  //        for( String path : pathes )
-  //        {
-  //            RubygemsFile file = bootstrap.accept( path );
-  //            assertThat( path, file.type(), equalTo( type ) );
-  //            assertThat( path, file.exists(), is( false ) );
-  //        }
-  //    }
-  //    protected void assertIOException( String[] pathes, FileType type )
-  //    {
-  //        for( String path : pathes )
-  //        {
-  //            RubygemsFile file = bootstrap.accept( path );
-  //            assertThat( path, file.type(), equalTo( type ) );
-  //            assertThat( path, file.get(), nullValue() );
-  //            assertThat( path, file.getException(), is( instanceOf( IOException.class ) ) );
-  //        }
-  //    }
 
   protected void assertForbidden(String[] pathes) {
     for (String path : pathes) {

@@ -1,30 +1,36 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
-package org.sonatype.nexus.ruby;
+package org.sonatype.nexus.ruby.layout;
 
+import java.io.File;
 
+import org.sonatype.nexus.ruby.FileType;
+import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.DefaultRubygemsFileSystem;
+import org.sonatype.sisu.litmus.testsupport.TestSupport;
 
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 
-public class DefaultBootstrapTest
-    extends TestCase
+public class DELETELayoutTest
+    extends TestSupport
 {
-  private final DefaultRubygemsFileSystem bootstrap = new DefaultRubygemsFileSystem();
+  private final DefaultRubygemsFileSystem bootstrap =
+      new DefaultRubygemsFileSystem(new DELETELayout(null, new SimpleStorage(new File("target"))),
+          null, null);
 
   @Test
   public void testSpecsZippedIndex() throws Exception {
@@ -33,17 +39,17 @@ public class DefaultBootstrapTest
         "/prerelease_specs.4.8.gz",
         "/latest_specs.4.8.gz"
     };
-    assertFiletype(pathes, FileType.SPECS_INDEX_ZIPPED);
+    assertFound(pathes, FileType.SPECS_INDEX_ZIPPED);
   }
 
   @Test
-  public void testSpecsIndex() throws Exception {
+  public void testSpecsUnzippedIndex() throws Exception {
     String[] pathes = {
         "/specs.4.8",
         "/prerelease_specs.4.8",
         "/latest_specs.4.8"
     };
-    assertFiletype(pathes, FileType.SPECS_INDEX);
+    assertForbidden(pathes);
   }
 
   @Test
@@ -57,7 +63,7 @@ public class DefaultBootstrapTest
         "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.gem.sha1",
         "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.pom.sha1"
     };
-    assertFiletype(pathes, FileType.SHA1);
+    assertForbidden(pathes);
   }
 
   @Test
@@ -66,7 +72,7 @@ public class DefaultBootstrapTest
         "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.gem",
         "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.gem"
     };
-    assertFiletype(pathes, FileType.GEM_ARTIFACT);
+    assertForbidden(pathes);
   }
 
   @Test
@@ -75,7 +81,7 @@ public class DefaultBootstrapTest
         "/maven/releases/rubygems/jbundler/1.2.3/jbundler-1.2.3.pom",
         "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/jbundler-1.2.3-123213123.pom"
     };
-    assertFiletype(pathes, FileType.POM);
+    assertForbidden(pathes);
   }
 
   @Test
@@ -84,48 +90,46 @@ public class DefaultBootstrapTest
         "/maven/releases/rubygems/jbundler/maven-metadata.xml",
         "/maven/prereleases/rubygems/jbundler/maven-metadata.xml"
     };
-    assertFiletype(pathes, FileType.MAVEN_METADATA);
+    assertForbidden(pathes);
   }
 
   @Test
   public void testMavenMetadataSnapshot() throws Exception {
     String[] pathes = {"/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT/maven-metadata.xml"};
-    assertFiletype(pathes, FileType.MAVEN_METADATA_SNAPSHOT);
+    assertForbidden(pathes);
   }
 
   @Test
   public void testBundlerApi() throws Exception {
     String[] pathes = {"/api/v1/dependencies?gems=nexus,bundler"};
-    assertFiletype(pathes, FileType.BUNDLER_API);
+    assertForbidden(pathes);
   }
-
 
   @Test
   public void testApiV1() throws Exception {
     String[] pathes = {"/api/v1/gems", "/api/v1/api_key"};
-    assertFiletype(pathes, FileType.API_V1);
+    assertForbidden(pathes);
   }
-
 
   @Test
   public void testDependency() throws Exception {
     String[] pathes = {
-        "/api/v1/dependencies?gems=nexus", "/api/v1/dependencies/jbundler.json.rz",
-        "/api/v1/dependencies/b/bundler.json.rz"
+        "/api/v1/dependencies?gems=nexus", "/api/v1/dependencies/jbundler.ruby",
+        "/api/v1/dependencies/b/bundler.ruby"
     };
-    assertFiletype(pathes, FileType.DEPENDENCY);
+    assertFound(pathes, FileType.DEPENDENCY);
   }
 
   @Test
   public void testGemspec() throws Exception {
     String[] pathes = {"/quick/Marshal.4.8/jbundler.gemspec.rz", "/quick/Marshal.4.8/b/bundler.gemspec.rz"};
-    assertFiletype(pathes, FileType.GEMSPEC);
+    assertFound(pathes, FileType.GEMSPEC);
   }
 
   @Test
   public void testGem() throws Exception {
     String[] pathes = {"/gems/jbundler.gem", "/gems/b/bundler.gem"};
-    assertFiletype(pathes, FileType.GEM);
+    assertFound(pathes, FileType.GEM);
   }
 
   @Test
@@ -133,20 +137,23 @@ public class DefaultBootstrapTest
     String[] pathes = {
         "/", "/api", "/api/", "/api/v1", "/api/v1/",
         "/api/v1/dependencies", "/gems/", "/gems",
+    };
+    assertForbidden(pathes);
+    String[] mpathes = {
         "/maven/releases/rubygems/jbundler",
         "/maven/releases/rubygems/jbundler/1.2.3",
         "/maven/prereleases/rubygems/jbundler",
         "/maven/prereleases/rubygems/jbundler/1.2.3-SNAPSHOT",
     };
-    assertFiletype(pathes, FileType.DIRECTORY);
+    assertFiletype(mpathes, FileType.DIRECTORY);
   }
 
   @Test
   public void testNotFound() throws Exception {
     String[] pathes = {
         "/asa", "/asa/", "/api/a", "/api/v1ds", "/api/v1/ds",
-        "/api/v1/dependencies/jbundler.jsaon.rz", "/api/v1/dependencies/b/bundler.json.rzd",
-        "/api/v1/dependencies/basd/bundler.json.rz",
+        "/api/v1/dependencies/jbundler.jruby", "/api/v1/dependencies/b/bundler.jruby.zd",
+        "/api/v1/dependencies/basd/bundler.ruby",
         "/quick/Marshal.4.8/jbundler.jssaon.rz", "/quick/Marshal.4.8/b/bundler.gemspec.rzd",
         "/quick/Marshal.4.8/basd/bundler.gemspec.rz",
         "/gems/jbundler.jssaonrz", "/gems/b/bundler.gemsa",
@@ -169,7 +176,24 @@ public class DefaultBootstrapTest
 
   protected void assertFiletype(String[] pathes, FileType type) {
     for (String path : pathes) {
-      assertThat(path, bootstrap.file(path).type(), equalTo(type));
+      RubygemsFile file = bootstrap.get(path);
+      assertThat(path, file.type(), equalTo(type));
+      assertThat(path, file.get(), equalTo(null));
+      assertThat(path, file.hasException(), is(false));
+    }
+  }
+
+  protected void assertFound(String[] pathes, FileType type) {
+    for (String path : pathes) {
+      RubygemsFile file = bootstrap.get(path);
+      assertThat(path, file.type(), equalTo(type));
+      assertThat(path, file.notExists(), is(false));
+    }
+  }
+
+  protected void assertForbidden(String[] pathes) {
+    for (String path : pathes) {
+      assertThat(path, bootstrap.get(path).forbidden(), is(true));
     }
   }
 }
