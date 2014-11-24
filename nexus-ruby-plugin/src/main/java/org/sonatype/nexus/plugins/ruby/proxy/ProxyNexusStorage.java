@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.plugins.ruby.proxy;
 
@@ -23,6 +23,13 @@ import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyFile;
 import org.sonatype.nexus.ruby.layout.ProxyStorage;
 
+import com.google.common.base.Throwables;
+
+/**
+ * Rubygems proxy storage.
+ *
+ * @since 2.11
+ */
 public class ProxyNexusStorage
     extends NexusStorage
     implements ProxyStorage
@@ -37,6 +44,7 @@ public class ProxyNexusStorage
   @Override
   public void retrieve(BundlerApiFile file) {
     try {
+      log.debug("retrieve :: {}", file);
       file.set(repository.retrieveDirectItem(new ResourceStoreRequest(file.storagePath(), false, true)));
     }
     catch (IOException | IllegalOperationException | ItemNotFoundException e) {
@@ -46,24 +54,28 @@ public class ProxyNexusStorage
 
   @Override
   public boolean isExpired(DependencyFile file) {
+    boolean expired = true;
     try {
       ResourceStoreRequest request = new ResourceStoreRequest(file.storagePath(), true, false);
       if (repository.getLocalStorage().containsItem(repository, request)) {
         StorageItem item = repository.getLocalStorage().retrieveItem(repository, request);
         long maxAge = repository.getMetadataMaxAge();
         if (maxAge > -1) {
-          repository.getLog().error(file + "" +
-              (item.isExpired() || ((System.currentTimeMillis() - item.getRemoteChecked()) > (maxAge * 60L * 1000L))));
-          return item.isExpired() || ((System.currentTimeMillis() - item.getRemoteChecked()) > (maxAge * 60L * 1000L));
+          expired = item.isExpired() || ((System.currentTimeMillis() - item.getRemoteChecked()) > (maxAge * 60L * 1000L));
         }
         else {
-          return false;
+          expired = false;
         }
       }
     }
-    catch (IOException | ItemNotFoundException e) {
-      file.setException(e);
+    catch (ItemNotFoundException e) {
+      // ignore
     }
-    return true;
+    catch (IOException e) {
+      // fail here
+      throw Throwables.propagate(e);
+    }
+    log.debug("isExpired={} :: {}", expired, file);
+    return expired;
   }
 }

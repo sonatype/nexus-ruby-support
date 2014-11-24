@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.plugins.ruby;
 
@@ -22,10 +22,12 @@ import java.util.TreeSet;
 
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
+import org.sonatype.nexus.proxy.IllegalRequestException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.NoSuchResourceStoreException;
 import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.AbstractStorageItem;
 import org.sonatype.nexus.proxy.item.DefaultStorageCollectionItem;
 import org.sonatype.nexus.proxy.item.StorageItem;
@@ -36,8 +38,15 @@ import org.sonatype.nexus.ruby.Directory;
 import org.sonatype.nexus.ruby.FileType;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.cuba.RubygemsFileSystem;
+import org.sonatype.sisu.goodies.common.ComponentSupport;
 
+/**
+ * ???
+ *
+ * @since 2.11
+ */
 public class NexusRubygemsFacade
+    extends ComponentSupport
 {
   private final RubygemsFileSystem filesystem;
 
@@ -46,8 +55,9 @@ public class NexusRubygemsFacade
   }
 
   public RubygemsFile get(ResourceStoreRequest request) {
-    String[] pathAndQeury = extractGemsQuery(request);
-    return filesystem.get(pathAndQeury[0], pathAndQeury[1]);
+    String[] pathAndQuery = extractGemsQuery(request);
+    log.debug("get :: {} :: query={}", request.getRequestPath(), pathAndQuery);
+    return filesystem.get(pathAndQuery[0], pathAndQuery[1]);
   }
 
   private String[] extractGemsQuery(ResourceStoreRequest request) {
@@ -67,8 +77,9 @@ public class NexusRubygemsFacade
   }
 
   public RubygemsFile file(ResourceStoreRequest request) {
-    String[] pathAndQeury = extractGemsQuery(request);
-    return filesystem.file(pathAndQeury[0], pathAndQeury[1]);
+    String[] pathAndQuery = extractGemsQuery(request);
+    log.debug("file :: {} :: query={}", request.getRequestPath(), pathAndQuery);
+    return filesystem.file(pathAndQuery[0], pathAndQuery[1]);
   }
 
   public RubygemsFile file(String path) {
@@ -90,27 +101,32 @@ public class NexusRubygemsFacade
 
   @SuppressWarnings("deprecation")
   public StorageItem handleCommon(RubyRepository repository, RubygemsFile file)
-      throws IllegalOperationException, org.sonatype.nexus.proxy.StorageException
+      throws IllegalOperationException, StorageException
   {
+    log.debug("handleCommon :: {} :: {}", repository.getId(), file);
     switch (file.state()) {
       case ERROR:
         Exception e = file.getException();
+        log.debug("handleCommon :: ERROR", e);
         if (e instanceof IllegalOperationException) {
           throw (IllegalOperationException) e;
         }
         if (e instanceof RemoteAccessException) {
           throw (RemoteAccessException) e;
         }
-        if (e instanceof org.sonatype.nexus.proxy.StorageException) {
-          throw (org.sonatype.nexus.proxy.StorageException) e;
+        if (e instanceof StorageException) {
+          throw (StorageException) e;
         }
         if (e instanceof IOException) {
-          throw new org.sonatype.nexus.proxy.StorageException((IOException) e);
+          throw new StorageException(e);
         }
         throw new RuntimeException(e);
       case PAYLOAD:
         return (StorageItem) file.get();
       case FORBIDDEN:
+          throw new IllegalRequestException(new ResourceStoreRequest(file.remotePath()),
+              "Repository with ID='" + repository.getId()
+              + "' does not allow deleting '" + file.remotePath() + "'.");
       case NOT_EXISTS:
       case TEMP_UNAVAILABLE:
       case NEW_INSTANCE:
@@ -121,13 +137,14 @@ public class NexusRubygemsFacade
 
   @SuppressWarnings("deprecation")
   public StorageItem handleMutation(RubyRepository repository, RubygemsFile file)
-      throws IllegalOperationException, org.sonatype.nexus.proxy.StorageException, UnsupportedStorageOperationException
+      throws IllegalOperationException, StorageException, UnsupportedStorageOperationException
   {
+    log.debug("handleMutation :: {} :: {}", repository.getId(), file);
     switch (file.state()) {
       case ERROR:
         Exception e = file.getException();
         if (e instanceof UnsupportedStorageOperationException) {
-          throw new UnsupportedStorageOperationException(file.storagePath());
+          throw (UnsupportedStorageOperationException) e;
         }
       default:
         return handleCommon(repository, file);
@@ -163,7 +180,7 @@ public class NexusRubygemsFacade
     @SuppressWarnings("deprecation")
     @Override
     public Collection<StorageItem> list()
-        throws AccessDeniedException, NoSuchResourceStoreException, IllegalOperationException, org.sonatype.nexus.proxy.StorageException
+        throws AccessDeniedException, NoSuchResourceStoreException, IllegalOperationException, StorageException
     {
       Collection<StorageItem> result;
       try {
@@ -188,8 +205,9 @@ public class NexusRubygemsFacade
 
   @SuppressWarnings("deprecation")
   public StorageItem handleRetrieve(RubyRepository repository, ResourceStoreRequest req, RubygemsFile file)
-      throws IllegalOperationException, org.sonatype.nexus.proxy.StorageException, ItemNotFoundException
+      throws IllegalOperationException, StorageException, ItemNotFoundException
   {
+    log.debug("handleRetrieve :: {} :: {}", repository.getId(), file);
     switch (file.state()) {
       case NO_PAYLOAD:
         if (file.type() == FileType.DIRECTORY) {

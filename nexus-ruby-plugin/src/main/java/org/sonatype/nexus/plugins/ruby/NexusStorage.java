@@ -1,26 +1,24 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.plugins.ruby;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.zip.GZIPInputStream;
 
 import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
@@ -41,8 +39,15 @@ import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.SpecsIndexFile;
 import org.sonatype.nexus.ruby.SpecsIndexZippedFile;
 import org.sonatype.nexus.ruby.layout.Storage;
+import org.sonatype.sisu.goodies.common.ComponentSupport;
 
+/**
+ * A {@link RubyRepository} backed {@link Storage} implementation.
+ *
+ * @since 2.11
+ */
 public class NexusStorage
+    extends ComponentSupport
     implements Storage
 {
   protected final RubyRepository repository;
@@ -53,6 +58,7 @@ public class NexusStorage
 
   @Override
   public void retrieve(RubygemsFile file) {
+    log.debug("retrieve :: {}", file);
     try {
       file.set(repository.retrieveDirectItem(new ResourceStoreRequest(file.storagePath())));
     }
@@ -76,6 +82,7 @@ public class NexusStorage
 
   @Override
   public void retrieve(SpecsIndexFile specs) {
+    log.debug("retrieve :: {}", specs);
     SpecsIndexZippedFile source = specs.zippedSpecsIndexFile();
     try {
       StorageFileItem item = (StorageFileItem)
@@ -98,19 +105,11 @@ public class NexusStorage
   }
 
   private ContentLocator gunzipContentLocator(StorageFileItem item) throws IOException {
-    InputStream in = null;
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    try {
-      in = new GZIPInputStream(item.getInputStream());
-      IOUtil.copy(in, out);
-
-      return newPreparedContentLocator(new ByteArrayInputStream(out.toByteArray()),
+    try (InputStream in = item.getInputStream()) {
+      ByteArrayInputStream gzipped = IOUtil.toGunzipped(in);
+      return newPreparedContentLocator(gzipped,
           "application/x-marshal-ruby",
-          out.toByteArray().length);
-    }
-    finally {
-      IOUtil.close(in);
-      IOUtil.close(out);
+          gzipped.available());
     }
   }
 
@@ -134,6 +133,7 @@ public class NexusStorage
 
   @Override
   public void update(InputStream is, RubygemsFile file) {
+    log.debug("update :: {}", file);
     ResourceStoreRequest request = new ResourceStoreRequest(file.storagePath());
     ContentLocator contentLocator = newPreparedContentLocator(is, file.type().mime(), ContentLocator.UNKNOWN_LENGTH);
     DefaultStorageFileItem fileItem = new DefaultStorageFileItem(repository, request,
@@ -149,25 +149,9 @@ public class NexusStorage
     }
   }
 
-  protected ContentLocator newPreparedContentLocator(InputStream is, String mime, long length) {
-    try {
-      return new PreparedContentLocator(is, mime, length);
-    }
-    catch (NoSuchMethodError e) {
-      try {
-        Constructor<PreparedContentLocator> c =
-            PreparedContentLocator.class.getConstructor(new Class[]{InputStream.class, String.class});
-        return c.newInstance(is, mime);
-      }
-      catch (Exception ee) {
-        ee.printStackTrace();
-        throw e;
-      }
-    }
-  }
-
   @SuppressWarnings("deprecation")
   public void delete(RubygemsFile file) {
+    log.debug("delete :: {}", file);
     ResourceStoreRequest request = new ResourceStoreRequest(file.storagePath());
 
     try {
@@ -182,7 +166,7 @@ public class NexusStorage
   }
 
   @Override
-  public void memory(InputStream data, RubygemsFile file) {
+  public void memory(ByteArrayInputStream data, RubygemsFile file) {
     memory(data, file, ContentLocator.UNKNOWN_LENGTH);
   }
 
@@ -207,8 +191,30 @@ public class NexusStorage
         }
       }
     }
-    catch (IOException | IllegalOperationException | ItemNotFoundException | AccessDeniedException | NoSuchResourceStoreException e) {
+    catch (ItemNotFoundException e) {
+      // an empty array is good enough
+    }
+    catch (IOException | IllegalOperationException | AccessDeniedException | NoSuchResourceStoreException e) {
+      dir.setException(e);
+      // the return is still an empty array but the exception gets propagated
     }
     return result.toArray(new String[result.size()]);
+  }
+
+  protected ContentLocator newPreparedContentLocator(InputStream is, String mime, long length) {
+    try {
+      return new PreparedContentLocator(is, mime, length);
+    }
+    catch (NoSuchMethodError e) {
+      try {
+        Constructor<PreparedContentLocator> c =
+            PreparedContentLocator.class.getConstructor(new Class[]{InputStream.class, String.class});
+        return c.newInstance(is, mime);
+      }
+      catch (Exception ee) {
+        ee.printStackTrace();
+        throw e;
+      }
+    }
   }
 }

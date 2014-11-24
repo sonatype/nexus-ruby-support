@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.plugins.ruby.group;
 
@@ -17,7 +17,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -37,6 +36,8 @@ import org.sonatype.nexus.proxy.repository.GroupItemNotFoundException;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
 import org.sonatype.nexus.ruby.BundlerApiFile;
 import org.sonatype.nexus.ruby.DependencyFile;
+import org.sonatype.nexus.ruby.DependencyHelper;
+import org.sonatype.nexus.ruby.MergeSpecsHelper;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.SpecsIndexType;
@@ -45,6 +46,11 @@ import org.sonatype.nexus.ruby.layout.ProxyStorage;
 
 import org.codehaus.plexus.util.IOUtil;
 
+/**
+ * Rubygems group storage.
+ *
+ * @since 2.11
+ */
 public class GroupNexusStorage
     extends NexusStorage
     implements ProxyStorage
@@ -71,19 +77,20 @@ public class GroupNexusStorage
 
   private void doRetrieve(RubygemsFile file) {
     try {
+      log.debug("doRetrieve :: {}", file);
       file.set(setup(file));
     }
     catch (ItemNotFoundException e) {
+      log.debug("doRetrieve-NotFound :: {} :: {}", file, e.toString());
       file.markAsNotExists();
     }
-    catch (IOException | IllegalOperationException | UnsupportedStorageOperationException e) {
+    catch (Exception e) {
+      log.debug("doRetrieve-Exception :: {} :: {}", file, e.toString());
       file.setException(e);
     }
   }
 
-  private StorageItem setup(RubygemsFile file)
-      throws ItemNotFoundException, UnsupportedStorageOperationException, IOException, IllegalOperationException
-  {
+  private StorageItem setup(RubygemsFile file) throws Exception {
     ResourceStoreRequest req = new ResourceStoreRequest(file.storagePath());
     // TODO is synchronized really needed
     synchronized (repository) {
@@ -95,9 +102,7 @@ public class GroupNexusStorage
     }
   }
 
-  private StorageItem store(RubygemsFile file, List<StorageItem> items)
-      throws UnsupportedStorageOperationException, IllegalOperationException, IOException
-  {
+  private StorageItem store(RubygemsFile file, List<StorageItem> items) throws Exception {
     StorageFileItem localItem = null;
     try {
       localItem = (StorageFileItem) repository.getLocalStorage().retrieveItem(repository,
@@ -121,9 +126,9 @@ public class GroupNexusStorage
     if (outdated) {
       switch (file.type()) {
         case DEPENDENCY:
-          return merge((DependencyFile) file, items);
+          return mergeDependency((DependencyFile) file, items);
         case SPECS_INDEX_ZIPPED:
-          return merge((SpecsIndexZippedFile) file, items);
+          return mergeSpecsIndex((SpecsIndexZippedFile) file, items);
         default:
           throw new RuntimeException("BUG: should never reach here: " + file);
       }
@@ -133,78 +138,52 @@ public class GroupNexusStorage
     }
   }
 
-  private StorageItem merge(SpecsIndexZippedFile file, List<StorageItem> items)
-      throws UnsupportedStorageOperationException, IOException, IllegalOperationException
-  {
-    List<InputStream> streams = new LinkedList<InputStream>();
-    try {
-      for (StorageItem item : items) {
-        streams.add(new GZIPInputStream(((StorageFileItem) item).getInputStream()));
+  private StorageItem mergeSpecsIndex(SpecsIndexZippedFile file, List<StorageItem> items) throws Exception {
+    log.debug("mergeSpecsIndex :: {} :: {}", file, items);
+    MergeSpecsHelper specs = gateway.newMergeSpecsHelper();
+    for (StorageItem item : items) {
+      try (InputStream is = ((StorageFileItem) item).getInputStream()) {
+        specs.add(new GZIPInputStream(is));
       }
-      return storeSpecsIndex(file, gateway.mergeSpecs(streams, file.specsType() == SpecsIndexType.LATEST));
     }
-    finally {
-      if (streams != null) {
-        for (InputStream i : streams) {
-          IOUtil.close(i);
-        }
-      }
+    try (InputStream is = specs.getInputStream(file.specsType() == SpecsIndexType.LATEST)) {
+      return storeSpecsIndex(file, is);
     }
   }
 
-  private StorageItem storeSpecsIndex(SpecsIndexZippedFile file, InputStream content)
-      throws UnsupportedStorageOperationException, IOException, IllegalOperationException
-  {
-    OutputStream out = null;
-    try {
-      ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
-      out = new GZIPOutputStream(gzipped);
+  private StorageItem storeSpecsIndex(SpecsIndexZippedFile file, InputStream content) throws Exception {
+    ByteArrayOutputStream gzipped = new ByteArrayOutputStream();
+    try (OutputStream out = new GZIPOutputStream(gzipped)) {
       IOUtil.copy(content, out);
-      // need to close gzip stream here
-      out.close();
-      ContentLocator cl = newPreparedContentLocator(new ByteArrayInputStream(gzipped.toByteArray()),
-          "application/x-gzip",
-          gzipped.size());
-      DefaultStorageFileItem item =
-          new DefaultStorageFileItem(repository,
-              new ResourceStoreRequest(file.storagePath()),
-              true, true, cl);
-      repository.storeItem(false, item);
-      return item;
     }
-    finally {
-      IOUtil.close(content);
-      IOUtil.close(out);
-    }
+    ContentLocator cl = newPreparedContentLocator(new ByteArrayInputStream(gzipped.toByteArray()),
+        "application/x-gzip", gzipped.size());
+    DefaultStorageFileItem item =
+        new DefaultStorageFileItem(repository,
+            new ResourceStoreRequest(file.storagePath()),
+            true, true, cl);
+    repository.storeItem(false, item);
+    return item;
   }
 
-  private StorageItem merge(DependencyFile file, List<StorageItem> dependencies)
-      throws UnsupportedStorageOperationException, IllegalOperationException, IOException
-  {
-    List<InputStream> streams = new LinkedList<InputStream>();
-    InputStream content = null;
-    try {
-      for (StorageItem item : dependencies) {
-        streams.add(((StorageFileItem) item).getInputStream());
+  private StorageItem mergeDependency(DependencyFile file, List<StorageItem> dependencies) throws Exception {
+    log.debug("mergeDependency :: {} :: {}", file, dependencies);
+    DependencyHelper deps = gateway.newDependencyHelper();
+    for (StorageItem item : dependencies) {
+      try (InputStream is = ((StorageFileItem) item).getInputStream()) {
+        deps.add(is);
       }
-      content = gateway.mergeDependencies(streams, true);
-      ContentLocator cl = newPreparedContentLocator(content,
-          file.type().mime(),
-          PreparedContentLocator.UNKNOWN_LENGTH);
+    }
+    ContentLocator cl = newPreparedContentLocator(deps.getInputStream(true),
+        file.type().mime(),
+        PreparedContentLocator.UNKNOWN_LENGTH);
 
-      DefaultStorageFileItem item =
-          new DefaultStorageFileItem(repository,
-              new ResourceStoreRequest(file.storagePath()),
-              true, true, cl);
-      repository.storeItem(false, item);
-      return item;
-    }
-    finally {
-      IOUtil.close(content);
-      for (InputStream is : streams) {
-        IOUtil.close(is);
-      }
-    }
+    DefaultStorageFileItem item =
+        new DefaultStorageFileItem(repository,
+            new ResourceStoreRequest(file.storagePath()),
+            true, true, cl);
+    repository.storeItem(false, item);
+    return item;
   }
 
   @Override

@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.plugins.ruby.group;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import javax.inject.Inject;
@@ -27,9 +28,8 @@ import org.sonatype.nexus.plugins.ruby.RubyGroupRepository;
 import org.sonatype.nexus.plugins.ruby.RubyRepository;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
-import org.sonatype.nexus.proxy.LocalStorageException;
-import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractGroupRepository;
@@ -47,6 +47,11 @@ import org.slf4j.Logger;
 
 import static org.sonatype.nexus.proxy.ItemNotFoundException.reasonFor;
 
+/**
+ * Default {@link RubyGroupRepository} implementation.
+ *
+ * @since 2.11
+ */
 @Named(DefaultRubyGroupRepository.ID)
 public class DefaultRubyGroupRepository
     extends AbstractGroupRepository
@@ -63,10 +68,9 @@ public class DefaultRubyGroupRepository
   private final NexusRubygemsFacade facade;
 
   @Inject
-  public DefaultRubyGroupRepository(@Named(RubyContentClass.ID) ContentClass contentClass,
-                                    GroupRubyRepositoryConfigurator configurator,
-                                    RubygemsGateway gateway)
-      throws LocalStorageException, ItemNotFoundException
+  public DefaultRubyGroupRepository(final @Named(RubyContentClass.ID) ContentClass contentClass,
+                                    final GroupRubyRepositoryConfigurator configurator,
+                                    final RubygemsGateway gateway)
   {
     this.contentClass = contentClass;
     this.configurator = configurator;
@@ -116,7 +120,7 @@ public class DefaultRubyGroupRepository
   @SuppressWarnings("deprecation")
   @Override
   public StorageItem retrieveItem(boolean fromTask, ResourceStoreRequest request)
-      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+      throws IllegalOperationException, ItemNotFoundException, StorageException
   {
     if (fromTask && request.getRequestPath().startsWith("/.nexus")) {
       return super.retrieveItem(true, request);
@@ -126,7 +130,7 @@ public class DefaultRubyGroupRepository
 
   @SuppressWarnings("deprecation")
   public StorageItem retrieveDirectItem(ResourceStoreRequest request)
-      throws org.sonatype.nexus.proxy.StorageException, IllegalOperationException, ItemNotFoundException
+      throws IllegalOperationException, ItemNotFoundException, IOException
   {
     for (Repository repo : getMemberRepositories()) {
       try {

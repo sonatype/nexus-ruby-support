@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2007-2014 Sonatype, Inc. All rights reserved.
+ * Sonatype Nexus (TM) Open Source Version
+ * Copyright (c) 2007-2014 Sonatype, Inc.
+ * All rights reserved. Includes the third-party code listed at http://links.sonatype.com/products/nexus/oss/attributions.
  *
- * This program is licensed to you under the Apache License Version 2.0,
- * and you may not use this file except in compliance with the Apache License Version 2.0.
- * You may obtain a copy of the Apache License Version 2.0 at http://www.apache.org/licenses/LICENSE-2.0.
+ * This program and the accompanying materials are made available under the terms of the Eclipse Public License Version 1.0,
+ * which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html.
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the Apache License Version 2.0 is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Apache License Version 2.0 for the specific language governing permissions and limitations there under.
+ * Sonatype Nexus (TM) Professional Version is available from Sonatype, Inc. "Sonatype" and "Sonatype Nexus" are trademarks
+ * of Sonatype, Inc. Apache Maven is a trademark of the Apache Software Foundation. M2eclipse is a trademark of the
+ * Eclipse Foundation. All other trademarks are the property of their respective owners.
  */
 package org.sonatype.nexus.plugins.ruby.hosted;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Map;
@@ -31,8 +32,8 @@ import org.sonatype.nexus.proxy.AccessDeniedException;
 import org.sonatype.nexus.proxy.IllegalOperationException;
 import org.sonatype.nexus.proxy.ItemNotFoundException;
 import org.sonatype.nexus.proxy.LocalStorageException;
-import org.sonatype.nexus.proxy.RemoteAccessException;
 import org.sonatype.nexus.proxy.ResourceStoreRequest;
+import org.sonatype.nexus.proxy.StorageException;
 import org.sonatype.nexus.proxy.item.StorageItem;
 import org.sonatype.nexus.proxy.registry.ContentClass;
 import org.sonatype.nexus.proxy.repository.AbstractRepository;
@@ -40,6 +41,7 @@ import org.sonatype.nexus.proxy.repository.DefaultRepositoryKind;
 import org.sonatype.nexus.proxy.repository.Repository;
 import org.sonatype.nexus.proxy.repository.RepositoryKind;
 import org.sonatype.nexus.proxy.storage.UnsupportedStorageOperationException;
+import org.sonatype.nexus.ruby.RepairHelper;
 import org.sonatype.nexus.ruby.RubygemsFile;
 import org.sonatype.nexus.ruby.RubygemsGateway;
 import org.sonatype.nexus.ruby.layout.HostedRubygemsFileSystem;
@@ -47,6 +49,11 @@ import org.sonatype.nexus.ruby.layout.HostedRubygemsFileSystem;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.slf4j.Logger;
 
+/**
+ * Default {@link HostedRubyRepository} implementation.
+ *
+ * @since 2.11
+ */
 @Named(DefaultHostedRubyRepository.ID)
 public class DefaultHostedRubyRepository
     extends AbstractRepository
@@ -65,10 +72,9 @@ public class DefaultHostedRubyRepository
   private final NexusRubygemsFacade facade;
 
   @Inject
-  public DefaultHostedRubyRepository(@Named(RubyContentClass.ID) ContentClass contentClass,
-                                     HostedRubyRepositoryConfigurator configurator,
-                                     RubygemsGateway gateway)
-      throws LocalStorageException, ItemNotFoundException
+  public DefaultHostedRubyRepository(final @Named(RubyContentClass.ID) ContentClass contentClass,
+                                     final HostedRubyRepositoryConfigurator configurator,
+                                     final RubygemsGateway gateway)
   {
     this.contentClass = contentClass;
     this.configurator = configurator;
@@ -107,8 +113,9 @@ public class DefaultHostedRubyRepository
   }
 
   @SuppressWarnings("deprecation")
+  @Override
   public void storeItem(ResourceStoreRequest request, InputStream is, Map<String, String> userAttributes)
-      throws UnsupportedStorageOperationException, IllegalOperationException, org.sonatype.nexus.proxy.StorageException, AccessDeniedException
+      throws UnsupportedStorageOperationException, IllegalOperationException, StorageException, AccessDeniedException
   {
     RubygemsFile file = facade.file(request.getRequestPath());
     if (file == null) {
@@ -130,7 +137,7 @@ public class DefaultHostedRubyRepository
   @SuppressWarnings("deprecation")
   @Override
   public void deleteItem(ResourceStoreRequest request)
-      throws org.sonatype.nexus.proxy.StorageException, UnsupportedStorageOperationException, IllegalOperationException, ItemNotFoundException
+      throws StorageException, UnsupportedStorageOperationException, IllegalOperationException, ItemNotFoundException
   {
     facade.handleMutation(this, facade.delete(request.getRequestPath()));
   }
@@ -145,7 +152,7 @@ public class DefaultHostedRubyRepository
   @SuppressWarnings("deprecation")
   @Override
   public StorageItem retrieveDirectItem(ResourceStoreRequest request)
-      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+      throws IllegalOperationException, ItemNotFoundException, IOException
   {
     // bypass access control
     return super.retrieveItem(false, request);
@@ -154,7 +161,7 @@ public class DefaultHostedRubyRepository
   @SuppressWarnings("deprecation")
   @Override
   public StorageItem retrieveItem(boolean fromTask, ResourceStoreRequest request)
-      throws IllegalOperationException, ItemNotFoundException, RemoteAccessException, org.sonatype.nexus.proxy.StorageException
+      throws IllegalOperationException, ItemNotFoundException, StorageException
   {
     if (fromTask && request.getRequestPath().startsWith("/.nexus")) {
       return super.retrieveItem(true, request);
@@ -166,13 +173,14 @@ public class DefaultHostedRubyRepository
   public void recreateMetadata() throws LocalStorageException, ItemNotFoundException {
     String directory = getBaseDirectory();
     if (getLog().isDebugEnabled()) {
-      getLog().debug("recreate rubygems metadata in " + directory);
+      getLog().debug("recreate rubygems metadata in {}", directory);
     }
-    gateway.recreateRubygemsIndex(directory);
-    gateway.purgeBrokenDepencencyFiles(directory);
+    RepairHelper repair = gateway.newRepairHelper();
+    repair.recreateRubygemsIndex(directory);
+    repair.purgeBrokenDepencencyFiles(directory);
   }
 
-  protected String getBaseDirectory() throws ItemNotFoundException, LocalStorageException {
+  protected String getBaseDirectory() throws LocalStorageException {
     // TODO use getApplicationConfiguration().getWorkingDirectory()
     return this.getLocalUrl().replace("file:", "");
   }
