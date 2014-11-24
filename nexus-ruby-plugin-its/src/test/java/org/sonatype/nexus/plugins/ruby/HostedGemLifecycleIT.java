@@ -47,6 +47,6 @@ public class HostedGemLifecycleIT
 
     assertFileDownload("gems/" + gem.getName(), is(true));
     assertFileDownload("quick/Marshal.4.8/" + gem.getName() + "spec.rz", is(true));
-    assertFileDownload("api/v1/dependencies/" + gem.getName().replaceFirst("-.*$", ".json.rz"), is(true));
+    assertFileDownload("api/v1/dependencies/" + gem.getName().replaceFirst("-.*$", ".ruby"), is(true));
   }
 }

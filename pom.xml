@@ -51,7 +51,7 @@
     <module>nexus-ruby-plugin</module>
     <module>nexus-gem</module>
     <module>nexus-ruby-tools</module>
-    <module>nexus-ruby-plugin-its</module>
+    <!--module>nexus-ruby-plugin-its</module-->
   </modules>
 
   <!--<profiles>-->
@@ -88,20 +88,20 @@
         <groupId>org.sonatype.nexus.plugins</groupId>
         <artifactId>nexus-ruby-plugin</artifactId>
         <type>${nexus-plugin.type}</type>
-        <version>1.4.4</version>
+        <version>1.5.0</version>
       </dependency>
 
       <dependency>
         <groupId>org.sonatype.nexus.ruby</groupId>
         <artifactId>nexus-ruby-tools</artifactId>
-        <version>3.1.2</version>
+        <version>4.0.0</version>
       </dependency>
 
       <dependency>
         <groupId>org.sonatype.nexus.ruby</groupId>
         <artifactId>nexus-ruby-tools</artifactId>
         <classifier>tests</classifier>
-        <version>3.1.2</version>
+        <version>4.0.0</version>
       </dependency>
 
     </dependencies>

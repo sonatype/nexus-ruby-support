@@ -12,7 +12,7 @@
  */
 package org.sonatype.nexus.ruby;
 
-class TestUtils
+public class TestUtils
 {
   public static String lastLine(String text) {
     String[] lines = lines(text);

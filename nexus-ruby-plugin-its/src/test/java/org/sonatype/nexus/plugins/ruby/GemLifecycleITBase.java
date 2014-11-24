@@ -54,7 +54,7 @@ public abstract class GemLifecycleITBase
     String gemName = "gems/" + nexusGem.getName();
     String gemspecName = "quick/Marshal.4.8/" + nexusGem.getName() + "spec.rz";
     String dependencyName = "api/v1/dependencies/" +
-        nexusGem.getName().replaceFirst("-.*$", ".json.rz");
+        nexusGem.getName().replaceFirst("-.*$", ".ruby");
 
     // make sure our gem is not on the repository
     assertFileDownload(gemName, is(false));
@@ -88,7 +88,7 @@ public abstract class GemLifecycleITBase
         is(true));
     assertFileDownload("quick/Marshal.4.8/" + winGem.getName() + "spec.rz",
         is(true));
-    assertFileDownload("api/v1/dependencies/" + winGem.getName().replaceFirst("-.*$", ".json.rz"),
+    assertFileDownload("api/v1/dependencies/" + winGem.getName().replaceFirst("-.*$", ".ruby"),
         is(true));
   }
 
